@@ -87,33 +87,33 @@ class KalmanFilter(object):
         n_steps, dim_x = x_observed.shape
         z_mean_seq = np.full((n_steps, self.dim_z), np.nan)
         z_covar_seq = np.full((n_steps, self.dim_z, self.dim_z), np.nan)
-        for s in range(n_steps):
+        for t in range(n_steps):
             # forecast update
-            if s == 0:
-                z_mean_seq[s] = self.init_state_mean
-                z_covar_seq[s] = self.init_state_covar
+            if t == 0:
+                z_mean_seq[t] = self.init_state_mean
+                z_covar_seq[t] = self.init_state_covar
             else:
-                z_mean_seq[s] = self.state_trans_matrix.dot(z_mean_seq[s-1])
-                z_covar_seq[s] = (
-                    self.state_trans_matrix.dot(z_covar_seq[s-1]).dot(
+                z_mean_seq[t] = self.state_trans_matrix.dot(z_mean_seq[t-1])
+                z_covar_seq[t] = (
+                    self.state_trans_matrix.dot(z_covar_seq[t-1]).dot(
                         self.state_trans_matrix.T) +
                     self.state_noise_covar
                 )
             # analysis update
-            x_mean = self.observation_matrix.dot(z_mean_seq[s])
+            x_mean = self.observation_matrix.dot(z_mean_seq[t])
             x_covar = (
-                self.observation_matrix.dot(z_covar_seq[s]).dot(
+                self.observation_matrix.dot(z_covar_seq[t]).dot(
                     self.observation_matrix.T) +
                 self.obser_noise_covar
             )
-            x_z_covar = z_covar_seq[s].dot(self.observation_matrix.T)
+            x_z_covar = z_covar_seq[t].dot(self.observation_matrix.T)
             k_gain = la.solve(x_covar, x_z_covar.T, True).T
-            z_mean_seq[s] += k_gain.dot(x_observed[s] - x_mean)
+            z_mean_seq[t] += k_gain.dot(x_observed[t] - x_mean)
             covar_trans = (
                 np.eye(self.dim_z) - k_gain.dot(self.observation_matrix)
             )
-            z_covar_seq[s] = (
-                covar_trans.dot(z_covar_seq[s]).dot(covar_trans.T) +
+            z_covar_seq[t] = (
+                covar_trans.dot(z_covar_seq[t]).dot(covar_trans.T) +
                 k_gain.dot(self.obser_noise_covar).dot(k_gain.T)
             )
         return {'z_mean_seq': z_mean_seq, 'z_covar_seq': z_covar_seq}

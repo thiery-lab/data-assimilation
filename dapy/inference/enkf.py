@@ -83,24 +83,24 @@ class EnsembleKalmanFilter(object):
                     distribution at each time step.
         """
         n_steps, dim_x = x_observed.shape
-        for s in range(n_steps):
+        for t in range(n_steps):
             # forecast update
-            if s == 0:
+            if t == 0:
                 z_forecast = self.init_state_sampler(n_particles)
                 dim_z = z_forecast.shape[1]
                 z_mean_seq = np.full((n_steps, dim_z), np.nan)
                 z_particles_seq = np.full(
                     (n_steps, n_particles, dim_z), np.nan)
             else:
-                z_forecast = self.next_state_sampler(z_analysis)
+                z_forecast = self.next_state_sampler(z_analysis, t)
             # analysis update
-            x_forecast = self.observation_sampler(z_forecast)
+            x_forecast = self.observation_sampler(z_forecast, t)
             dz_forecast = z_forecast - z_forecast.mean(0)
             dx_forecast = x_forecast - x_forecast.mean(0)
             k_gain = np.linalg.pinv(dx_forecast).dot(dz_forecast)
-            z_analysis = z_forecast + (x_observed[s] - x_forecast).dot(k_gain)
-            z_mean_seq[s] = z_analysis.mean(0)
-            z_particles_seq[s] = z_analysis
+            z_analysis = z_forecast + (x_observed[t] - x_forecast).dot(k_gain)
+            z_mean_seq[t] = z_analysis.mean(0)
+            z_particles_seq[t] = z_analysis
         return {'z_mean_seq': z_mean_seq, 'z_particles_seq': z_particles_seq}
 
 
@@ -185,15 +185,15 @@ class EnsembleSquareRootFilter(object):
                     distribution at each time step.
         """
         n_steps, dim_x = x_observed.shape
-        for s in range(n_steps):
-            if s == 0:
+        for t in range(n_steps):
+            if t == 0:
                 z_forecast = self.init_state_sampler(n_particles)
                 dim_z = z_forecast.shape[1]
                 z_mean_seq = np.full((n_steps, dim_z), np.nan)
                 z_particles_seq = np.full(
                     (n_steps, n_particles, dim_z), np.nan)
             else:
-                z_forecast = self.next_state_sampler(z_analysis)
+                z_forecast = self.next_state_sampler(z_analysis, t)
             z_mean_forecast = z_forecast.mean(0)
             x_mean_forecast = self.observation_matrix.dot(z_mean_forecast)
             dz_forecast = z_forecast - z_mean_forecast
@@ -206,7 +206,7 @@ class EnsembleSquareRootFilter(object):
             k_gain = (eigvec_c / eigval_c).dot(eigvec_c.T).dot(
                 dx_forecast.T.dot(dz_forecast))
             z_mean_analysis = z_mean_forecast + (
-                x_observed[s] - x_mean_forecast).dot(k_gain)
+                x_observed[t] - x_mean_forecast).dot(k_gain)
             m_matrix = dx_forecast.dot(
                 eigvec_c / eigval_c).dot(eigvec_c.T).dot(dx_forecast.T)
             eigval_m, eigvec_m = la.eigh(m_matrix)
@@ -218,8 +218,8 @@ class EnsembleSquareRootFilter(object):
             ).dot(eigvec_m.T)
             dz_analysis = sqrt_matrix.dot(dz_forecast)
             z_analysis = z_mean_analysis + dz_analysis
-            z_particles_seq[s] = z_analysis
-            z_mean_seq[s] = z_mean_analysis
+            z_particles_seq[t] = z_analysis
+            z_mean_seq[t] = z_mean_analysis
         return {'z_mean_seq': z_mean_seq, 'z_particles_seq': z_particles_seq}
 
 
@@ -307,15 +307,15 @@ class WoodburyEnsembleSquareRootFilter(object):
                     distribution at each time step.
         """
         n_steps, dim_x = x_observed.shape
-        for s in range(n_steps):
-            if s == 0:
+        for t in range(n_steps):
+            if t == 0:
                 z_forecast = self.init_state_sampler(n_particles)
                 dim_z = z_forecast.shape[1]
                 z_mean_seq = np.full((n_steps, dim_z), np.nan)
                 z_particles_seq = np.full(
                     (n_steps, n_particles, dim_z), np.nan)
             else:
-                z_forecast = self.next_state_sampler(z_analysis)
+                z_forecast = self.next_state_sampler(z_analysis, t)
             z_mean_forecast = z_forecast.mean(0)
             x_mean_forecast = self.observation_matrix.dot(z_mean_forecast)
             dz_forecast = z_forecast - z_mean_forecast
@@ -334,7 +334,7 @@ class WoodburyEnsembleSquareRootFilter(object):
             c_inv_dx_forecast_t = c_inv_matrix.dot(dx_forecast.T)
             k_gain = c_inv_dx_forecast_t.dot(dz_forecast)
             z_mean_analysis = z_mean_forecast + (
-                x_observed[s] - x_mean_forecast).dot(k_gain)
+                x_observed[t] - x_mean_forecast).dot(k_gain)
             m_matrix = dx_forecast.dot(c_inv_dx_forecast_t)
             eigval_m, eigvec_m = la.eigh(m_matrix)
             if warn and np.any(eigval_m > 1.):
@@ -345,6 +345,6 @@ class WoodburyEnsembleSquareRootFilter(object):
             ).dot(eigvec_m.T)
             dz_analysis = sqrt_matrix.dot(dz_forecast)
             z_analysis = z_mean_analysis + dz_analysis
-            z_particles_seq[s] = z_analysis
-            z_mean_seq[s] = z_mean_analysis
+            z_particles_seq[t] = z_analysis
+            z_mean_seq[t] = z_mean_analysis
         return {'z_mean_seq': z_mean_seq, 'z_particles_seq': z_particles_seq}

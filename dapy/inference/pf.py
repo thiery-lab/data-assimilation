@@ -52,7 +52,7 @@ class BootstrapParticleFilter(object):
                 distribution on next state given current state(s). Takes array
                 of current state(s) and random number generator object as
                 arguments.
-            log_prob_dens_obs_gvn_state (function): Function returning log 
+            log_prob_dens_obs_gvn_state (function): Function returning log
                 probability density (up to an additive constant) of
                 observation vector given state vector at the corresponding
                 time index.
@@ -63,9 +63,9 @@ class BootstrapParticleFilter(object):
         self.log_prob_dens_obs_gvn_state = log_prob_dens_obs_gvn_state
         self.rng = rng
 
-    def calculate_weights(self, z, x):
+    def calculate_weights(self, z, x, t):
         """Calculate importance weights for particles given observations."""
-        log_w = self.log_prob_dens_obs_gvn_state(x, z)
+        log_w = self.log_prob_dens_obs_gvn_state(x, z, t)
         log_w_max = log_w.max()
         log_sum_w = log_w_max + np.log(np.exp(log_w - log_w_max).sum())
         return np.exp(log_w - log_sum_w)
@@ -93,18 +93,18 @@ class BootstrapParticleFilter(object):
                     distribution at each time step.
         """
         n_steps, dim_x = x_observed.shape
-        for s in range(n_steps):
-            if s == 0:
+        for t in range(n_steps):
+            if t == 0:
                 z_forecast = self.init_state_sampler(n_particles)
                 dim_z = z_forecast.shape[1]
                 z_mean_seq = np.full((n_steps, dim_z), np.nan)
                 z_particles_seq = np.full(
                     (n_steps, n_particles, dim_z),  np.nan)
             else:
-                z_forecast = self.next_state_sampler(z_particles_seq[s-1])
-            w = self.calculate_weights(z_forecast, x_observed[s])
-            z_mean_seq[s] = (w[:, None] * z_forecast).sum(0)
-            z_particles_seq[s] = self.resample(z_forecast, w)
+                z_forecast = self.next_state_sampler(z_particles_seq[t-1], t)
+            w = self.calculate_weights(z_forecast, x_observed[t], t)
+            z_mean_seq[t] = (w[:, None] * z_forecast).sum(0)
+            z_particles_seq[t] = self.resample(z_forecast, w)
         return {'z_mean_seq': z_mean_seq, 'z_particles_seq': z_particles_seq}
 
 
