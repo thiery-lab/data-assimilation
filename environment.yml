@@ -88,11 +88,9 @@ dependencies:
 - zeromq=4.1.5=0
 - zlib=1.2.11=0
 - pip:
-  - dapy (/home/matt/Projects/data-assimilation)==0.0.0
   - ipython-genutils==0.2.0
   - jupyter-client==5.1.0
   - jupyter-console==5.2.0
   - jupyter-core==4.3.0
   - prompt-toolkit==1.0.15
-prefix: /home/matt/miniconda2/envs/dapy3
 
