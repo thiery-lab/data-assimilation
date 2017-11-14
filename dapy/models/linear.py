@@ -143,7 +143,7 @@ class LinearGaussianModel(AbstractModel):
                     self.init_state_covar_chol.T)
             )
 
-    def next_state_sampler(self, z, t=None):
+    def next_state_sampler(self, z, t):
         if z.ndim == 1:
             return (
                 self.state_trans_matrix.dot(z) +
@@ -159,7 +159,7 @@ class LinearGaussianModel(AbstractModel):
                     )
             )
 
-    def observation_sampler(self, z, t=None):
+    def observation_sampler(self, z, t):
         if z.ndim == 1:
             return (
                 self.observation_matrix.dot(z) +
@@ -182,7 +182,7 @@ class LinearGaussianModel(AbstractModel):
             np.log(self.init_state_covar_chol.diagonal()).sum()
         )
 
-    def log_prob_dens_state_transition(self, z_n, z_c, t=None):
+    def log_prob_dens_state_transition(self, z_n, z_c, t):
         n = z_n - z_c.dot(self.state_trans_matrix.T)
         return -(
             0.5 * (n.T * la.cho_solve(
@@ -191,7 +191,7 @@ class LinearGaussianModel(AbstractModel):
             np.log(self.state_noise_covar_chol.diagonal()).sum()
         )
 
-    def log_prob_dens_obs_gvn_state(self, x, z, t=None):
+    def log_prob_dens_obs_gvn_state(self, x, z, t):
         n = x - z.dot(self.observation_matrix.T)
         return -(
             0.5 * (n.T * la.cho_solve(

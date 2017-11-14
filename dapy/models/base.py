@@ -68,7 +68,7 @@ class AbstractModel(object):
         """
         raise NotImplementedError()
 
-    def next_state_sampler(self, z, t=None):
+    def next_state_sampler(self, z, t):
         """Independently sample next state(s) given current state(s).
 
         Args:
@@ -84,7 +84,7 @@ class AbstractModel(object):
         """
         raise NotImplementedError()
 
-    def observation_sampler(self, z, t=None):
+    def observation_sampler(self, z, t):
         """Independently sample observation(s) given current state(s).
 
         Args:
@@ -115,7 +115,7 @@ class AbstractModel(object):
         """
         raise NotImplementedError()
 
-    def log_prob_dens_state_trans(self, z_n, z_c, t=None):
+    def log_prob_dens_state_trans(self, z_n, z_c, t):
         """Calculate log probability density of a transition between states.
 
         Args:
@@ -135,7 +135,7 @@ class AbstractModel(object):
         """
         raise NotImplementedError()
 
-    def log_prob_den_obs_gvn_state(self, x, z, t=None):
+    def log_prob_den_obs_gvn_state(self, x, z, t):
         """Calculate log probability density of observation(s) given state(s).
 
         Args:
@@ -155,7 +155,7 @@ class AbstractModel(object):
             observation pair is provided).
         """
         raise NotImplementedError()
-    
+
     def log_prob_dens_state_seq(self, z_seq):
         """Evaluate the log joint probability density of a state sequence.
 
@@ -188,7 +188,7 @@ class AbstractModel(object):
            pair.
         """
         log_dens = self.log_prob_dens_init_state(z_seq[0])
-        log_dens += self.log_prob_dens_obs_gvn_state(x_seq[0])
+        log_dens += self.log_prob_dens_obs_gvn_state(x_seq[0], 0)
         for t in range(1, z_seq.shape[0]):
             log_dens += self.log_prob_dens_state_trans(z_seq[t], z_seq[t-1], t)
             log_dens += self.log_prob_dens_obs_gvn_state(x_seq[t], z_seq[t], t)
@@ -207,7 +207,7 @@ class AbstractModel(object):
         z_seq = np.empty((n_step, self.dim_z)) * np.nan
         x_seq = np.empty((n_step, self.dim_x)) * np.nan
         z_seq[0] = self.init_state_sampler()
-        x_seq[0] = self.observation_sampler(z_seq[0])
+        x_seq[0] = self.observation_sampler(z_seq[0], 0)
         for t in range(1, n_step):
             z_seq[t] = self.next_state_sampler(z_seq[t-1], t)
             x_seq[t] = self.observation_sampler(z_seq[t-1], t)
