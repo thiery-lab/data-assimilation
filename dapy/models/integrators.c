@@ -3649,7 +3649,7 @@ __pyx_v_error = ((struct __pyx_vtabstruct_4dapy_6models_11integrators_ImplicitMi
  *                         z_particles_next[p])
  *                     if error == 1:             # <<<<<<<<<<<<<<
  *                         with gil:
- *                             raise ConvergenceError('Convergence error in implicit midpoint step.')
+ *                             raise ConvergenceError(
  */
                                 __pyx_t_11 = ((__pyx_v_error == 1) != 0);
                                 if (__pyx_t_11) {
@@ -3658,8 +3658,8 @@ __pyx_v_error = ((struct __pyx_vtabstruct_4dapy_6models_11integrators_ImplicitMi
  *                         z_particles_next[p])
  *                     if error == 1:
  *                         with gil:             # <<<<<<<<<<<<<<
- *                             raise ConvergenceError('Convergence error in implicit midpoint step.')
- *                     time = time + self.dt
+ *                             raise ConvergenceError(
+ *                                 'Convergence error in implicit midpoint step.')
  */
                                   {
                                       #ifdef WITH_THREAD
@@ -3670,9 +3670,9 @@ __pyx_v_error = ((struct __pyx_vtabstruct_4dapy_6models_11integrators_ImplicitMi
                                         /* "dapy/models/integrators.pyx":115
  *                     if error == 1:
  *                         with gil:
- *                             raise ConvergenceError('Convergence error in implicit midpoint step.')             # <<<<<<<<<<<<<<
+ *                             raise ConvergenceError(             # <<<<<<<<<<<<<<
+ *                                 'Convergence error in implicit midpoint step.')
  *                     time = time + self.dt
- *         return start_time + self.n_steps_per_update * self.dt
  */
                                         __pyx_t_18 = __Pyx_GetModuleGlobalName(__pyx_n_s_ConvergenceError); if (unlikely(!__pyx_t_18)) __PYX_ERR(0, 115, __pyx_L19_error)
                                         __Pyx_GOTREF(__pyx_t_18);
@@ -3688,8 +3688,8 @@ __pyx_v_error = ((struct __pyx_vtabstruct_4dapy_6models_11integrators_ImplicitMi
  *                         z_particles_next[p])
  *                     if error == 1:
  *                         with gil:             # <<<<<<<<<<<<<<
- *                             raise ConvergenceError('Convergence error in implicit midpoint step.')
- *                     time = time + self.dt
+ *                             raise ConvergenceError(
+ *                                 'Convergence error in implicit midpoint step.')
  */
                                       /*finally:*/ {
                                         __pyx_L19_error: {
@@ -3706,13 +3706,13 @@ __pyx_v_error = ((struct __pyx_vtabstruct_4dapy_6models_11integrators_ImplicitMi
  *                         z_particles_next[p])
  *                     if error == 1:             # <<<<<<<<<<<<<<
  *                         with gil:
- *                             raise ConvergenceError('Convergence error in implicit midpoint step.')
+ *                             raise ConvergenceError(
  */
                                 }
 
-                                /* "dapy/models/integrators.pyx":116
- *                         with gil:
- *                             raise ConvergenceError('Convergence error in implicit midpoint step.')
+                                /* "dapy/models/integrators.pyx":117
+ *                             raise ConvergenceError(
+ *                                 'Convergence error in implicit midpoint step.')
  *                     time = time + self.dt             # <<<<<<<<<<<<<<
  *         return start_time + self.n_steps_per_update * self.dt
  */
@@ -3844,13 +3844,13 @@ __pyx_v_error = ((struct __pyx_vtabstruct_4dapy_6models_11integrators_ImplicitMi
       }
   }
 
-  /* "dapy/models/integrators.pyx":117
- *                             raise ConvergenceError('Convergence error in implicit midpoint step.')
+  /* "dapy/models/integrators.pyx":118
+ *                                 'Convergence error in implicit midpoint step.')
  *                     time = time + self.dt
  *         return start_time + self.n_steps_per_update * self.dt             # <<<<<<<<<<<<<<
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_19 = PyFloat_FromDouble((__pyx_v_start_time + (__pyx_v_self->n_steps_per_update * __pyx_v_self->dt))); if (unlikely(!__pyx_t_19)) __PYX_ERR(0, 117, __pyx_L1_error)
+  __pyx_t_19 = PyFloat_FromDouble((__pyx_v_start_time + (__pyx_v_self->n_steps_per_update * __pyx_v_self->dt))); if (unlikely(!__pyx_t_19)) __PYX_ERR(0, 118, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_19);
   __pyx_r = __pyx_t_19;
   __pyx_t_19 = 0;
@@ -20958,9 +20958,9 @@ static int __Pyx_InitCachedConstants(void) {
   /* "dapy/models/integrators.pyx":115
  *                     if error == 1:
  *                         with gil:
- *                             raise ConvergenceError('Convergence error in implicit midpoint step.')             # <<<<<<<<<<<<<<
+ *                             raise ConvergenceError(             # <<<<<<<<<<<<<<
+ *                                 'Convergence error in implicit midpoint step.')
  *                     time = time + self.dt
- *         return start_time + self.n_steps_per_update * self.dt
  */
   __pyx_tuple_ = PyTuple_Pack(1, __pyx_kp_s_Convergence_error_in_implicit_mi); if (unlikely(!__pyx_tuple_)) __PYX_ERR(0, 115, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple_);
