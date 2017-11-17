@@ -212,3 +212,255 @@ class AbstractModel(object):
             z_seq[t] = self.next_state_sampler(z_seq[t-1], t)
             x_seq[t] = self.observation_sampler(z_seq[t-1], t)
         return z_seq, x_seq
+
+
+@inherit_docstrings
+class DiagonalGaussianModel(AbstractModel):
+    """Abstract model base class with diagonal Gaussian noise distributions.
+
+    Assumes the model dynamics take the form
+
+        z[0] = init_state_mean + init_state_std * u[0]
+        x[0] = observation_func(x[0]) + obser_noise_std * v[0]
+        for t in range(1, n_steps):
+            z[t] = next_state_func(z[t-1]) + state_noise_std * u[t]
+            x[t] = observation_func(x[t]) + obser_noise_std * v[t]
+
+    where
+
+       z[t]: unobserved system state vector at time index t,
+       x[t]: observations vector at time index t,
+       u[t]: zero-mean identity covariance Gaussian state noise vector at time
+             index t,
+       v[t]: zero-mean identity covariance Gaussian observation noise vector
+             at time index t,
+       init_state_mean: initial state distribution mean vector,
+       init_state_std: initial state distribution standard deviation vector,
+       observation_func: function mapping from states to (pre-noise)
+           observations,
+       obser_noise_std: observation noise distribution standard deviation
+           vector,
+       next_state_func: potentially non-linear function specifying state
+           update dynamics for example forward integration of a ODE system,
+       state_noise_std: state noise distribution standard deviation vector.
+           May be all zeros which corresponds to a model with deterministic
+           state update dynamics.
+
+    This corresponds to assuming the initial state distribution, conditional
+    distribution of the next state given current and conditional distribution
+    of the current observation given current state all take the form of
+    multivariate Gaussian distributions with diagonal covariances. In the case
+    of deterministic state update dynamics the conditional distribution of the
+    next state given the current state will be a Dirac measure with all mass
+    located at the forward map of the current state through the state dynamics
+    function and so will not have a well-defined probability density function.
+    """
+
+    def __init__(self, dim_z, dim_x, rng, init_state_mean, init_state_std,
+                 state_noise_std, obser_noise_std):
+        """
+        Args:
+            dim_z (integer): Dimension of model state vector.
+            dim_x (integer): Dimension of observation vector.
+            rng (RandomState): Numpy RandomState random number generator.
+            init_state_mean (float or array): Initial state distribution mean.
+                Either a scalar or array of shape `(dim_z,)`.
+            init_state_std (float or array): Initial state distribution
+                standard deviation. Either a scalar or array of shape
+                `(dim_z,)`. Each state dimension is assumed to be independent
+                i.e. a diagonal covariance.
+            state_noise_std (float or array): Standard deviation of additive
+                Gaussian noise in state update. Either a scalar or array of
+                shape `(dim_z,)`. Noise in each dimension assumed to be
+                independent i.e. a diagonal noise covariance. If zero or None
+                deterministic dynamics are assumed.
+            obser_noise_std (float): Standard deviation of additive Gaussian
+                noise in observations. Either a scalar or array of shape
+                `(dim_z,)`. Noise in each dimension assumed to be independent
+                i.e. a diagonal noise covariance.
+        """
+        self.init_state_mean = init_state_mean
+        self.init_state_std = init_state_std
+        if state_noise_std is None or np.all(state_noise_std == 0.):
+            self.deterministic_state_update = True
+        else:
+            self.deterministic_state_update = False
+            self.state_noise_std = state_noise_std
+        self.obser_noise_std = obser_noise_std
+        super(DiagonalGaussianModel, self).__init__(
+            dim_z=dim_z, dim_x=dim_x, rng=rng)
+
+    def init_state_sampler(self, n=None):
+        if n is None:
+            return (
+                self.init_state_mean +
+                self.rng.normal(size=(self.dim_z,)) * self.init_state_std
+            )
+        else:
+            return (
+                self.init_state_mean +
+                self.rng.normal(size=(n, self.dim_z)) * self.init_state_std
+            )
+
+    def next_state_func(self, z, t):
+        """Computes mean of next state given current state.
+
+        Implements determinstic component of state update dynamics with new
+        state calculated by output of this function plus additive zero-mean
+        Gaussian noise. For models with fully-determinstic state dynamics
+        no noise is added so this function exactly calculates the next state.
+
+        Args:
+            z (array): Current state vector.
+            t (integer): Current time index.
+
+        Returns:
+            Array corresponding to (mean of) state at next time index t + 1.
+        """
+        raise NotImplementedError()
+
+    def observation_func(self, z, t):
+        """Computes mean of current observation state given current state.
+
+        Implements determinstic component of observation process with
+        observation calculated by output of this function plus additive
+        zero-mean Gaussian noise.
+
+        Args:
+            z (array): Current state vector.
+            t (integer): Current time index.
+
+        Returns:
+            Array corresponding to (mean of) observations at time index t.
+        """
+        raise NotImplementedError()
+
+    def next_state_sampler(self, z, t):
+        if self.deterministic_state_update:
+            return self.next_state_func(z, t)
+        else:
+            return (
+                self.next_state_func(z, t) +
+                self.state_noise_std * self.rng.normal(size=z.shape)
+            )
+
+    def observation_sampler(self, z, t):
+        return (
+            self.observation_func(z) +
+            self.rng.normal(size=self.dim_x) * self.obser_noise_std
+        )
+
+    def log_prob_dens_init_state(self, z):
+        return -(
+            0.5 * ((z - self.init_state_mean) / self.init_state_std)**2 +
+            0.5 * np.log(2 * np.pi) + np.log(self.init_state_std)
+        ).sum(-1)
+
+    def log_prob_dens_state_trans(self, z_n, z_c, t):
+        if self.deterministic_state_update:
+            raise DensityNotDefinedError('Deterministic state transition.')
+        else:
+            return -(
+                0.5 * ((z_n - self.next_state_func(z_c, t)) /
+                       self.state_noise_std)**2 +
+                0.5 * np.log(2 * np.pi) + np.log(self.state_noise_std)
+            ).sum(-1)
+
+    def log_prob_dens_obs_gvn_state(self, x, z, t):
+        return -(
+            0.5 * ((x - self.observation_func(z)) /
+                   self.obser_noise_std)**2 +
+            0.5 * np.log(2 * np.pi) + np.log(self.obser_noise_std)
+        ).sum(-1)
+
+
+@inherit_docstrings
+class DiagonalGaussianIntegratorModel(DiagonalGaussianModel):
+    """Model with integrator state update and diagonal Gaussian distributions.
+
+    Assumes the model dynamics take the form
+
+        z[0] = init_state_mean + init_state_std * u[0]
+        x[0] = observation_func(x[0]) + obser_noise_std * v[0]
+        for t in range(1, n_steps):
+            z[t] = next_state_func(z[t-1]) + state_noise_std * u[t]
+            x[t] = observation_func(x[t]) + obser_noise_std * v[t]
+
+    where
+
+       z[t]: unobserved system state vector at time index t,
+       x[t]: observations vector at time index t,
+       u[t]: zero-mean identity covariance Gaussian state noise vector at time
+             index t,
+       v[t]: zero-mean identity covariance Gaussian observation noise vector
+             at time index t,
+       init_state_mean: initial state distribution mean vector,
+       init_state_std: initial state distribution standard deviation vector,
+       observation_func: function mapping from states to (pre-noise)
+           observations,
+       obser_noise_std: observation noise distribution standard deviation
+           vector,
+       next_state_func: function impleting state update dynamics by forward
+           integration of a ODE system,
+       state_noise_std: state noise distribution standard deviation vector.
+           May be all zeros which corresponds to a model with deterministic
+           state update dynamics.
+
+    This corresponds to assuming the initial state distribution, conditional
+    distribution of the next state given current and conditional distribution
+    of the current observation given current state all take the form of
+    multivariate Gaussian distributions with diagonal covariances. In the case
+    of deterministic state update dynamics the conditional distribution of the
+    next state given the current state will be a Dirac measure with all mass
+    located at the forward map of the current state through the state dynamics
+    function and so will not have a well-defined probability density function.
+    """
+
+    def __init__(self, integrator, dim_z, dim_x, rng,
+                 init_state_mean, init_state_std,
+                 state_noise_std, obser_noise_std):
+        """
+        Args:
+            integrator (object): Integrator for model state dynamics. Object
+                should define a `forward_integrate` function with function
+                signature
+                    def forward_integrate(self, z_curr, z_next, time)
+                with `z_curr` an input array of a batch of state vectors at
+                current time index, `z_next` an output array to write the
+                values of the batch of state vectors at the next time index
+                and `time` a float defining the current real time (*not*
+                time index).
+            dim_z (integer): Dimension of model state vector.
+            dim_x (integer): Dimension of observation vector.
+            rng (RandomState): Numpy RandomState random number generator.
+            init_state_mean (float or array): Initial state distribution mean.
+                Either a scalar or array of shape `(dim_z,)`.
+            init_state_std (float or array): Initial state distribution
+                standard deviation. Either a scalar or array of shape
+                `(dim_z,)`. Each state dimension is assumed to be independent
+                i.e. a diagonal covariance.
+            state_noise_std (float or array): Standard deviation of additive
+                Gaussian noise in state update. Either a scalar or array of
+                shape `(dim_z,)`. Noise in each dimension assumed to be
+                independent i.e. a diagonal noise covariance. If zero or None
+                deterministic dynamics are assumed.
+            obser_noise_std (float): Standard deviation of additive Gaussian
+                noise in observations. Either a scalar or array of shape
+                `(dim_z,)`. Noise in each dimension assumed to be independent
+                i.e. a diagonal noise covariance.
+        """
+        self.integrator = integrator
+        super(DiagonalGaussianIntegratorModel, self).__init__(
+            dim_z=dim_z, dim_x=dim_x, rng=rng,
+            init_state_mean=init_state_mean, init_state_std=init_state_std,
+            state_noise_std=state_noise_std, obser_noise_std=obser_noise_std
+        )
+
+    def next_state_func(self, z, t):
+        z_next = np.empty(z.shape)
+        time = t * self.dt * self.n_steps_per_update
+        if z.ndim == 1:
+            self.integrator.forward_integrate(z[None], z_next[None], time)
+        else:
+            self.integrator.forward_integrate(z, z_next, time)
+        return z_next

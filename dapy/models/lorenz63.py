@@ -9,12 +9,12 @@ Model originally proposed in:
 
 import numpy as np
 from dapy.models.base import (
-    AbstractModel, inherit_docstrings, DensityNotDefinedError)
+    DiagonalGaussianIntegratorModel, inherit_docstrings)
 from dapy.models.lorenz63integrator import Lorenz63Integrator
 
 
 @inherit_docstrings
-class Lorenz63Model(AbstractModel):
+class Lorenz63Model(DiagonalGaussianIntegratorModel):
     """Three-dimensional model with chaotic non-linear dynamics
 
     Model dynamics defined by the system of ODEs
@@ -77,15 +77,6 @@ class Lorenz63Model(AbstractModel):
             n_threads (int): Number of threads to parallelise model dynamics
                 integration over.
         """
-        self.init_state_mean = init_state_mean
-        self.init_state_std = init_state_std
-        if state_noise_std is None or np.all(state_noise_std == 0.):
-            self.deterministic_state_update = True
-        else:
-            self.deterministic_state_update = False
-            self.state_noise_std = state_noise_std
-        self.observation_func = observation_func
-        self.obser_noise_std = obser_noise_std
         self.sigma = sigma
         self.rho = rho
         self.beta = beta
@@ -94,69 +85,15 @@ class Lorenz63Model(AbstractModel):
         self.tol = tol
         self.max_iters = max_iters
         self.n_threads = n_threads
+        self.observation_func = observation_func
         dim_x = observation_func(np.zeros(3)).shape[0]
-        self.integrator = Lorenz63Integrator(
+        integrator = Lorenz63Integrator(
             sigma=sigma, rho=rho, beta=beta, dt=dt, tol=tol,
             n_steps_per_update=n_steps_per_update, max_iters=max_iters,
             n_threads=n_threads
         )
-        super(Lorenz63Model, self).__init__(dim_z=3, dim_x=dim_x, rng=rng)
-
-    def init_state_sampler(self, n=None):
-        if n is None:
-            return (
-                self.init_state_mean +
-                self.rng.normal(size=(self.dim_z,)) * self.init_state_std
-            )
-        else:
-            return (
-                self.init_state_mean +
-                self.rng.normal(size=(n, self.dim_z)) * self.init_state_std
-            )
-
-    def next_state_func(self, z, t):
-        z_next = np.empty(z.shape)
-        time = t * self.dt * self.n_steps_per_update
-        if z.ndim == 1:
-            self.integrator.forward_integrate(z[None], z_next[None], time)
-        else:
-            self.integrator.forward_integrate(z, z_next, time)
-        return z_next
-
-    def next_state_sampler(self, z, t):
-        if self.deterministic_state_update:
-            return self.next_state_func(z, t)
-        else:
-            return (
-                self.next_state_func(z, t) +
-                self.state_noise_std * self.rng.normal(size=z.shape)
-            )
-
-    def observation_sampler(self, z, t):
-        return (
-            self.observation_func(z) +
-            self.rng.normal(size=self.dim_x) * self.obser_noise_std
+        super(Lorenz63Model, self).__init__(
+            integrator=integrator, dim_z=3, dim_x=dim_x, rng=rng,
+            init_state_mean=init_state_mean, init_state_std=init_state_std,
+            state_noise_std=state_noise_std, obser_noise_std=obser_noise_std
         )
-
-    def log_prob_dens_init_state(self, z):
-        return -(
-            0.5 * ((z - self.init_state_mean) / self.init_state_std)**2 +
-            0.5 * np.log(2 * np.pi) + np.log(self.init_state_std)
-        ).sum(-1)
-
-    def log_prob_dens_state_trans(self, z_n, z_c, t):
-        if self.deterministic_state_update:
-            raise DensityNotDefinedError('Deterministic state transition.')
-        else:
-            return -(
-                0.5 * ((z_n - self.next_state_func(z_c, t)) /
-                       self.state_noise_std)**2 +
-                0.5 * np.log(2 * np.pi) + np.log(self.state_noise_std)
-            ).sum(-1)
-
-    def log_prob_dens_obs_gvn_state(self, x, z, t):
-        return -(
-            0.5 * ((x - self.observation_func(z)) /
-                   self.obser_noise_std)**2 +
-            0.5 * np.log(2 * np.pi) + np.log(self.obser_noise_std)
-        ).sum(-1)
