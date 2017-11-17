@@ -112,6 +112,7 @@ cdef class ImplicitMidpointIntegrator:
                         z_particles_next[p])
                     if error == 1:
                         with gil:
-                            raise ConvergenceError('Convergence error in implicit midpoint step.')
+                            raise ConvergenceError(
+                                'Convergence error in implicit midpoint step.')
                     time = time + self.dt
         return start_time + self.n_steps_per_update * self.dt
