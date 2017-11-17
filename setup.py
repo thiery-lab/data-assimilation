@@ -72,7 +72,7 @@ ext_modules = [
               ['dapy/models/lorenz63integrator' + ext],
               extra_compile_args=extra_compile_args,
               extra_link_args=extra_link_args),
-    Extension('dapy.models.Lorenz96Integrator6integrator',
+    Extension('dapy.models.lorenz96integrator',
               ['dapy/models/lorenz96integrator' + ext],
               extra_compile_args=extra_compile_args,
               extra_link_args=extra_link_args)
