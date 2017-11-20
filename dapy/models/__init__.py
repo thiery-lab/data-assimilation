@@ -3,6 +3,7 @@
 from dapy.models.linear import LinearGaussianModel
 from dapy.models.netto79 import Netto79Model
 from dapy.models.lorenz63 import Lorenz63Model
+from dapy.models.lorenz96 import Lorenz96Model
 
 
 __all__ = ['linear', 'netto79', 'lorenz63', 'lorenz96']
