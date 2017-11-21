@@ -35,7 +35,6 @@ class AbstractFluidSim2dIntegrator(object):
         self.vort_coeff = vort_coeff
 
     def forward_integrate(self, z_curr, z_next, start_time):
-        z_next = np.empty_like(z_curr)
         n = self.grid_shape[0] * self.grid_shape[1]
         for z_c, z_n in zip(z_curr, z_next):
             velocity = z_c[:2*n].reshape((2,) + self.grid_shape)
@@ -57,10 +56,6 @@ class FourierFluidSim2dIntegrator(AbstractFluidSim2dIntegrator):
             vort_coeff=vort_coeff
         )
         self.n_threads = n_threads
-        self.velocity = pyfftw.zeros_aligned(
-            (2, self.grid_shape[0], self.grid_shape[1]))
-        self.density = pyfftw.zeros_aligned(
-            (self.grid_shape[0], self.grid_shape[1]))
         self.density_source = np.zeros(
             (self.grid_shape[0], self.grid_shape[1]))
         self.cell_indices = np.array(np.meshgrid(
@@ -98,7 +93,7 @@ class FourierFluidSim2dIntegrator(AbstractFluidSim2dIntegrator):
             velocity_fft_new, overwrite_input=True, threads=self.n_threads)
 
     def diffuse_density(self, density):
-        density_fft = fft.rfft2(self.density, threads=self.n_threads)
+        density_fft = fft.rfft2(density, threads=self.n_threads)
         density_fft *= self.dens_diff_kernel
         return fft.irfft2(
             density_fft,  overwrite_input=True, threads=self.n_threads)
