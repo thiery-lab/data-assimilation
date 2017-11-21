@@ -204,8 +204,8 @@ class AbstractModel(object):
             z_seq (array): Generated state sequence of shape `(n_step, dim_z)`.
             x_seq (array): Generated obs. sequence of shape `(n_step, dim_x)`.
         """
-        z_seq = np.empty((n_step, self.dim_z)) * np.nan
-        x_seq = np.empty((n_step, self.dim_x)) * np.nan
+        z_seq = np.full((n_step, self.dim_z), np.nan)
+        x_seq = np.full((n_step, self.dim_x), np.nan)
         z_seq[0] = self.init_state_sampler()
         x_seq[0] = self.observation_sampler(z_seq[0], 0)
         for t in range(1, n_step):
