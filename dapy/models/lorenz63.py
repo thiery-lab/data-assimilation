@@ -36,8 +36,8 @@ class Lorenz63Model(DiagonalGaussianIntegratorModel):
     observation noise.
 
     References:
-        Lorenz, Edward Norton (1963). Deterministic nonperiodic flow.
-        Journal of the Atmospheric Sciences. 20 (2): 130–141.
+      1. Lorenz, Edward Norton (1963). Deterministic nonperiodic flow.
+         Journal of the Atmospheric Sciences. 20 (2): 130–141.
     """
 
     def __init__(self, rng, init_state_mean=1., init_state_std=0.05,

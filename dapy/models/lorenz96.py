@@ -39,8 +39,8 @@ class Lorenz96Model(DiagonalGaussianIntegratorModel):
     observation noise.
 
     References:
-        Lorenz, Edward (1996). Predictability – A problem partly solved.
-        Seminar on Predictability, Vol. I, ECMWF.
+      1. Lorenz, Edward (1996). Predictability – A problem partly solved.
+         Seminar on Predictability, Vol. I, ECMWF.
     """
 
     def __init__(self, rng, dim_z=40, init_state_mean=0., init_state_std=1.,
