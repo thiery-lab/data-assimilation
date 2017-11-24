@@ -87,7 +87,7 @@ class Lorenz96Model(DiagonalGaussianIntegratorModel):
         self.max_iters = max_iters
         self.n_threads = n_threads
         self.observation_func = observation_func
-        dim_x = observation_func(np.zeros(dim_z)).shape[0]
+        dim_x = observation_func(np.zeros(dim_z), 0).shape[-1]
         integrator = Lorenz96Integrator(
             dim_z=dim_z, force=force, delta=delta, dt=dt, tol=tol,
             max_iters=max_iters, n_threads=n_threads
