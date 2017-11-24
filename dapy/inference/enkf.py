@@ -1,7 +1,7 @@
 """Ensemble Kalman filters for inference in state space models."""
 
 import numpy as np
-import scipy.linalg as la
+import numpy.linalg as la
 
 
 class EnsembleKalmanFilter(object):

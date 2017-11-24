@@ -1,7 +1,7 @@
 """Exact Kalman filter for inference in linear-Gaussian dynamical systems."""
 
 import numpy as np
-import scipy.linalg as la
+import numpy.linalg as la
 
 
 class KalmanFilter(object):
