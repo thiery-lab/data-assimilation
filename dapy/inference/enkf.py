@@ -95,8 +95,9 @@ class EnsembleKalmanFilter(object):
             x_forecast = self.observation_sampler(z_forecast, t)
             dz_forecast = z_forecast - z_forecast.mean(0)
             dx_forecast = x_forecast - x_forecast.mean(0)
-            k_gain = np.linalg.pinv(dx_forecast).dot(dz_forecast)
-            z_analysis = z_forecast + (x_observed[t] - x_forecast).dot(k_gain)
+            dx_error = x_observed[t] - x_forecast
+            z_analysis = z_forecast + (
+                dx_error.dot(la.pinv(dx_forecast))).dot(dz_forecast)
             z_mean_seq[t] = z_analysis.mean(0)
             z_particles_seq[t] = z_analysis
         return {'z_mean_seq': z_mean_seq, 'z_particles_seq': z_particles_seq}
@@ -316,22 +317,16 @@ class WoodburyEnsembleSquareRootFilter(object):
             x_mean_forecast = self.observation_matrix.dot(z_mean_forecast)
             dz_forecast = z_forecast - z_mean_forecast
             dx_forecast = dz_forecast.dot(self.observation_matrix.T)
-            obs_precis_dx_forecast = self.obser_noise_preci.dot(dx_forecast.T)
-            c_inv_matrix = (
-                self.obser_noise_preci -
-                obs_precis_dx_forecast.dot(
-                    la.solve(
-                        (n_particles - 1) * np.eye(n_particles) +
-                        dx_forecast.dot(obs_precis_dx_forecast),
-                        obs_precis_dx_forecast.T,
-                    )
-                )
-            ) / (n_particles - 1)
-            c_inv_dx_forecast_t = c_inv_matrix.dot(dx_forecast.T)
-            k_gain = c_inv_dx_forecast_t.dot(dz_forecast)
+            dx_error = x_observed[t] - x_mean_forecast
+            a_matrix = self.obser_noise_preci.dot(dx_forecast.T)
+            b_vector = dx_error.dot(a_matrix)
+            c_matrix = dx_forecast.dot(a_matrix)
+            d_matrix = (n_particles - 1) * np.eye(n_particles) + c_matrix
+            e_matrix = la.solve(d_matrix, c_matrix)
             z_mean_analysis = z_mean_forecast + (
-                x_observed[t] - x_mean_forecast).dot(k_gain)
-            m_matrix = dx_forecast.dot(c_inv_dx_forecast_t)
+                (b_vector - b_vector.dot(e_matrix)).dot(dz_forecast) /
+                (n_particles - 1))
+            m_matrix = (c_matrix - c_matrix.dot(e_matrix)) / (n_particles - 1)
             eigval_m, eigvec_m = la.eigh(m_matrix)
             if warn and np.any(eigval_m > 1.):
                 print('Warning: eigenvalue(s) outside unit circle, max: {0}'
