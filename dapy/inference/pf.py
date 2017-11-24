@@ -11,11 +11,11 @@ class BootstrapParticleFilter(object):
 
     Assumes the system dynamics are of the form
 
-    z[0] = init_state_sampler(rng)
-    x[0] = observation_sampler(z[0], rng)
+    z[0] = init_state_sampler()
+    x[0] = observation_sampler(z[0], 0)
     for t in range(1, T):
-        z[t] = next_state_sampler(z[t-1], rng)
-        x[t] = observation_sampler(z[t], rng)
+        z[t] = next_state_sampler(z[t-1], t-1)
+        x[t] = observation_sampler(z[t], t)
 
     It is further assumed the conditional distribution on the observations
     given system states has a well-defined density with respect to the
@@ -47,10 +47,10 @@ class BootstrapParticleFilter(object):
         Args:
             init_state_sampler (function): Function returning sample(s) from
                 initial state distribution. Takes number of particles to sample
-                and random number generator object as arguments.
+                as argument.
             next_state_sampler (function): Function returning sample(s) from
                 distribution on next state given current state(s). Takes array
-                of current state(s) and random number generator object as
+                of current state(s) and current time index as
                 arguments.
             log_prob_dens_obs_gvn_state (function): Function returning log
                 probability density (up to an additive constant) of
@@ -101,7 +101,7 @@ class BootstrapParticleFilter(object):
                 z_particles_seq = np.full(
                     (n_steps, n_particles, dim_z),  np.nan)
             else:
-                z_forecast = self.next_state_sampler(z_particles_seq[t-1], t)
+                z_forecast = self.next_state_sampler(z_particles_seq[t-1], t-1)
             w = self.calculate_weights(z_forecast, x_observed[t], t)
             z_mean_seq[t] = (w[:, None] * z_forecast).sum(0)
             z_particles_seq[t] = self.resample(z_forecast, w)
@@ -117,11 +117,11 @@ class EnsembleTransformParticleFilter(BootstrapParticleFilter):
 
     Assumes the system dynamics are of the form
 
-    z[0] = init_state_sampler(rng)
-    x[0] = observation_sampler(z[0], rng)
+    z[0] = init_state_sampler()
+    x[0] = observation_sampler(z[0], 0)
     for t in range(1, T):
-        z[t] = next_state_sampler(z[t-1], rng)
-        x[t] = observation_sampler(z[t], rng)
+        z[t] = next_state_sampler(z[t-1], t-1)
+        x[t] = observation_sampler(z[t], t)
 
     It is further assumed the conditional distribution on the observations
     given system states has a well-defined density with respect to the

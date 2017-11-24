@@ -169,8 +169,9 @@ class AbstractModel(object):
         """
         log_dens = self.log_prob_dens_init_state(z_seq[0])
         for t in range(1, z_seq.shape[0]):
-            log_dens += self.log_prob_dens_state_trans(z_seq[t], z_seq[t-1], t)
-        return log_dens
+            log_dens += self.log_prob_dens_state_trans(
+                    z_seq[t], z_seq[t-1], t-1)
+            return log_dens
 
     def log_prob_dens_state_and_obs_seq(self, z_seq, x_seq):
         """Evaluate the log density of a state and observation sequence pair.
@@ -190,7 +191,8 @@ class AbstractModel(object):
         log_dens = self.log_prob_dens_init_state(z_seq[0])
         log_dens += self.log_prob_dens_obs_gvn_state(x_seq[0], 0)
         for t in range(1, z_seq.shape[0]):
-            log_dens += self.log_prob_dens_state_trans(z_seq[t], z_seq[t-1], t)
+            log_dens += self.log_prob_dens_state_trans(
+                    z_seq[t], z_seq[t-1], t-1)
             log_dens += self.log_prob_dens_obs_gvn_state(x_seq[t], z_seq[t], t)
         return log_dens
 
@@ -209,7 +211,7 @@ class AbstractModel(object):
         z_seq[0] = self.init_state_sampler()
         x_seq[0] = self.observation_sampler(z_seq[0], 0)
         for t in range(1, n_step):
-            z_seq[t] = self.next_state_sampler(z_seq[t-1], t)
+            z_seq[t] = self.next_state_sampler(z_seq[t-1], t-1)
             x_seq[t] = self.observation_sampler(z_seq[t-1], t)
         return z_seq, x_seq
 
@@ -221,10 +223,10 @@ class DiagonalGaussianModel(AbstractModel):
     Assumes the model dynamics take the form
 
         z[0] = init_state_mean + init_state_std * u[0]
-        x[0] = observation_func(x[0]) + obser_noise_std * v[0]
+        x[0] = observation_func(x[0], 0) + obser_noise_std * v[0]
         for t in range(1, n_steps):
-            z[t] = next_state_func(z[t-1]) + state_noise_std * u[t]
-            x[t] = observation_func(x[t]) + obser_noise_std * v[t]
+            z[t] = next_state_func(z[t-1], t-1) + state_noise_std * u[t]
+            x[t] = observation_func(x[t], t) + obser_noise_std * v[t]
 
     where
 
@@ -381,10 +383,10 @@ class DiagonalGaussianIntegratorModel(DiagonalGaussianModel):
     Assumes the model dynamics take the form
 
         z[0] = init_state_mean + init_state_std * u[0]
-        x[0] = observation_func(x[0]) + obser_noise_std * v[0]
+        x[0] = observation_func(x[0], 0) + obser_noise_std * v[0]
         for t in range(1, n_steps):
-            z[t] = next_state_func(z[t-1]) + state_noise_std * u[t]
-            x[t] = observation_func(x[t]) + obser_noise_std * v[t]
+            z[t] = next_state_func(z[t-1], t-1) + state_noise_std * u[t]
+            x[t] = observation_func(x[t], t) + obser_noise_std * v[t]
 
     where
 

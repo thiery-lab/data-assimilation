@@ -11,16 +11,15 @@ class EnsembleKalmanFilter(object):
     Assumes the system dynamics are of the form
 
     z[0] = init_state_sampler(rng)
-    x[0] = observation_sampler(z[0], rng)
+    x[0] = observation_sampler(z[0], 0)
     for t in range(1, T):
-        z[t] = next_state_sampler(z[t-1], rng)
-        x[t] = observation_sampler(z[t], rng)
+        z[t] = next_state_sampler(z[t-1], t-1)
+        x[t] = observation_sampler(z[t], t)
 
     where
 
        z[t] : unobserved system state at time index t,
        x[t] : observed system state at time index t,
-       rng: random number generator object,
        init_state_sampler: function sampling from initial state distribution,
        observation_sampler: function sampling from distribution of observed
            state at a time index given unoberved state at this time index,
@@ -50,15 +49,14 @@ class EnsembleKalmanFilter(object):
         Args:
             init_state_sampler (function): Function returning sample(s) from
                 initial state distribution. Takes number of particles to sample
-                and random number generator object as arguments.
+                as argument.
             next_state_sampler (function): Function returning sample(s) from
                 distribution on next state given current state(s). Takes array
-                of current state(s) and random number generator object as
+                of current state(s) and current time index as
                 arguments.
             observation_sampler (function): Function returning sample(s) from
                 distribution on observations given current state(s). Takes
-                array of current state(s) and random number generator object as
-                arguments.
+                array of current state(s) and current time index as arguments.
             rng (RandomState): Numpy RandomState random number generator.
         """
         self.init_state_sampler = init_state_sampler
@@ -92,7 +90,7 @@ class EnsembleKalmanFilter(object):
                 z_particles_seq = np.full(
                     (n_steps, n_particles, dim_z), np.nan)
             else:
-                z_forecast = self.next_state_sampler(z_analysis, t)
+                z_forecast = self.next_state_sampler(z_analysis, t-1)
             # analysis update
             x_forecast = self.observation_sampler(z_forecast, t)
             dz_forecast = z_forecast - z_forecast.mean(0)
@@ -109,10 +107,10 @@ class EnsembleSquareRootFilter(object):
 
     Assumes the system dynamics are of the form
 
-    z[0] = init_state_sampler(rng)
+    z[0] = init_state_sampler()
     x[0] = H.dot(z[0]) + J.dot(v[0])
     for t in range(1, T):
-        z[t] = next_state_sampler(z[t-1], rng)
+        z[t] = next_state_sampler(z[t-1], t-1)
         x[t] = H.dot(z[t]) + J.dot(v[t])
 
     where
@@ -123,7 +121,6 @@ class EnsembleSquareRootFilter(object):
               vector at time index t,
        H: linear observation matrix,
        J: observation noise transform matrix,
-       rng: random number generator object,
        init_state_sampler: function sampling from initial state distribution,
        next_state_sampler: function sampling state at current time index given
            state at previous time index, describing system dynamics.
@@ -146,10 +143,10 @@ class EnsembleSquareRootFilter(object):
         Args:
             init_state_sampler (function): Function returning sample(s) from
                 initial state distribution. Takes number of particles to sample
-                and random number generator object as arguments.
+                as argument.
             next_state_sampler (function): Function returning sample(s) from
                 distribution on next state given current state(s). Takes array
-                of current state(s) and random number generator object as
+                of current state(s) and current time index as
                 arguments.
             observation_matrix (array): Matrix defining linear obervation
                 operator.
@@ -193,7 +190,7 @@ class EnsembleSquareRootFilter(object):
                 z_particles_seq = np.full(
                     (n_steps, n_particles, dim_z), np.nan)
             else:
-                z_forecast = self.next_state_sampler(z_analysis, t)
+                z_forecast = self.next_state_sampler(z_analysis, t-1)
             z_mean_forecast = z_forecast.mean(0)
             x_mean_forecast = self.observation_matrix.dot(z_mean_forecast)
             dz_forecast = z_forecast - z_mean_forecast
@@ -232,10 +229,10 @@ class WoodburyEnsembleSquareRootFilter(object):
 
     Assumes the system dynamics are of the form
 
-    z[0] = init_state_sampler(rng)
+    z[0] = init_state_sampler()
     x[0] = H.dot(z[0]) + J.dot(v[0])
     for t in range(1, T):
-        z[t] = next_state_sampler(z[t-1], rng)
+        z[t] = next_state_sampler(z[t-1], t-1)
         x[t] = H.dot(z[t]) + J.dot(v[t])
 
     where
@@ -246,7 +243,6 @@ class WoodburyEnsembleSquareRootFilter(object):
               vector at time index t,
        H: linear observation matrix,
        J: observation noise transform matrix,
-       rng: random number generator object,
        init_state_sampler: function sampling from initial state distribution,
        next_state_sampler: function sampling state at current time index given
            state at previous time index, describing system dynamics.
@@ -269,10 +265,10 @@ class WoodburyEnsembleSquareRootFilter(object):
         Args:
             init_state_sampler (function): Function returning sample(s) from
                 initial state distribution. Takes number of particles to sample
-                and random number generator object as arguments.
+                as argument.
             next_state_sampler (function): Function returning sample(s) from
                 distribution on next state given current state(s). Takes array
-                of current state(s) and random number generator object as
+                of current state(s) and current time index as
                 arguments.
             observation_matrix (array): Matrix defining linear obervation
                 operator.
@@ -315,7 +311,7 @@ class WoodburyEnsembleSquareRootFilter(object):
                 z_particles_seq = np.full(
                     (n_steps, n_particles, dim_z), np.nan)
             else:
-                z_forecast = self.next_state_sampler(z_analysis, t)
+                z_forecast = self.next_state_sampler(z_analysis, t-1)
             z_mean_forecast = z_forecast.mean(0)
             x_mean_forecast = self.observation_matrix.dot(z_mean_forecast)
             dz_forecast = z_forecast - z_mean_forecast
