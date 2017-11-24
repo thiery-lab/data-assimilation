@@ -83,8 +83,6 @@ class Lorenz96Model(DiagonalGaussianIntegratorModel):
         """
         self.force = force
         self.delta = delta
-        self.dt = dt
-        self.n_steps_per_update = n_steps_per_update
         self.tol = tol
         self.max_iters = max_iters
         self.n_threads = n_threads
@@ -92,11 +90,11 @@ class Lorenz96Model(DiagonalGaussianIntegratorModel):
         dim_x = observation_func(np.zeros(dim_z)).shape[0]
         integrator = Lorenz96Integrator(
             dim_z=dim_z, force=force, delta=delta, dt=dt, tol=tol,
-            n_steps_per_update=n_steps_per_update, max_iters=max_iters,
-            n_threads=n_threads
+            max_iters=max_iters, n_threads=n_threads
         )
         super(Lorenz96Model, self).__init__(
-            integrator=integrator, dim_z=dim_z, dim_x=dim_x, rng=rng,
+            integrator=integrator, n_steps_per_update=n_steps_per_update,
+            dim_z=dim_z, dim_x=dim_x, rng=rng,
             init_state_mean=init_state_mean, init_state_std=init_state_std,
             state_noise_std=state_noise_std, obser_noise_std=obser_noise_std
         )

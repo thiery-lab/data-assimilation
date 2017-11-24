@@ -1179,7 +1179,7 @@ struct __pyx_memoryviewslice_obj {
  * 
  * cdef class ImplicitMidpointIntegrator:             # <<<<<<<<<<<<<<
  * 
- *     def __init__(self, int dim_z, double dt, int n_steps_per_update,
+ *     def __init__(self, int dim_z, double dt,  double tol, int max_iters,
  */
 
 struct __pyx_vtabstruct_4dapy_6models_11integrators_ImplicitMidpointIntegrator {
@@ -1377,18 +1377,6 @@ static CYTHON_INLINE int __pyx_sub_acquisition_count_locked(
 static CYTHON_INLINE void __Pyx_INC_MEMVIEW(__Pyx_memviewslice *, int, int);
 static CYTHON_INLINE void __Pyx_XDEC_MEMVIEW(__Pyx_memviewslice *, int, int);
 
-/* NoFastGil.proto */
-#define __Pyx_PyGILState_Ensure PyGILState_Ensure
-#define __Pyx_PyGILState_Release PyGILState_Release
-#define __Pyx_FastGIL_Remember()
-#define __Pyx_FastGIL_Forget()
-#define __Pyx_FastGilFuncInit()
-
-/* ForceInitThreads.proto */
-#ifndef __PYX_FORCE_INIT_THREADS
-  #define __PYX_FORCE_INIT_THREADS 0
-#endif
-
 /* PyThreadStateGet.proto */
 #if CYTHON_FAST_THREAD_STATE
 #define __Pyx_PyThreadState_declare  PyThreadState *__pyx_tstate;
@@ -1411,6 +1399,23 @@ static CYTHON_INLINE void __Pyx_ErrFetchInState(PyThreadState *tstate, PyObject 
 #define __Pyx_ErrFetchWithState(type, value, tb)  PyErr_Fetch(type, value, tb)
 #define __Pyx_ErrRestore(type, value, tb)  PyErr_Restore(type, value, tb)
 #define __Pyx_ErrFetch(type, value, tb)  PyErr_Fetch(type, value, tb)
+#endif
+
+/* WriteUnraisableException.proto */
+static void __Pyx_WriteUnraisable(const char *name, int clineno,
+                                  int lineno, const char *filename,
+                                  int full_traceback, int nogil);
+
+/* NoFastGil.proto */
+#define __Pyx_PyGILState_Ensure PyGILState_Ensure
+#define __Pyx_PyGILState_Release PyGILState_Release
+#define __Pyx_FastGIL_Remember()
+#define __Pyx_FastGIL_Forget()
+#define __Pyx_FastGilFuncInit()
+
+/* ForceInitThreads.proto */
+#ifndef __PYX_FORCE_INIT_THREADS
+  #define __PYX_FORCE_INIT_THREADS 0
 #endif
 
 /* RaiseException.proto */
@@ -1453,6 +1458,28 @@ static CYTHON_INLINE PyObject* __Pyx_PyObject_CallMethO(PyObject *func, PyObject
 
 /* PyObjectCallOneArg.proto */
 static CYTHON_INLINE PyObject* __Pyx_PyObject_CallOneArg(PyObject *func, PyObject *arg);
+
+/* GetItemInt.proto */
+#define __Pyx_GetItemInt(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
+    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
+    __Pyx_GetItemInt_Fast(o, (Py_ssize_t)i, is_list, wraparound, boundscheck) :\
+    (is_list ? (PyErr_SetString(PyExc_IndexError, "list index out of range"), (PyObject*)NULL) :\
+               __Pyx_GetItemInt_Generic(o, to_py_func(i))))
+#define __Pyx_GetItemInt_List(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
+    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
+    __Pyx_GetItemInt_List_Fast(o, (Py_ssize_t)i, wraparound, boundscheck) :\
+    (PyErr_SetString(PyExc_IndexError, "list index out of range"), (PyObject*)NULL))
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_List_Fast(PyObject *o, Py_ssize_t i,
+                                                              int wraparound, int boundscheck);
+#define __Pyx_GetItemInt_Tuple(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
+    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
+    __Pyx_GetItemInt_Tuple_Fast(o, (Py_ssize_t)i, wraparound, boundscheck) :\
+    (PyErr_SetString(PyExc_IndexError, "tuple index out of range"), (PyObject*)NULL))
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Tuple_Fast(PyObject *o, Py_ssize_t i,
+                                                              int wraparound, int boundscheck);
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Generic(PyObject *o, PyObject* j);
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Fast(PyObject *o, Py_ssize_t i,
+                                                     int is_list, int wraparound, int boundscheck);
 
 /* HasAttr.proto */
 static CYTHON_INLINE int __Pyx_HasAttr(PyObject *, PyObject *);
@@ -1537,6 +1564,9 @@ static CYTHON_INLINE int __Pyx_PyUnicode_Equals(PyObject* s1, PyObject* s2, int 
 #define __Pyx_PyString_Equals __Pyx_PyBytes_Equals
 #endif
 
+/* None.proto */
+static CYTHON_INLINE Py_ssize_t __Pyx_div_Py_ssize_t(Py_ssize_t, Py_ssize_t);
+
 /* UnaryNegOverflows.proto */
 #define UNARY_NEG_WOULD_OVERFLOW(x)\
         (((x) < 0) & ((unsigned long)(x) == 0-(unsigned long)(x)))
@@ -1570,28 +1600,6 @@ static CYTHON_INLINE void __Pyx__ExceptionSwap(PyThreadState *tstate, PyObject *
 #else
 static CYTHON_INLINE void __Pyx_ExceptionSwap(PyObject **type, PyObject **value, PyObject **tb);
 #endif
-
-/* GetItemInt.proto */
-#define __Pyx_GetItemInt(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
-    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
-    __Pyx_GetItemInt_Fast(o, (Py_ssize_t)i, is_list, wraparound, boundscheck) :\
-    (is_list ? (PyErr_SetString(PyExc_IndexError, "list index out of range"), (PyObject*)NULL) :\
-               __Pyx_GetItemInt_Generic(o, to_py_func(i))))
-#define __Pyx_GetItemInt_List(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
-    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
-    __Pyx_GetItemInt_List_Fast(o, (Py_ssize_t)i, wraparound, boundscheck) :\
-    (PyErr_SetString(PyExc_IndexError, "list index out of range"), (PyObject*)NULL))
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_List_Fast(PyObject *o, Py_ssize_t i,
-                                                              int wraparound, int boundscheck);
-#define __Pyx_GetItemInt_Tuple(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
-    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
-    __Pyx_GetItemInt_Tuple_Fast(o, (Py_ssize_t)i, wraparound, boundscheck) :\
-    (PyErr_SetString(PyExc_IndexError, "tuple index out of range"), (PyObject*)NULL))
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Tuple_Fast(PyObject *o, Py_ssize_t i,
-                                                              int wraparound, int boundscheck);
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Generic(PyObject *o, PyObject* j);
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Fast(PyObject *o, Py_ssize_t i,
-                                                     int is_list, int wraparound, int boundscheck);
 
 static CYTHON_UNUSED int __pyx_memoryview_getbuffer(PyObject *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /*proto*/
 /* ListCompAppend.proto */
@@ -1652,10 +1660,8 @@ static CYTHON_INLINE int __Pyx_PyList_Append(PyObject* list, PyObject* x) {
 /* None.proto */
 static CYTHON_INLINE void __Pyx_RaiseUnboundLocalError(const char *varname);
 
-/* WriteUnraisableException.proto */
-static void __Pyx_WriteUnraisable(const char *name, int clineno,
-                                  int lineno, const char *filename,
-                                  int full_traceback, int nogil);
+/* None.proto */
+static CYTHON_INLINE long __Pyx_div_long(long, long);
 
 /* SetVTable.proto */
 static int __Pyx_SetVtable(PyObject *dict, void *vtable);
@@ -2062,6 +2068,7 @@ static const char __pyx_k_unpack[] = "unpack";
 static const char __pyx_k_update[] = "update";
 static const char __pyx_k_fortran[] = "fortran";
 static const char __pyx_k_memview[] = "memview";
+static const char __pyx_k_n_steps[] = "n_steps";
 static const char __pyx_k_prepare[] = "__prepare__";
 static const char __pyx_k_Ellipsis[] = "Ellipsis";
 static const char __pyx_k_itemsize[] = "itemsize";
@@ -2076,7 +2083,6 @@ static const char __pyx_k_pyx_state[] = "__pyx_state";
 static const char __pyx_k_IndexError[] = "IndexError";
 static const char __pyx_k_ValueError[] = "ValueError";
 static const char __pyx_k_pyx_vtable[] = "__pyx_vtable__";
-static const char __pyx_k_start_time[] = "start_time";
 static const char __pyx_k_ImportError[] = "ImportError";
 static const char __pyx_k_MemoryError[] = "MemoryError";
 static const char __pyx_k_PickleError[] = "PickleError";
@@ -2091,10 +2097,10 @@ static const char __pyx_k_allocate_buffer[] = "allocate_buffer";
 static const char __pyx_k_dtype_is_object[] = "dtype_is_object";
 static const char __pyx_k_setstate_cython[] = "__setstate_cython__";
 static const char __pyx_k_ConvergenceError[] = "ConvergenceError";
+static const char __pyx_k_start_time_index[] = "start_time_index";
 static const char __pyx_k_z_particles_next[] = "z_particles_next";
 static const char __pyx_k_pyx_unpickle_Enum[] = "__pyx_unpickle_Enum";
 static const char __pyx_k_cline_in_traceback[] = "cline_in_traceback";
-static const char __pyx_k_n_steps_per_update[] = "n_steps_per_update";
 static const char __pyx_k_strided_and_direct[] = "<strided and direct>";
 static const char __pyx_k_strided_and_indirect[] = "<strided and indirect>";
 static const char __pyx_k_contiguous_and_direct[] = "<contiguous and direct>";
@@ -2196,7 +2202,7 @@ static PyObject *__pyx_n_s_memview;
 static PyObject *__pyx_n_s_metaclass;
 static PyObject *__pyx_n_s_mode;
 static PyObject *__pyx_n_s_module;
-static PyObject *__pyx_n_s_n_steps_per_update;
+static PyObject *__pyx_n_s_n_steps;
 static PyObject *__pyx_n_s_n_threads;
 static PyObject *__pyx_n_s_name;
 static PyObject *__pyx_n_s_name_2;
@@ -2228,7 +2234,7 @@ static PyObject *__pyx_n_s_setstate_cython;
 static PyObject *__pyx_n_s_shape;
 static PyObject *__pyx_n_s_size;
 static PyObject *__pyx_n_s_start;
-static PyObject *__pyx_n_s_start_time;
+static PyObject *__pyx_n_s_start_time_index;
 static PyObject *__pyx_n_s_step;
 static PyObject *__pyx_n_s_stop;
 static PyObject *__pyx_kp_s_strided_and_direct;
@@ -2245,8 +2251,8 @@ static PyObject *__pyx_n_s_unpack;
 static PyObject *__pyx_n_s_update;
 static PyObject *__pyx_n_s_z_particles;
 static PyObject *__pyx_n_s_z_particles_next;
-static int __pyx_pf_4dapy_6models_11integrators_26ImplicitMidpointIntegrator___init__(struct __pyx_obj_4dapy_6models_11integrators_ImplicitMidpointIntegrator *__pyx_v_self, int __pyx_v_dim_z, double __pyx_v_dt, int __pyx_v_n_steps_per_update, double __pyx_v_tol, int __pyx_v_max_iters, int __pyx_v_n_threads); /* proto */
-static PyObject *__pyx_pf_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_2forward_integrate(struct __pyx_obj_4dapy_6models_11integrators_ImplicitMidpointIntegrator *__pyx_v_self, __Pyx_memviewslice __pyx_v_z_particles, __Pyx_memviewslice __pyx_v_z_particles_next, double __pyx_v_start_time); /* proto */
+static int __pyx_pf_4dapy_6models_11integrators_26ImplicitMidpointIntegrator___init__(struct __pyx_obj_4dapy_6models_11integrators_ImplicitMidpointIntegrator *__pyx_v_self, int __pyx_v_dim_z, double __pyx_v_dt, double __pyx_v_tol, int __pyx_v_max_iters, int __pyx_v_n_threads); /* proto */
+static PyObject *__pyx_pf_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_2forward_integrate(struct __pyx_obj_4dapy_6models_11integrators_ImplicitMidpointIntegrator *__pyx_v_self, __Pyx_memviewslice __pyx_v_z_particles, __Pyx_memviewslice __pyx_v_z_particles_next, int __pyx_v_start_time_index, int __pyx_v_n_steps); /* proto */
 static PyObject *__pyx_pf_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_4__reduce_cython__(struct __pyx_obj_4dapy_6models_11integrators_ImplicitMidpointIntegrator *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_6__setstate_cython__(struct __pyx_obj_4dapy_6models_11integrators_ImplicitMidpointIntegrator *__pyx_v_self, PyObject *__pyx_v___pyx_state); /* proto */
 static PyObject *__pyx_pf_4dapy_6models_11integrators___pyx_unpickle_ImplicitMidpointIntegrator(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state); /* proto */
@@ -2345,8 +2351,8 @@ static PyObject *__pyx_codeobj__38;
 /* "dapy/models/integrators.pyx":12
  * cdef class ImplicitMidpointIntegrator:
  * 
- *     def __init__(self, int dim_z, double dt, int n_steps_per_update,             # <<<<<<<<<<<<<<
- *                  double tol, int max_iters, int n_threads=4):
+ *     def __init__(self, int dim_z, double dt,  double tol, int max_iters,             # <<<<<<<<<<<<<<
+ *                  int n_threads=4):
  *         self.dim_z = dim_z
  */
 
@@ -2355,7 +2361,6 @@ static int __pyx_pw_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_1__
 static int __pyx_pw_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_1__init__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   int __pyx_v_dim_z;
   double __pyx_v_dt;
-  int __pyx_v_n_steps_per_update;
   double __pyx_v_tol;
   int __pyx_v_max_iters;
   int __pyx_v_n_threads;
@@ -2363,14 +2368,12 @@ static int __pyx_pw_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_1__
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__init__ (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_dim_z,&__pyx_n_s_dt,&__pyx_n_s_n_steps_per_update,&__pyx_n_s_tol,&__pyx_n_s_max_iters,&__pyx_n_s_n_threads,0};
-    PyObject* values[6] = {0,0,0,0,0,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_dim_z,&__pyx_n_s_dt,&__pyx_n_s_tol,&__pyx_n_s_max_iters,&__pyx_n_s_n_threads,0};
+    PyObject* values[5] = {0,0,0,0,0};
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
       const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
       switch (pos_args) {
-        case  6: values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
-        CYTHON_FALLTHROUGH;
         case  5: values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
         CYTHON_FALLTHROUGH;
         case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
@@ -2393,31 +2396,25 @@ static int __pyx_pw_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_1__
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_dt)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 0, 5, 6, 1); __PYX_ERR(0, 12, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 0, 4, 5, 1); __PYX_ERR(0, 12, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
-        if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_n_steps_per_update)) != 0)) kw_args--;
+        if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_tol)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 0, 5, 6, 2); __PYX_ERR(0, 12, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 0, 4, 5, 2); __PYX_ERR(0, 12, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
-        if (likely((values[3] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_tol)) != 0)) kw_args--;
+        if (likely((values[3] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_max_iters)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 0, 5, 6, 3); __PYX_ERR(0, 12, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 0, 4, 5, 3); __PYX_ERR(0, 12, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  4:
-        if (likely((values[4] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_max_iters)) != 0)) kw_args--;
-        else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 0, 5, 6, 4); __PYX_ERR(0, 12, __pyx_L3_error)
-        }
-        CYTHON_FALLTHROUGH;
-        case  5:
         if (kw_args > 0) {
           PyObject* value = PyDict_GetItem(__pyx_kwds, __pyx_n_s_n_threads);
-          if (value) { values[5] = value; kw_args--; }
+          if (value) { values[4] = value; kw_args--; }
         }
       }
       if (unlikely(kw_args > 0)) {
@@ -2425,10 +2422,9 @@ static int __pyx_pw_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_1__
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
-        case  6: values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
-        CYTHON_FALLTHROUGH;
         case  5: values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
-        values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
+        CYTHON_FALLTHROUGH;
+        case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
         values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
         values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
         values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
@@ -2438,31 +2434,30 @@ static int __pyx_pw_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_1__
     }
     __pyx_v_dim_z = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_dim_z == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 12, __pyx_L3_error)
     __pyx_v_dt = __pyx_PyFloat_AsDouble(values[1]); if (unlikely((__pyx_v_dt == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 12, __pyx_L3_error)
-    __pyx_v_n_steps_per_update = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_n_steps_per_update == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 12, __pyx_L3_error)
-    __pyx_v_tol = __pyx_PyFloat_AsDouble(values[3]); if (unlikely((__pyx_v_tol == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 13, __pyx_L3_error)
-    __pyx_v_max_iters = __Pyx_PyInt_As_int(values[4]); if (unlikely((__pyx_v_max_iters == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 13, __pyx_L3_error)
-    if (values[5]) {
-      __pyx_v_n_threads = __Pyx_PyInt_As_int(values[5]); if (unlikely((__pyx_v_n_threads == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 13, __pyx_L3_error)
+    __pyx_v_tol = __pyx_PyFloat_AsDouble(values[2]); if (unlikely((__pyx_v_tol == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 12, __pyx_L3_error)
+    __pyx_v_max_iters = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_max_iters == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 12, __pyx_L3_error)
+    if (values[4]) {
+      __pyx_v_n_threads = __Pyx_PyInt_As_int(values[4]); if (unlikely((__pyx_v_n_threads == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 13, __pyx_L3_error)
     } else {
       __pyx_v_n_threads = ((int)4);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__init__", 0, 5, 6, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 12, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__init__", 0, 4, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 12, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("dapy.models.integrators.ImplicitMidpointIntegrator.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return -1;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_4dapy_6models_11integrators_26ImplicitMidpointIntegrator___init__(((struct __pyx_obj_4dapy_6models_11integrators_ImplicitMidpointIntegrator *)__pyx_v_self), __pyx_v_dim_z, __pyx_v_dt, __pyx_v_n_steps_per_update, __pyx_v_tol, __pyx_v_max_iters, __pyx_v_n_threads);
+  __pyx_r = __pyx_pf_4dapy_6models_11integrators_26ImplicitMidpointIntegrator___init__(((struct __pyx_obj_4dapy_6models_11integrators_ImplicitMidpointIntegrator *)__pyx_v_self), __pyx_v_dim_z, __pyx_v_dt, __pyx_v_tol, __pyx_v_max_iters, __pyx_v_n_threads);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static int __pyx_pf_4dapy_6models_11integrators_26ImplicitMidpointIntegrator___init__(struct __pyx_obj_4dapy_6models_11integrators_ImplicitMidpointIntegrator *__pyx_v_self, int __pyx_v_dim_z, double __pyx_v_dt, int __pyx_v_n_steps_per_update, double __pyx_v_tol, int __pyx_v_max_iters, int __pyx_v_n_threads) {
+static int __pyx_pf_4dapy_6models_11integrators_26ImplicitMidpointIntegrator___init__(struct __pyx_obj_4dapy_6models_11integrators_ImplicitMidpointIntegrator *__pyx_v_self, int __pyx_v_dim_z, double __pyx_v_dt, double __pyx_v_tol, int __pyx_v_max_iters, int __pyx_v_n_threads) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -2474,43 +2469,34 @@ static int __pyx_pf_4dapy_6models_11integrators_26ImplicitMidpointIntegrator___i
   __Pyx_RefNannySetupContext("__init__", 0);
 
   /* "dapy/models/integrators.pyx":14
- *     def __init__(self, int dim_z, double dt, int n_steps_per_update,
- *                  double tol, int max_iters, int n_threads=4):
+ *     def __init__(self, int dim_z, double dt,  double tol, int max_iters,
+ *                  int n_threads=4):
  *         self.dim_z = dim_z             # <<<<<<<<<<<<<<
  *         self.dt = dt
- *         self.n_steps_per_update = n_steps_per_update
+ *         self.tol = tol
  */
   __pyx_v_self->dim_z = __pyx_v_dim_z;
 
   /* "dapy/models/integrators.pyx":15
- *                  double tol, int max_iters, int n_threads=4):
+ *                  int n_threads=4):
  *         self.dim_z = dim_z
  *         self.dt = dt             # <<<<<<<<<<<<<<
- *         self.n_steps_per_update = n_steps_per_update
  *         self.tol = tol
+ *         self.max_iters = max_iters
  */
   __pyx_v_self->dt = __pyx_v_dt;
 
   /* "dapy/models/integrators.pyx":16
  *         self.dim_z = dim_z
  *         self.dt = dt
- *         self.n_steps_per_update = n_steps_per_update             # <<<<<<<<<<<<<<
- *         self.tol = tol
- *         self.max_iters = max_iters
- */
-  __pyx_v_self->n_steps_per_update = __pyx_v_n_steps_per_update;
-
-  /* "dapy/models/integrators.pyx":17
- *         self.dt = dt
- *         self.n_steps_per_update = n_steps_per_update
  *         self.tol = tol             # <<<<<<<<<<<<<<
  *         self.max_iters = max_iters
  *         self.n_threads = n_threads
  */
   __pyx_v_self->tol = __pyx_v_tol;
 
-  /* "dapy/models/integrators.pyx":18
- *         self.n_steps_per_update = n_steps_per_update
+  /* "dapy/models/integrators.pyx":17
+ *         self.dt = dt
  *         self.tol = tol
  *         self.max_iters = max_iters             # <<<<<<<<<<<<<<
  *         self.n_threads = n_threads
@@ -2518,7 +2504,7 @@ static int __pyx_pf_4dapy_6models_11integrators_26ImplicitMidpointIntegrator___i
  */
   __pyx_v_self->max_iters = __pyx_v_max_iters;
 
-  /* "dapy/models/integrators.pyx":19
+  /* "dapy/models/integrators.pyx":18
  *         self.tol = tol
  *         self.max_iters = max_iters
  *         self.n_threads = n_threads             # <<<<<<<<<<<<<<
@@ -2527,63 +2513,63 @@ static int __pyx_pf_4dapy_6models_11integrators_26ImplicitMidpointIntegrator___i
  */
   __pyx_v_self->n_threads = __pyx_v_n_threads;
 
-  /* "dapy/models/integrators.pyx":20
+  /* "dapy/models/integrators.pyx":19
  *         self.max_iters = max_iters
  *         self.n_threads = n_threads
  *         self.intervals = np.empty((n_threads,), dtype='int32')             # <<<<<<<<<<<<<<
  *         self.z_temp = np.empty((n_threads, dim_z), dtype='double')
  *         self.z_half = np.empty((n_threads, dim_z), dtype='double')
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 20, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 19, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_empty); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 20, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_empty); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 19, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_n_threads); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 20, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_n_threads); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 19, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 20, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 19, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
   __pyx_t_1 = 0;
-  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 20, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 19, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_3);
   __pyx_t_3 = 0;
-  __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 20, __pyx_L1_error)
+  __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 19, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_dtype, __pyx_n_s_int32) < 0) __PYX_ERR(0, 20, __pyx_L1_error)
-  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 20, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_dtype, __pyx_n_s_int32) < 0) __PYX_ERR(0, 19, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 19, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_t_5 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_t_4);
-  if (unlikely(!__pyx_t_5.memview)) __PYX_ERR(0, 20, __pyx_L1_error)
+  if (unlikely(!__pyx_t_5.memview)) __PYX_ERR(0, 19, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __PYX_XDEC_MEMVIEW(&__pyx_v_self->intervals, 0);
   __pyx_v_self->intervals = __pyx_t_5;
   __pyx_t_5.memview = NULL;
   __pyx_t_5.data = NULL;
 
-  /* "dapy/models/integrators.pyx":21
+  /* "dapy/models/integrators.pyx":20
  *         self.n_threads = n_threads
  *         self.intervals = np.empty((n_threads,), dtype='int32')
  *         self.z_temp = np.empty((n_threads, dim_z), dtype='double')             # <<<<<<<<<<<<<<
  *         self.z_half = np.empty((n_threads, dim_z), dtype='double')
  *         self.dz_dt = np.empty((n_threads, dim_z), dtype='double')
  */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 21, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 20, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_empty); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 21, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_empty); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 20, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_n_threads); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 21, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_n_threads); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 20, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_dim_z); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 21, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_dim_z); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 20, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 21, __pyx_L1_error)
+  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 20, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_GIVEREF(__pyx_t_4);
   PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_4);
@@ -2591,44 +2577,44 @@ static int __pyx_pf_4dapy_6models_11integrators_26ImplicitMidpointIntegrator___i
   PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_t_1);
   __pyx_t_4 = 0;
   __pyx_t_1 = 0;
-  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 21, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 20, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_2);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_2);
   __pyx_t_2 = 0;
-  __pyx_t_2 = PyDict_New(); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 21, __pyx_L1_error)
+  __pyx_t_2 = PyDict_New(); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 20, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_dtype, __pyx_n_s_double) < 0) __PYX_ERR(0, 21, __pyx_L1_error)
-  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_1, __pyx_t_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 21, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_dtype, __pyx_n_s_double) < 0) __PYX_ERR(0, 20, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_1, __pyx_t_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 20, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(__pyx_t_4);
-  if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 21, __pyx_L1_error)
+  if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 20, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __PYX_XDEC_MEMVIEW(&__pyx_v_self->z_temp, 0);
   __pyx_v_self->z_temp = __pyx_t_6;
   __pyx_t_6.memview = NULL;
   __pyx_t_6.data = NULL;
 
-  /* "dapy/models/integrators.pyx":22
+  /* "dapy/models/integrators.pyx":21
  *         self.intervals = np.empty((n_threads,), dtype='int32')
  *         self.z_temp = np.empty((n_threads, dim_z), dtype='double')
  *         self.z_half = np.empty((n_threads, dim_z), dtype='double')             # <<<<<<<<<<<<<<
  *         self.dz_dt = np.empty((n_threads, dim_z), dtype='double')
  * 
  */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 22, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 21, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_empty); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 22, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_empty); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 21, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_n_threads); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 22, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_n_threads); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 21, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_dim_z); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 22, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_dim_z); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 21, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 22, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 21, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_4);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_4);
@@ -2636,44 +2622,44 @@ static int __pyx_pf_4dapy_6models_11integrators_26ImplicitMidpointIntegrator___i
   PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_t_1);
   __pyx_t_4 = 0;
   __pyx_t_1 = 0;
-  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 22, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 21, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_3);
   __pyx_t_3 = 0;
-  __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 22, __pyx_L1_error)
+  __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 21, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_dtype, __pyx_n_s_double) < 0) __PYX_ERR(0, 22, __pyx_L1_error)
-  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 22, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_dtype, __pyx_n_s_double) < 0) __PYX_ERR(0, 21, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 21, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(__pyx_t_4);
-  if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 22, __pyx_L1_error)
+  if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 21, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __PYX_XDEC_MEMVIEW(&__pyx_v_self->z_half, 0);
   __pyx_v_self->z_half = __pyx_t_6;
   __pyx_t_6.memview = NULL;
   __pyx_t_6.data = NULL;
 
-  /* "dapy/models/integrators.pyx":23
+  /* "dapy/models/integrators.pyx":22
  *         self.z_temp = np.empty((n_threads, dim_z), dtype='double')
  *         self.z_half = np.empty((n_threads, dim_z), dtype='double')
  *         self.dz_dt = np.empty((n_threads, dim_z), dtype='double')             # <<<<<<<<<<<<<<
  * 
  *     @cython.boundscheck(False)
  */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 23, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 22, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_empty); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 23, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_empty); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 22, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_n_threads); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 23, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_n_threads); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 22, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_dim_z); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 23, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_dim_z); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 22, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 23, __pyx_L1_error)
+  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 22, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_GIVEREF(__pyx_t_4);
   PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_4);
@@ -2681,21 +2667,21 @@ static int __pyx_pf_4dapy_6models_11integrators_26ImplicitMidpointIntegrator___i
   PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_t_1);
   __pyx_t_4 = 0;
   __pyx_t_1 = 0;
-  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 23, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 22, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_2);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_2);
   __pyx_t_2 = 0;
-  __pyx_t_2 = PyDict_New(); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 23, __pyx_L1_error)
+  __pyx_t_2 = PyDict_New(); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 22, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_dtype, __pyx_n_s_double) < 0) __PYX_ERR(0, 23, __pyx_L1_error)
-  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_1, __pyx_t_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 23, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_dtype, __pyx_n_s_double) < 0) __PYX_ERR(0, 22, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_1, __pyx_t_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 22, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(__pyx_t_4);
-  if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 23, __pyx_L1_error)
+  if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 22, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __PYX_XDEC_MEMVIEW(&__pyx_v_self->dz_dt, 0);
   __pyx_v_self->dz_dt = __pyx_t_6;
@@ -2705,8 +2691,8 @@ static int __pyx_pf_4dapy_6models_11integrators_26ImplicitMidpointIntegrator___i
   /* "dapy/models/integrators.pyx":12
  * cdef class ImplicitMidpointIntegrator:
  * 
- *     def __init__(self, int dim_z, double dt, int n_steps_per_update,             # <<<<<<<<<<<<<<
- *                  double tol, int max_iters, int n_threads=4):
+ *     def __init__(self, int dim_z, double dt,  double tol, int max_iters,             # <<<<<<<<<<<<<<
+ *                  int n_threads=4):
  *         self.dim_z = dim_z
  */
 
@@ -2727,7 +2713,7 @@ static int __pyx_pf_4dapy_6models_11integrators_26ImplicitMidpointIntegrator___i
   return __pyx_r;
 }
 
-/* "dapy/models/integrators.pyx":28
+/* "dapy/models/integrators.pyx":27
  *     @cython.wraparound(False)
  *     @cython.cdivision(True)
  *     cdef void update_dz_dt(self, double[:] z, double t, double[:] dz_dt) nogil:             # <<<<<<<<<<<<<<
@@ -2740,7 +2726,7 @@ static void __pyx_f_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_upd
   /* function exit code */
 }
 
-/* "dapy/models/integrators.pyx":34
+/* "dapy/models/integrators.pyx":33
  *     @cython.wraparound(False)
  *     @cython.cdivision(True)
  *     cdef bint implicit_midpoint_step(             # <<<<<<<<<<<<<<
@@ -2771,7 +2757,7 @@ static int __pyx_f_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_impl
   Py_ssize_t __pyx_t_14;
   Py_ssize_t __pyx_t_15;
 
-  /* "dapy/models/integrators.pyx":39
+  /* "dapy/models/integrators.pyx":38
  *         cdef double max_abs_diff, abs_diff, prev_val
  *         cdef int i, j
  *         self.update_dz_dt(z, time + self.dt / 2., dz_dt)             # <<<<<<<<<<<<<<
@@ -2780,7 +2766,7 @@ static int __pyx_f_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_impl
  */
   ((struct __pyx_vtabstruct_4dapy_6models_11integrators_ImplicitMidpointIntegrator *)__pyx_v_self->__pyx_vtab)->update_dz_dt(__pyx_v_self, __pyx_v_z, (__pyx_v_time + (__pyx_v_self->dt / 2.)), __pyx_v_dz_dt);
 
-  /* "dapy/models/integrators.pyx":40
+  /* "dapy/models/integrators.pyx":39
  *         cdef int i, j
  *         self.update_dz_dt(z, time + self.dt / 2., dz_dt)
  *         for j in range(self.dim_z):             # <<<<<<<<<<<<<<
@@ -2791,7 +2777,7 @@ static int __pyx_f_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_impl
   for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
     __pyx_v_j = __pyx_t_2;
 
-    /* "dapy/models/integrators.pyx":41
+    /* "dapy/models/integrators.pyx":40
  *         self.update_dz_dt(z, time + self.dt / 2., dz_dt)
  *         for j in range(self.dim_z):
  *             z_next[j] = z[j] + self.dt * dz_dt[j]             # <<<<<<<<<<<<<<
@@ -2804,7 +2790,7 @@ static int __pyx_f_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_impl
     *((double *) ( /* dim=0 */ (__pyx_v_z_next.data + __pyx_t_5 * __pyx_v_z_next.strides[0]) )) = ((*((double *) ( /* dim=0 */ (__pyx_v_z.data + __pyx_t_3 * __pyx_v_z.strides[0]) ))) + (__pyx_v_self->dt * (*((double *) ( /* dim=0 */ (__pyx_v_dz_dt.data + __pyx_t_4 * __pyx_v_dz_dt.strides[0]) )))));
   }
 
-  /* "dapy/models/integrators.pyx":42
+  /* "dapy/models/integrators.pyx":41
  *         for j in range(self.dim_z):
  *             z_next[j] = z[j] + self.dt * dz_dt[j]
  *         i = 0             # <<<<<<<<<<<<<<
@@ -2813,7 +2799,7 @@ static int __pyx_f_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_impl
  */
   __pyx_v_i = 0;
 
-  /* "dapy/models/integrators.pyx":43
+  /* "dapy/models/integrators.pyx":42
  *             z_next[j] = z[j] + self.dt * dz_dt[j]
  *         i = 0
  *         max_abs_diff = self.tol + 1.             # <<<<<<<<<<<<<<
@@ -2822,7 +2808,7 @@ static int __pyx_f_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_impl
  */
   __pyx_v_max_abs_diff = (__pyx_v_self->tol + 1.);
 
-  /* "dapy/models/integrators.pyx":44
+  /* "dapy/models/integrators.pyx":43
  *         i = 0
  *         max_abs_diff = self.tol + 1.
  *         while max_abs_diff > self.tol and i < self.max_iters:             # <<<<<<<<<<<<<<
@@ -2841,7 +2827,7 @@ static int __pyx_f_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_impl
     __pyx_L7_bool_binop_done:;
     if (!__pyx_t_6) break;
 
-    /* "dapy/models/integrators.pyx":45
+    /* "dapy/models/integrators.pyx":44
  *         max_abs_diff = self.tol + 1.
  *         while max_abs_diff > self.tol and i < self.max_iters:
  *             max_abs_diff = 0.             # <<<<<<<<<<<<<<
@@ -2850,7 +2836,7 @@ static int __pyx_f_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_impl
  */
     __pyx_v_max_abs_diff = 0.;
 
-    /* "dapy/models/integrators.pyx":46
+    /* "dapy/models/integrators.pyx":45
  *         while max_abs_diff > self.tol and i < self.max_iters:
  *             max_abs_diff = 0.
  *             for j in range(self.dim_z):             # <<<<<<<<<<<<<<
@@ -2861,7 +2847,7 @@ static int __pyx_f_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_impl
     for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
       __pyx_v_j = __pyx_t_2;
 
-      /* "dapy/models/integrators.pyx":47
+      /* "dapy/models/integrators.pyx":46
  *             max_abs_diff = 0.
  *             for j in range(self.dim_z):
  *                 z_half[j] = (z_next[j] + z[j]) / 2.             # <<<<<<<<<<<<<<
@@ -2874,7 +2860,7 @@ static int __pyx_f_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_impl
       *((double *) ( /* dim=0 */ (__pyx_v_z_half.data + __pyx_t_10 * __pyx_v_z_half.strides[0]) )) = (((*((double *) ( /* dim=0 */ (__pyx_v_z_next.data + __pyx_t_8 * __pyx_v_z_next.strides[0]) ))) + (*((double *) ( /* dim=0 */ (__pyx_v_z.data + __pyx_t_9 * __pyx_v_z.strides[0]) )))) / 2.);
     }
 
-    /* "dapy/models/integrators.pyx":48
+    /* "dapy/models/integrators.pyx":47
  *             for j in range(self.dim_z):
  *                 z_half[j] = (z_next[j] + z[j]) / 2.
  *             self.update_dz_dt(z_half, time + self.dt / 2., dz_dt)             # <<<<<<<<<<<<<<
@@ -2883,7 +2869,7 @@ static int __pyx_f_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_impl
  */
     ((struct __pyx_vtabstruct_4dapy_6models_11integrators_ImplicitMidpointIntegrator *)__pyx_v_self->__pyx_vtab)->update_dz_dt(__pyx_v_self, __pyx_v_z_half, (__pyx_v_time + (__pyx_v_self->dt / 2.)), __pyx_v_dz_dt);
 
-    /* "dapy/models/integrators.pyx":49
+    /* "dapy/models/integrators.pyx":48
  *                 z_half[j] = (z_next[j] + z[j]) / 2.
  *             self.update_dz_dt(z_half, time + self.dt / 2., dz_dt)
  *             for j in range(self.dim_z):             # <<<<<<<<<<<<<<
@@ -2894,7 +2880,7 @@ static int __pyx_f_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_impl
     for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
       __pyx_v_j = __pyx_t_2;
 
-      /* "dapy/models/integrators.pyx":50
+      /* "dapy/models/integrators.pyx":49
  *             self.update_dz_dt(z_half, time + self.dt / 2., dz_dt)
  *             for j in range(self.dim_z):
  *                 prev_val = z_next[j]             # <<<<<<<<<<<<<<
@@ -2904,7 +2890,7 @@ static int __pyx_f_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_impl
       __pyx_t_11 = __pyx_v_j;
       __pyx_v_prev_val = (*((double *) ( /* dim=0 */ (__pyx_v_z_next.data + __pyx_t_11 * __pyx_v_z_next.strides[0]) )));
 
-      /* "dapy/models/integrators.pyx":51
+      /* "dapy/models/integrators.pyx":50
  *             for j in range(self.dim_z):
  *                 prev_val = z_next[j]
  *                 z_next[j] = z[j] + self.dt * dz_dt[j]             # <<<<<<<<<<<<<<
@@ -2916,7 +2902,7 @@ static int __pyx_f_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_impl
       __pyx_t_14 = __pyx_v_j;
       *((double *) ( /* dim=0 */ (__pyx_v_z_next.data + __pyx_t_14 * __pyx_v_z_next.strides[0]) )) = ((*((double *) ( /* dim=0 */ (__pyx_v_z.data + __pyx_t_12 * __pyx_v_z.strides[0]) ))) + (__pyx_v_self->dt * (*((double *) ( /* dim=0 */ (__pyx_v_dz_dt.data + __pyx_t_13 * __pyx_v_dz_dt.strides[0]) )))));
 
-      /* "dapy/models/integrators.pyx":52
+      /* "dapy/models/integrators.pyx":51
  *                 prev_val = z_next[j]
  *                 z_next[j] = z[j] + self.dt * dz_dt[j]
  *                 abs_diff = fabs(z_next[j] - prev_val)             # <<<<<<<<<<<<<<
@@ -2926,7 +2912,7 @@ static int __pyx_f_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_impl
       __pyx_t_15 = __pyx_v_j;
       __pyx_v_abs_diff = fabs(((*((double *) ( /* dim=0 */ (__pyx_v_z_next.data + __pyx_t_15 * __pyx_v_z_next.strides[0]) ))) - __pyx_v_prev_val));
 
-      /* "dapy/models/integrators.pyx":53
+      /* "dapy/models/integrators.pyx":52
  *                 z_next[j] = z[j] + self.dt * dz_dt[j]
  *                 abs_diff = fabs(z_next[j] - prev_val)
  *                 if isnan(abs_diff) or isinf(abs_diff):             # <<<<<<<<<<<<<<
@@ -2944,7 +2930,7 @@ static int __pyx_f_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_impl
       __pyx_L14_bool_binop_done:;
       if (__pyx_t_6) {
 
-        /* "dapy/models/integrators.pyx":54
+        /* "dapy/models/integrators.pyx":53
  *                 abs_diff = fabs(z_next[j] - prev_val)
  *                 if isnan(abs_diff) or isinf(abs_diff):
  *                     return 1             # <<<<<<<<<<<<<<
@@ -2954,7 +2940,7 @@ static int __pyx_f_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_impl
         __pyx_r = 1;
         goto __pyx_L0;
 
-        /* "dapy/models/integrators.pyx":53
+        /* "dapy/models/integrators.pyx":52
  *                 z_next[j] = z[j] + self.dt * dz_dt[j]
  *                 abs_diff = fabs(z_next[j] - prev_val)
  *                 if isnan(abs_diff) or isinf(abs_diff):             # <<<<<<<<<<<<<<
@@ -2963,7 +2949,7 @@ static int __pyx_f_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_impl
  */
       }
 
-      /* "dapy/models/integrators.pyx":55
+      /* "dapy/models/integrators.pyx":54
  *                 if isnan(abs_diff) or isinf(abs_diff):
  *                     return 1
  *                 if abs_diff > max_abs_diff:             # <<<<<<<<<<<<<<
@@ -2973,7 +2959,7 @@ static int __pyx_f_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_impl
       __pyx_t_6 = ((__pyx_v_abs_diff > __pyx_v_max_abs_diff) != 0);
       if (__pyx_t_6) {
 
-        /* "dapy/models/integrators.pyx":56
+        /* "dapy/models/integrators.pyx":55
  *                     return 1
  *                 if abs_diff > max_abs_diff:
  *                     max_abs_diff = abs_diff             # <<<<<<<<<<<<<<
@@ -2982,7 +2968,7 @@ static int __pyx_f_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_impl
  */
         __pyx_v_max_abs_diff = __pyx_v_abs_diff;
 
-        /* "dapy/models/integrators.pyx":55
+        /* "dapy/models/integrators.pyx":54
  *                 if isnan(abs_diff) or isinf(abs_diff):
  *                     return 1
  *                 if abs_diff > max_abs_diff:             # <<<<<<<<<<<<<<
@@ -2992,7 +2978,7 @@ static int __pyx_f_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_impl
       }
     }
 
-    /* "dapy/models/integrators.pyx":57
+    /* "dapy/models/integrators.pyx":56
  *                 if abs_diff > max_abs_diff:
  *                     max_abs_diff = abs_diff
  *             i += 1             # <<<<<<<<<<<<<<
@@ -3002,7 +2988,7 @@ static int __pyx_f_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_impl
     __pyx_v_i = (__pyx_v_i + 1);
   }
 
-  /* "dapy/models/integrators.pyx":58
+  /* "dapy/models/integrators.pyx":57
  *                     max_abs_diff = abs_diff
  *             i += 1
  *         if i == self.max_iters:             # <<<<<<<<<<<<<<
@@ -3012,7 +2998,7 @@ static int __pyx_f_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_impl
   __pyx_t_6 = ((__pyx_v_i == __pyx_v_self->max_iters) != 0);
   if (__pyx_t_6) {
 
-    /* "dapy/models/integrators.pyx":59
+    /* "dapy/models/integrators.pyx":58
  *             i += 1
  *         if i == self.max_iters:
  *             return 1             # <<<<<<<<<<<<<<
@@ -3022,7 +3008,7 @@ static int __pyx_f_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_impl
     __pyx_r = 1;
     goto __pyx_L0;
 
-    /* "dapy/models/integrators.pyx":58
+    /* "dapy/models/integrators.pyx":57
  *                     max_abs_diff = abs_diff
  *             i += 1
  *         if i == self.max_iters:             # <<<<<<<<<<<<<<
@@ -3031,7 +3017,7 @@ static int __pyx_f_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_impl
  */
   }
 
-  /* "dapy/models/integrators.pyx":61
+  /* "dapy/models/integrators.pyx":60
  *             return 1
  *         else:
  *             return 0             # <<<<<<<<<<<<<<
@@ -3043,7 +3029,7 @@ static int __pyx_f_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_impl
     goto __pyx_L0;
   }
 
-  /* "dapy/models/integrators.pyx":34
+  /* "dapy/models/integrators.pyx":33
  *     @cython.wraparound(False)
  *     @cython.cdivision(True)
  *     cdef bint implicit_midpoint_step(             # <<<<<<<<<<<<<<
@@ -3056,7 +3042,7 @@ static int __pyx_f_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_impl
   return __pyx_r;
 }
 
-/* "dapy/models/integrators.pyx":66
+/* "dapy/models/integrators.pyx":65
  *     @cython.wraparound(False)
  *     @cython.cdivision(True)
  *     cdef void partition_particles(self, int n_particles):             # <<<<<<<<<<<<<<
@@ -3073,7 +3059,7 @@ static void __pyx_f_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_par
   Py_ssize_t __pyx_t_4;
   __Pyx_RefNannySetupContext("partition_particles", 0);
 
-  /* "dapy/models/integrators.pyx":74
+  /* "dapy/models/integrators.pyx":73
  *         """
  *         cdef int t
  *         for t in range(self.n_threads):             # <<<<<<<<<<<<<<
@@ -3084,28 +3070,30 @@ static void __pyx_f_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_par
   for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
     __pyx_v_t = __pyx_t_2;
 
-    /* "dapy/models/integrators.pyx":75
+    /* "dapy/models/integrators.pyx":74
  *         cdef int t
  *         for t in range(self.n_threads):
  *             self.intervals[t] = <int>(             # <<<<<<<<<<<<<<
  *                 t * <float>(n_particles) / self.n_threads)
  *         self.intervals[self.n_threads] = n_particles
  */
+    if (unlikely(!__pyx_v_self->intervals.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");__PYX_ERR(0, 74, __pyx_L1_error)}
     __pyx_t_3 = __pyx_v_t;
     *((int *) ( /* dim=0 */ (__pyx_v_self->intervals.data + __pyx_t_3 * __pyx_v_self->intervals.strides[0]) )) = ((int)((__pyx_v_t * ((float)__pyx_v_n_particles)) / __pyx_v_self->n_threads));
   }
 
-  /* "dapy/models/integrators.pyx":77
+  /* "dapy/models/integrators.pyx":76
  *             self.intervals[t] = <int>(
  *                 t * <float>(n_particles) / self.n_threads)
  *         self.intervals[self.n_threads] = n_particles             # <<<<<<<<<<<<<<
  * 
  *     @cython.boundscheck(False)
  */
+  if (unlikely(!__pyx_v_self->intervals.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");__PYX_ERR(0, 76, __pyx_L1_error)}
   __pyx_t_4 = __pyx_v_self->n_threads;
   *((int *) ( /* dim=0 */ (__pyx_v_self->intervals.data + __pyx_t_4 * __pyx_v_self->intervals.strides[0]) )) = __pyx_v_n_particles;
 
-  /* "dapy/models/integrators.pyx":66
+  /* "dapy/models/integrators.pyx":65
  *     @cython.wraparound(False)
  *     @cython.cdivision(True)
  *     cdef void partition_particles(self, int n_particles):             # <<<<<<<<<<<<<<
@@ -3114,34 +3102,41 @@ static void __pyx_f_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_par
  */
 
   /* function exit code */
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __Pyx_WriteUnraisable("dapy.models.integrators.ImplicitMidpointIntegrator.partition_particles", __pyx_clineno, __pyx_lineno, __pyx_filename, 1, 0);
+  __pyx_L0:;
   __Pyx_RefNannyFinishContext();
 }
 
-/* "dapy/models/integrators.pyx":82
+/* "dapy/models/integrators.pyx":81
  *     @cython.wraparound(False)
  *     @cython.cdivision(True)
  *     def forward_integrate(             # <<<<<<<<<<<<<<
  *             self, double[:, :] z_particles, double[:, :] z_particles_next,
- *             double start_time):
+ *             int start_time_index, int n_steps=1):
  */
 
 /* Python wrapper */
 static PyObject *__pyx_pw_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_3forward_integrate(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_2forward_integrate[] = "ImplicitMidpointIntegrator.forward_integrate(self, __Pyx_memviewslice z_particles, __Pyx_memviewslice z_particles_next, double start_time)\nIntegrate a set of state particles forward in time.\n        \n        Args:\n            z_particles (array): Array of current state particle values of\n                shape `(n_particles, dim_z)`.\n            z_particles_next (array): Array in to which forward propagated\n                state particle values are written.\n            start_time (float): Current time value.\n        Returns:\n            end_time (float): Time value after forward integration.\n        ";
+static char __pyx_doc_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_2forward_integrate[] = "Integrate a set of state particles forward in time.\n\n        Args:\n            z_particles (array): Array of current state particle values of\n                shape `(n_particles, dim_z)`.\n            z_particles_next (array): Array in to which forward propagated\n                state particle values are written.\n            start_time_index (int): Integer indicating current time index\n                associated with the `z_curr` states (i.e. number of previous\n                `forward_integrate` calls) to allow for calculate of time for\n                non-homogeneous systems.\n            n_step (int): Number of integrator time steps to perform.\n        ";
 static PyObject *__pyx_pw_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_3forward_integrate(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_z_particles = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_z_particles_next = { 0, 0, { 0 }, { 0 }, { 0 } };
-  double __pyx_v_start_time;
+  int __pyx_v_start_time_index;
+  int __pyx_v_n_steps;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("forward_integrate (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_z_particles,&__pyx_n_s_z_particles_next,&__pyx_n_s_start_time,0};
-    PyObject* values[3] = {0,0,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_z_particles,&__pyx_n_s_z_particles_next,&__pyx_n_s_start_time_index,&__pyx_n_s_n_steps,0};
+    PyObject* values[4] = {0,0,0,0};
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
       const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
       switch (pos_args) {
+        case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
+        CYTHON_FALLTHROUGH;
         case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
         CYTHON_FALLTHROUGH;
         case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
@@ -3160,45 +3155,60 @@ static PyObject *__pyx_pw_4dapy_6models_11integrators_26ImplicitMidpointIntegrat
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_z_particles_next)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("forward_integrate", 1, 3, 3, 1); __PYX_ERR(0, 82, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("forward_integrate", 0, 3, 4, 1); __PYX_ERR(0, 81, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
-        if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_start_time)) != 0)) kw_args--;
+        if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_start_time_index)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("forward_integrate", 1, 3, 3, 2); __PYX_ERR(0, 82, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("forward_integrate", 0, 3, 4, 2); __PYX_ERR(0, 81, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  3:
+        if (kw_args > 0) {
+          PyObject* value = PyDict_GetItem(__pyx_kwds, __pyx_n_s_n_steps);
+          if (value) { values[3] = value; kw_args--; }
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "forward_integrate") < 0)) __PYX_ERR(0, 82, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "forward_integrate") < 0)) __PYX_ERR(0, 81, __pyx_L3_error)
       }
-    } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
-      goto __pyx_L5_argtuple_error;
     } else {
-      values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
-      values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
-      values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+      switch (PyTuple_GET_SIZE(__pyx_args)) {
+        case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
+        CYTHON_FALLTHROUGH;
+        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+        values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        break;
+        default: goto __pyx_L5_argtuple_error;
+      }
     }
-    __pyx_v_z_particles = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(values[0]); if (unlikely(!__pyx_v_z_particles.memview)) __PYX_ERR(0, 83, __pyx_L3_error)
-    __pyx_v_z_particles_next = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(values[1]); if (unlikely(!__pyx_v_z_particles_next.memview)) __PYX_ERR(0, 83, __pyx_L3_error)
-    __pyx_v_start_time = __pyx_PyFloat_AsDouble(values[2]); if (unlikely((__pyx_v_start_time == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 84, __pyx_L3_error)
+    __pyx_v_z_particles = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(values[0]); if (unlikely(!__pyx_v_z_particles.memview)) __PYX_ERR(0, 82, __pyx_L3_error)
+    __pyx_v_z_particles_next = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(values[1]); if (unlikely(!__pyx_v_z_particles_next.memview)) __PYX_ERR(0, 82, __pyx_L3_error)
+    __pyx_v_start_time_index = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_start_time_index == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 83, __pyx_L3_error)
+    if (values[3]) {
+      __pyx_v_n_steps = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_n_steps == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 83, __pyx_L3_error)
+    } else {
+      __pyx_v_n_steps = ((int)1);
+    }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("forward_integrate", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 82, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("forward_integrate", 0, 3, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 81, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("dapy.models.integrators.ImplicitMidpointIntegrator.forward_integrate", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_2forward_integrate(((struct __pyx_obj_4dapy_6models_11integrators_ImplicitMidpointIntegrator *)__pyx_v_self), __pyx_v_z_particles, __pyx_v_z_particles_next, __pyx_v_start_time);
+  __pyx_r = __pyx_pf_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_2forward_integrate(((struct __pyx_obj_4dapy_6models_11integrators_ImplicitMidpointIntegrator *)__pyx_v_self), __pyx_v_z_particles, __pyx_v_z_particles_next, __pyx_v_start_time_index, __pyx_v_n_steps);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_2forward_integrate(struct __pyx_obj_4dapy_6models_11integrators_ImplicitMidpointIntegrator *__pyx_v_self, __Pyx_memviewslice __pyx_v_z_particles, __Pyx_memviewslice __pyx_v_z_particles_next, double __pyx_v_start_time) {
+static PyObject *__pyx_pf_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_2forward_integrate(struct __pyx_obj_4dapy_6models_11integrators_ImplicitMidpointIntegrator *__pyx_v_self, __Pyx_memviewslice __pyx_v_z_particles, __Pyx_memviewslice __pyx_v_z_particles_next, int __pyx_v_start_time_index, int __pyx_v_n_steps) {
   int __pyx_v_n_particles;
   int __pyx_v_t;
   int __pyx_v_p;
@@ -3228,8 +3238,8 @@ static PyObject *__pyx_pf_4dapy_6models_11integrators_26ImplicitMidpointIntegrat
   PyObject *__pyx_t_19 = NULL;
   __Pyx_RefNannySetupContext("forward_integrate", 0);
 
-  /* "dapy/models/integrators.pyx":96
- *             end_time (float): Time value after forward integration.
+  /* "dapy/models/integrators.pyx":97
+ *             n_step (int): Number of integrator time steps to perform.
  *         """
  *         cdef int n_particles = z_particles.shape[0]             # <<<<<<<<<<<<<<
  *         self.partition_particles(n_particles)
@@ -3237,7 +3247,7 @@ static PyObject *__pyx_pf_4dapy_6models_11integrators_26ImplicitMidpointIntegrat
  */
   __pyx_v_n_particles = (__pyx_v_z_particles.shape[0]);
 
-  /* "dapy/models/integrators.pyx":97
+  /* "dapy/models/integrators.pyx":98
  *         """
  *         cdef int n_particles = z_particles.shape[0]
  *         self.partition_particles(n_particles)             # <<<<<<<<<<<<<<
@@ -3247,8 +3257,17 @@ static PyObject *__pyx_pf_4dapy_6models_11integrators_26ImplicitMidpointIntegrat
   ((struct __pyx_vtabstruct_4dapy_6models_11integrators_ImplicitMidpointIntegrator *)__pyx_v_self->__pyx_vtab)->partition_particles(__pyx_v_self, __pyx_v_n_particles);
 
   /* "dapy/models/integrators.pyx":101
+ *         cdef int t, p, s,
  *         cdef bint error
- *         cdef double time
+ *         cdef double time = start_time_index * n_steps * self.dt             # <<<<<<<<<<<<<<
+ *         for t in prange(self.n_threads, nogil=True, schedule='static',
+ *                         chunksize=1, num_threads=self.n_threads):
+ */
+  __pyx_v_time = ((__pyx_v_start_time_index * __pyx_v_n_steps) * __pyx_v_self->dt);
+
+  /* "dapy/models/integrators.pyx":102
+ *         cdef bint error
+ *         cdef double time = start_time_index * n_steps * self.dt
  *         for t in prange(self.n_threads, nogil=True, schedule='static',             # <<<<<<<<<<<<<<
  *                         chunksize=1, num_threads=self.n_threads):
  *             for p in range(self.intervals[t], self.intervals[t+1]):
@@ -3273,12 +3292,12 @@ static PyObject *__pyx_pf_4dapy_6models_11integrators_26ImplicitMidpointIntegrat
             int __pyx_parallel_why;
             __pyx_parallel_why = 0;
 
-            /* "dapy/models/integrators.pyx":102
- *         cdef double time
+            /* "dapy/models/integrators.pyx":103
+ *         cdef double time = start_time_index * n_steps * self.dt
  *         for t in prange(self.n_threads, nogil=True, schedule='static',
  *                         chunksize=1, num_threads=self.n_threads):             # <<<<<<<<<<<<<<
  *             for p in range(self.intervals[t], self.intervals[t+1]):
- *                 for s in range(self.n_steps_per_update):
+ *                 for s in range(n_steps):
  */
             __pyx_t_4 = 1;
             #if ((defined(__APPLE__) || defined(__OSX__)) && (defined(__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && (__GNUC_MINOR__ > 95)))))
@@ -3313,52 +3332,45 @@ static PyObject *__pyx_pf_4dapy_6models_11integrators_26ImplicitMidpointIntegrat
                             __pyx_v_s = ((int)0xbad0bad0);
                             __pyx_v_time = ((double)__PYX_NAN());
 
-                            /* "dapy/models/integrators.pyx":103
+                            /* "dapy/models/integrators.pyx":104
  *         for t in prange(self.n_threads, nogil=True, schedule='static',
  *                         chunksize=1, num_threads=self.n_threads):
  *             for p in range(self.intervals[t], self.intervals[t+1]):             # <<<<<<<<<<<<<<
- *                 for s in range(self.n_steps_per_update):
+ *                 for s in range(n_steps):
  *                     if s == 0:
  */
+                            if (unlikely(!__pyx_v_self->intervals.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");__PYX_ERR(0, 104, __pyx_L8_error)}
                             __pyx_t_5 = (__pyx_v_t + 1);
                             __pyx_t_6 = (*((int *) ( /* dim=0 */ (__pyx_v_self->intervals.data + __pyx_t_5 * __pyx_v_self->intervals.strides[0]) )));
+                            if (unlikely(!__pyx_v_self->intervals.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");__PYX_ERR(0, 104, __pyx_L8_error)}
                             __pyx_t_7 = __pyx_v_t;
                             for (__pyx_t_8 = (*((int *) ( /* dim=0 */ (__pyx_v_self->intervals.data + __pyx_t_7 * __pyx_v_self->intervals.strides[0]) ))); __pyx_t_8 < __pyx_t_6; __pyx_t_8+=1) {
                               __pyx_v_p = __pyx_t_8;
 
-                              /* "dapy/models/integrators.pyx":104
+                              /* "dapy/models/integrators.pyx":105
  *                         chunksize=1, num_threads=self.n_threads):
  *             for p in range(self.intervals[t], self.intervals[t+1]):
- *                 for s in range(self.n_steps_per_update):             # <<<<<<<<<<<<<<
+ *                 for s in range(n_steps):             # <<<<<<<<<<<<<<
  *                     if s == 0:
- *                         time = start_time
+ *                         self.z_temp[t, :] = z_particles[p]
  */
-                              __pyx_t_9 = __pyx_v_self->n_steps_per_update;
+                              __pyx_t_9 = __pyx_v_n_steps;
                               for (__pyx_t_10 = 0; __pyx_t_10 < __pyx_t_9; __pyx_t_10+=1) {
                                 __pyx_v_s = __pyx_t_10;
 
-                                /* "dapy/models/integrators.pyx":105
+                                /* "dapy/models/integrators.pyx":106
  *             for p in range(self.intervals[t], self.intervals[t+1]):
- *                 for s in range(self.n_steps_per_update):
+ *                 for s in range(n_steps):
  *                     if s == 0:             # <<<<<<<<<<<<<<
- *                         time = start_time
  *                         self.z_temp[t, :] = z_particles[p]
+ *                     else:
  */
                                 __pyx_t_11 = ((__pyx_v_s == 0) != 0);
                                 if (__pyx_t_11) {
 
-                                  /* "dapy/models/integrators.pyx":106
- *                 for s in range(self.n_steps_per_update):
- *                     if s == 0:
- *                         time = start_time             # <<<<<<<<<<<<<<
- *                         self.z_temp[t, :] = z_particles[p]
- *                     else:
- */
-                                  __pyx_v_time = __pyx_v_start_time;
-
                                   /* "dapy/models/integrators.pyx":107
+ *                 for s in range(n_steps):
  *                     if s == 0:
- *                         time = start_time
  *                         self.z_temp[t, :] = z_particles[p]             # <<<<<<<<<<<<<<
  *                     else:
  *                         self.z_temp[t, :] = z_particles_next[p]
@@ -3389,7 +3401,8 @@ __pyx_t_12.shape[0] = __pyx_v_z_particles.shape[1];
 __pyx_t_12.strides[0] = __pyx_v_z_particles.strides[1];
     __pyx_t_12.suboffsets[0] = -1;
 
-__pyx_t_13.data = __pyx_v_self->z_temp.data;
+if (unlikely(!__pyx_v_self->z_temp.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");__PYX_ERR(0, 107, __pyx_L8_error)}
+                                  __pyx_t_13.data = __pyx_v_self->z_temp.data;
                                   __pyx_t_13.memview = __pyx_v_self->z_temp.memview;
                                   __PYX_INC_MEMVIEW(&__pyx_t_13, 0);
                                   {
@@ -3423,12 +3436,12 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_12, __pyx_t_13, 1, 1, 0) < 0
                                   __pyx_t_12.memview = NULL;
                                   __pyx_t_12.data = NULL;
 
-                                  /* "dapy/models/integrators.pyx":105
+                                  /* "dapy/models/integrators.pyx":106
  *             for p in range(self.intervals[t], self.intervals[t+1]):
- *                 for s in range(self.n_steps_per_update):
+ *                 for s in range(n_steps):
  *                     if s == 0:             # <<<<<<<<<<<<<<
- *                         time = start_time
  *                         self.z_temp[t, :] = z_particles[p]
+ *                     else:
  */
                                   goto __pyx_L14;
                                 }
@@ -3467,7 +3480,8 @@ __pyx_t_12.shape[0] = __pyx_v_z_particles_next.shape[1];
 __pyx_t_12.strides[0] = __pyx_v_z_particles_next.strides[1];
     __pyx_t_12.suboffsets[0] = -1;
 
-__pyx_t_14.data = __pyx_v_self->z_temp.data;
+if (unlikely(!__pyx_v_self->z_temp.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");__PYX_ERR(0, 109, __pyx_L8_error)}
+                                  __pyx_t_14.data = __pyx_v_self->z_temp.data;
                                   __pyx_t_14.memview = __pyx_v_self->z_temp.memview;
                                   __PYX_INC_MEMVIEW(&__pyx_t_14, 0);
                                   {
@@ -3510,6 +3524,7 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_12, __pyx_t_14, 1, 1, 0) < 0
  *                         z_particles_next[p])
  *                     if error == 1:
  */
+                                if (unlikely(!__pyx_v_self->z_temp.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");__PYX_ERR(0, 111, __pyx_L8_error)}
                                 __pyx_t_12.data = __pyx_v_self->z_temp.data;
                                 __pyx_t_12.memview = __pyx_v_self->z_temp.memview;
                                 __PYX_INC_MEMVIEW(&__pyx_t_12, 0);
@@ -3536,7 +3551,8 @@ __pyx_t_12.shape[0] = __pyx_v_self->z_temp.shape[1];
 __pyx_t_12.strides[0] = __pyx_v_self->z_temp.strides[1];
     __pyx_t_12.suboffsets[0] = -1;
 
-__pyx_t_15.data = __pyx_v_self->dz_dt.data;
+if (unlikely(!__pyx_v_self->dz_dt.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");__PYX_ERR(0, 111, __pyx_L8_error)}
+                                __pyx_t_15.data = __pyx_v_self->dz_dt.data;
                                 __pyx_t_15.memview = __pyx_v_self->dz_dt.memview;
                                 __PYX_INC_MEMVIEW(&__pyx_t_15, 0);
                                 {
@@ -3562,7 +3578,8 @@ __pyx_t_15.shape[0] = __pyx_v_self->dz_dt.shape[1];
 __pyx_t_15.strides[0] = __pyx_v_self->dz_dt.strides[1];
     __pyx_t_15.suboffsets[0] = -1;
 
-__pyx_t_16.data = __pyx_v_self->z_half.data;
+if (unlikely(!__pyx_v_self->z_half.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");__PYX_ERR(0, 111, __pyx_L8_error)}
+                                __pyx_t_16.data = __pyx_v_self->z_half.data;
                                 __pyx_t_16.memview = __pyx_v_self->z_half.memview;
                                 __PYX_INC_MEMVIEW(&__pyx_t_16, 0);
                                 {
@@ -3714,7 +3731,6 @@ __pyx_v_error = ((struct __pyx_vtabstruct_4dapy_6models_11integrators_ImplicitMi
  *                             raise ConvergenceError(
  *                                 'Convergence error in implicit midpoint step.')
  *                     time = time + self.dt             # <<<<<<<<<<<<<<
- *         return start_time + self.n_steps_per_update * self.dt
  */
                                 __pyx_v_time = (__pyx_v_time + __pyx_v_self->dt);
                               }
@@ -3818,9 +3834,9 @@ __pyx_v_error = ((struct __pyx_vtabstruct_4dapy_6models_11integrators_ImplicitMi
         #endif
       }
 
-      /* "dapy/models/integrators.pyx":101
+      /* "dapy/models/integrators.pyx":102
  *         cdef bint error
- *         cdef double time
+ *         cdef double time = start_time_index * n_steps * self.dt
  *         for t in prange(self.n_threads, nogil=True, schedule='static',             # <<<<<<<<<<<<<<
  *                         chunksize=1, num_threads=self.n_threads):
  *             for p in range(self.intervals[t], self.intervals[t+1]):
@@ -3844,27 +3860,17 @@ __pyx_v_error = ((struct __pyx_vtabstruct_4dapy_6models_11integrators_ImplicitMi
       }
   }
 
-  /* "dapy/models/integrators.pyx":118
- *                                 'Convergence error in implicit midpoint step.')
- *                     time = time + self.dt
- *         return start_time + self.n_steps_per_update * self.dt             # <<<<<<<<<<<<<<
- */
-  __Pyx_XDECREF(__pyx_r);
-  __pyx_t_19 = PyFloat_FromDouble((__pyx_v_start_time + (__pyx_v_self->n_steps_per_update * __pyx_v_self->dt))); if (unlikely(!__pyx_t_19)) __PYX_ERR(0, 118, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_19);
-  __pyx_r = __pyx_t_19;
-  __pyx_t_19 = 0;
-  goto __pyx_L0;
-
-  /* "dapy/models/integrators.pyx":82
+  /* "dapy/models/integrators.pyx":81
  *     @cython.wraparound(False)
  *     @cython.cdivision(True)
  *     def forward_integrate(             # <<<<<<<<<<<<<<
  *             self, double[:, :] z_particles, double[:, :] z_particles_next,
- *             double start_time):
+ *             int start_time_index, int n_steps=1):
  */
 
   /* function exit code */
+  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+  goto __pyx_L0;
   __pyx_L1_error:;
   __PYX_XDEC_MEMVIEW(&__pyx_t_12, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_t_13, 1);
@@ -3892,7 +3898,6 @@ __pyx_v_error = ((struct __pyx_vtabstruct_4dapy_6models_11integrators_ImplicitMi
 
 /* Python wrapper */
 static PyObject *__pyx_pw_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_5__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static char __pyx_doc_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_4__reduce_cython__[] = "ImplicitMidpointIntegrator.__reduce_cython__(self)";
 static PyObject *__pyx_pw_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_5__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
@@ -3936,8 +3941,10 @@ static PyObject *__pyx_pf_4dapy_6models_11integrators_26ImplicitMidpointIntegrat
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_t_2 = PyFloat_FromDouble(__pyx_v_self->dt); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 3, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
+  if (unlikely(!__pyx_v_self->dz_dt.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");__PYX_ERR(1, 3, __pyx_L1_error)}
   __pyx_t_3 = __pyx_memoryview_fromslice(__pyx_v_self->dz_dt, 2, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 3, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
+  if (unlikely(!__pyx_v_self->intervals.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");__PYX_ERR(1, 3, __pyx_L1_error)}
   __pyx_t_4 = __pyx_memoryview_fromslice(__pyx_v_self->intervals, 1, (PyObject *(*)(char *)) __pyx_memview_get_int, (int (*)(char *, PyObject *)) __pyx_memview_set_int, 0);; if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 3, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_self->max_iters); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 3, __pyx_L1_error)
@@ -3948,8 +3955,10 @@ static PyObject *__pyx_pf_4dapy_6models_11integrators_26ImplicitMidpointIntegrat
   __Pyx_GOTREF(__pyx_t_7);
   __pyx_t_8 = PyFloat_FromDouble(__pyx_v_self->tol); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 3, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
+  if (unlikely(!__pyx_v_self->z_half.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");__PYX_ERR(1, 3, __pyx_L1_error)}
   __pyx_t_9 = __pyx_memoryview_fromslice(__pyx_v_self->z_half, 2, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_9)) __PYX_ERR(1, 3, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
+  if (unlikely(!__pyx_v_self->z_temp.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");__PYX_ERR(1, 3, __pyx_L1_error)}
   __pyx_t_10 = __pyx_memoryview_fromslice(__pyx_v_self->z_temp, 2, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_10)) __PYX_ERR(1, 3, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_10);
   __pyx_t_11 = PyTuple_New(10); if (unlikely(!__pyx_t_11)) __PYX_ERR(1, 3, __pyx_L1_error)
@@ -4187,7 +4196,6 @@ static PyObject *__pyx_pf_4dapy_6models_11integrators_26ImplicitMidpointIntegrat
 
 /* Python wrapper */
 static PyObject *__pyx_pw_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_7__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state); /*proto*/
-static char __pyx_doc_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_6__setstate_cython__[] = "ImplicitMidpointIntegrator.__setstate_cython__(self, __pyx_state)";
 static PyObject *__pyx_pw_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_7__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
@@ -4243,8 +4251,7 @@ static PyObject *__pyx_pf_4dapy_6models_11integrators_26ImplicitMidpointIntegrat
 
 /* Python wrapper */
 static PyObject *__pyx_pw_4dapy_6models_11integrators_1__pyx_unpickle_ImplicitMidpointIntegrator(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_4dapy_6models_11integrators___pyx_unpickle_ImplicitMidpointIntegrator[] = "__pyx_unpickle_ImplicitMidpointIntegrator(__pyx_type, long __pyx_checksum, __pyx_state)";
-static PyMethodDef __pyx_mdef_4dapy_6models_11integrators_1__pyx_unpickle_ImplicitMidpointIntegrator = {"__pyx_unpickle_ImplicitMidpointIntegrator", (PyCFunction)__pyx_pw_4dapy_6models_11integrators_1__pyx_unpickle_ImplicitMidpointIntegrator, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4dapy_6models_11integrators___pyx_unpickle_ImplicitMidpointIntegrator};
+static PyMethodDef __pyx_mdef_4dapy_6models_11integrators_1__pyx_unpickle_ImplicitMidpointIntegrator = {"__pyx_unpickle_ImplicitMidpointIntegrator", (PyCFunction)__pyx_pw_4dapy_6models_11integrators_1__pyx_unpickle_ImplicitMidpointIntegrator, METH_VARARGS|METH_KEYWORDS, 0};
 static PyObject *__pyx_pw_4dapy_6models_11integrators_1__pyx_unpickle_ImplicitMidpointIntegrator(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v___pyx_type = 0;
   long __pyx_v___pyx_checksum;
@@ -4564,16 +4571,17 @@ static PyObject *__pyx_pf_4dapy_6models_11integrators___pyx_unpickle_ImplicitMid
 static PyObject *__pyx_f_4dapy_6models_11integrators___pyx_unpickle_ImplicitMidpointIntegrator__set_state(struct __pyx_obj_4dapy_6models_11integrators_ImplicitMidpointIntegrator *__pyx_v_result, PyObject *__pyx_v___pyx_state) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
-  int __pyx_t_1;
-  double __pyx_t_2;
-  __Pyx_memviewslice __pyx_t_3 = { 0, 0, { 0 }, { 0 }, { 0 } };
+  PyObject *__pyx_t_1 = NULL;
+  int __pyx_t_2;
+  double __pyx_t_3;
   __Pyx_memviewslice __pyx_t_4 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  int __pyx_t_5;
+  __Pyx_memviewslice __pyx_t_5 = { 0, 0, { 0 }, { 0 }, { 0 } };
   int __pyx_t_6;
-  PyObject *__pyx_t_7 = NULL;
+  int __pyx_t_7;
   PyObject *__pyx_t_8 = NULL;
   PyObject *__pyx_t_9 = NULL;
   PyObject *__pyx_t_10 = NULL;
+  PyObject *__pyx_t_11 = NULL;
   __Pyx_RefNannySetupContext("__pyx_unpickle_ImplicitMidpointIntegrator__set_state", 0);
 
   /* "(tree fragment)":10
@@ -4587,78 +4595,108 @@ static PyObject *__pyx_f_4dapy_6models_11integrators___pyx_unpickle_ImplicitMidp
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
     __PYX_ERR(1, 10, __pyx_L1_error)
   }
-  __pyx_t_1 = __Pyx_PyInt_As_int(PyTuple_GET_ITEM(__pyx_v___pyx_state, 0)); if (unlikely((__pyx_t_1 == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 10, __pyx_L1_error)
-  __pyx_v_result->dim_z = __pyx_t_1;
+  __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 10, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 10, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_v_result->dim_z = __pyx_t_2;
   if (unlikely(__pyx_v___pyx_state == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
     __PYX_ERR(1, 10, __pyx_L1_error)
   }
-  __pyx_t_2 = __pyx_PyFloat_AsDouble(PyTuple_GET_ITEM(__pyx_v___pyx_state, 1)); if (unlikely((__pyx_t_2 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 10, __pyx_L1_error)
-  __pyx_v_result->dt = __pyx_t_2;
+  __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 10, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_3 = __pyx_PyFloat_AsDouble(__pyx_t_1); if (unlikely((__pyx_t_3 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 10, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_v_result->dt = __pyx_t_3;
   if (unlikely(__pyx_v___pyx_state == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
     __PYX_ERR(1, 10, __pyx_L1_error)
   }
-  __pyx_t_3 = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(PyTuple_GET_ITEM(__pyx_v___pyx_state, 2));
-  if (unlikely(!__pyx_t_3.memview)) __PYX_ERR(1, 10, __pyx_L1_error)
-  __PYX_XDEC_MEMVIEW(&__pyx_v_result->dz_dt, 0);
-  __pyx_v_result->dz_dt = __pyx_t_3;
-  __pyx_t_3.memview = NULL;
-  __pyx_t_3.data = NULL;
-  if (unlikely(__pyx_v___pyx_state == Py_None)) {
-    PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
-    __PYX_ERR(1, 10, __pyx_L1_error)
-  }
-  __pyx_t_4 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(PyTuple_GET_ITEM(__pyx_v___pyx_state, 3));
+  __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 2, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 10, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_4 = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(__pyx_t_1);
   if (unlikely(!__pyx_t_4.memview)) __PYX_ERR(1, 10, __pyx_L1_error)
-  __PYX_XDEC_MEMVIEW(&__pyx_v_result->intervals, 0);
-  __pyx_v_result->intervals = __pyx_t_4;
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __PYX_XDEC_MEMVIEW(&__pyx_v_result->dz_dt, 0);
+  __pyx_v_result->dz_dt = __pyx_t_4;
   __pyx_t_4.memview = NULL;
   __pyx_t_4.data = NULL;
   if (unlikely(__pyx_v___pyx_state == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
     __PYX_ERR(1, 10, __pyx_L1_error)
   }
-  __pyx_t_1 = __Pyx_PyInt_As_int(PyTuple_GET_ITEM(__pyx_v___pyx_state, 4)); if (unlikely((__pyx_t_1 == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 10, __pyx_L1_error)
-  __pyx_v_result->max_iters = __pyx_t_1;
+  __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 3, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 10, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_5 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_t_1);
+  if (unlikely(!__pyx_t_5.memview)) __PYX_ERR(1, 10, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __PYX_XDEC_MEMVIEW(&__pyx_v_result->intervals, 0);
+  __pyx_v_result->intervals = __pyx_t_5;
+  __pyx_t_5.memview = NULL;
+  __pyx_t_5.data = NULL;
   if (unlikely(__pyx_v___pyx_state == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
     __PYX_ERR(1, 10, __pyx_L1_error)
   }
-  __pyx_t_1 = __Pyx_PyInt_As_int(PyTuple_GET_ITEM(__pyx_v___pyx_state, 5)); if (unlikely((__pyx_t_1 == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 10, __pyx_L1_error)
-  __pyx_v_result->n_steps_per_update = __pyx_t_1;
+  __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 4, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 10, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 10, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_v_result->max_iters = __pyx_t_2;
   if (unlikely(__pyx_v___pyx_state == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
     __PYX_ERR(1, 10, __pyx_L1_error)
   }
-  __pyx_t_1 = __Pyx_PyInt_As_int(PyTuple_GET_ITEM(__pyx_v___pyx_state, 6)); if (unlikely((__pyx_t_1 == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 10, __pyx_L1_error)
-  __pyx_v_result->n_threads = __pyx_t_1;
+  __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 5, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 10, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 10, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_v_result->n_steps_per_update = __pyx_t_2;
   if (unlikely(__pyx_v___pyx_state == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
     __PYX_ERR(1, 10, __pyx_L1_error)
   }
-  __pyx_t_2 = __pyx_PyFloat_AsDouble(PyTuple_GET_ITEM(__pyx_v___pyx_state, 7)); if (unlikely((__pyx_t_2 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 10, __pyx_L1_error)
-  __pyx_v_result->tol = __pyx_t_2;
+  __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 6, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 10, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 10, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_v_result->n_threads = __pyx_t_2;
   if (unlikely(__pyx_v___pyx_state == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
     __PYX_ERR(1, 10, __pyx_L1_error)
   }
-  __pyx_t_3 = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(PyTuple_GET_ITEM(__pyx_v___pyx_state, 8));
-  if (unlikely(!__pyx_t_3.memview)) __PYX_ERR(1, 10, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 7, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 10, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_3 = __pyx_PyFloat_AsDouble(__pyx_t_1); if (unlikely((__pyx_t_3 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 10, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_v_result->tol = __pyx_t_3;
+  if (unlikely(__pyx_v___pyx_state == Py_None)) {
+    PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
+    __PYX_ERR(1, 10, __pyx_L1_error)
+  }
+  __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 8, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 10, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_4 = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(__pyx_t_1);
+  if (unlikely(!__pyx_t_4.memview)) __PYX_ERR(1, 10, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __PYX_XDEC_MEMVIEW(&__pyx_v_result->z_half, 0);
-  __pyx_v_result->z_half = __pyx_t_3;
-  __pyx_t_3.memview = NULL;
-  __pyx_t_3.data = NULL;
+  __pyx_v_result->z_half = __pyx_t_4;
+  __pyx_t_4.memview = NULL;
+  __pyx_t_4.data = NULL;
   if (unlikely(__pyx_v___pyx_state == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
     __PYX_ERR(1, 10, __pyx_L1_error)
   }
-  __pyx_t_3 = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(PyTuple_GET_ITEM(__pyx_v___pyx_state, 9));
-  if (unlikely(!__pyx_t_3.memview)) __PYX_ERR(1, 10, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 9, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 10, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_4 = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(__pyx_t_1);
+  if (unlikely(!__pyx_t_4.memview)) __PYX_ERR(1, 10, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __PYX_XDEC_MEMVIEW(&__pyx_v_result->z_temp, 0);
-  __pyx_v_result->z_temp = __pyx_t_3;
-  __pyx_t_3.memview = NULL;
-  __pyx_t_3.data = NULL;
+  __pyx_v_result->z_temp = __pyx_t_4;
+  __pyx_t_4.memview = NULL;
+  __pyx_t_4.data = NULL;
 
   /* "(tree fragment)":11
  * cdef __pyx_unpickle_ImplicitMidpointIntegrator__set_state(ImplicitMidpointIntegrator result, tuple __pyx_state):
@@ -4666,9 +4704,9 @@ static PyObject *__pyx_f_4dapy_6models_11integrators___pyx_unpickle_ImplicitMidp
  *     if hasattr(result, '__dict__'):             # <<<<<<<<<<<<<<
  *         result.__dict__.update(__pyx_state[10])
  */
-  __pyx_t_5 = __Pyx_HasAttr(((PyObject *)__pyx_v_result), __pyx_n_s_dict); if (unlikely(__pyx_t_5 == -1)) __PYX_ERR(1, 11, __pyx_L1_error)
-  __pyx_t_6 = (__pyx_t_5 != 0);
-  if (__pyx_t_6) {
+  __pyx_t_6 = __Pyx_HasAttr(((PyObject *)__pyx_v_result), __pyx_n_s_dict); if (unlikely(__pyx_t_6 == -1)) __PYX_ERR(1, 11, __pyx_L1_error)
+  __pyx_t_7 = (__pyx_t_6 != 0);
+  if (__pyx_t_7) {
 
     /* "(tree fragment)":12
  *     result.dim_z = __pyx_state[0]; result.dt = __pyx_state[1]; result.dz_dt = __pyx_state[2]; result.intervals = __pyx_state[3]; result.max_iters = __pyx_state[4]; result.n_steps_per_update = __pyx_state[5]; result.n_threads = __pyx_state[6]; result.tol = __pyx_state[7]; result.z_half = __pyx_state[8]; result.z_temp = __pyx_state[9]
@@ -4684,50 +4722,55 @@ static PyObject *__pyx_f_4dapy_6models_11integrators___pyx_unpickle_ImplicitMidp
       PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
       __PYX_ERR(1, 12, __pyx_L1_error)
     }
-    __pyx_t_8 = NULL;
+    __pyx_t_8 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 10, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 12, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_8);
+    __pyx_t_10 = NULL;
     if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_9))) {
-      __pyx_t_8 = PyMethod_GET_SELF(__pyx_t_9);
-      if (likely(__pyx_t_8)) {
+      __pyx_t_10 = PyMethod_GET_SELF(__pyx_t_9);
+      if (likely(__pyx_t_10)) {
         PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_9);
-        __Pyx_INCREF(__pyx_t_8);
+        __Pyx_INCREF(__pyx_t_10);
         __Pyx_INCREF(function);
         __Pyx_DECREF_SET(__pyx_t_9, function);
       }
     }
-    if (!__pyx_t_8) {
-      __pyx_t_7 = __Pyx_PyObject_CallOneArg(__pyx_t_9, PyTuple_GET_ITEM(__pyx_v___pyx_state, 10)); if (unlikely(!__pyx_t_7)) __PYX_ERR(1, 12, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_7);
+    if (!__pyx_t_10) {
+      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_9, __pyx_t_8); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 12, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+      __Pyx_GOTREF(__pyx_t_1);
     } else {
       #if CYTHON_FAST_PYCALL
       if (PyFunction_Check(__pyx_t_9)) {
-        PyObject *__pyx_temp[2] = {__pyx_t_8, PyTuple_GET_ITEM(__pyx_v___pyx_state, 10)};
-        __pyx_t_7 = __Pyx_PyFunction_FastCall(__pyx_t_9, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(1, 12, __pyx_L1_error)
-        __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
-        __Pyx_GOTREF(__pyx_t_7);
+        PyObject *__pyx_temp[2] = {__pyx_t_10, __pyx_t_8};
+        __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_9, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 12, __pyx_L1_error)
+        __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
+        __Pyx_GOTREF(__pyx_t_1);
+        __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
       } else
       #endif
       #if CYTHON_FAST_PYCCALL
       if (__Pyx_PyFastCFunction_Check(__pyx_t_9)) {
-        PyObject *__pyx_temp[2] = {__pyx_t_8, PyTuple_GET_ITEM(__pyx_v___pyx_state, 10)};
-        __pyx_t_7 = __Pyx_PyCFunction_FastCall(__pyx_t_9, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(1, 12, __pyx_L1_error)
-        __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
-        __Pyx_GOTREF(__pyx_t_7);
+        PyObject *__pyx_temp[2] = {__pyx_t_10, __pyx_t_8};
+        __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_9, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 12, __pyx_L1_error)
+        __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
+        __Pyx_GOTREF(__pyx_t_1);
+        __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
       } else
       #endif
       {
-        __pyx_t_10 = PyTuple_New(1+1); if (unlikely(!__pyx_t_10)) __PYX_ERR(1, 12, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_10);
-        __Pyx_GIVEREF(__pyx_t_8); PyTuple_SET_ITEM(__pyx_t_10, 0, __pyx_t_8); __pyx_t_8 = NULL;
-        __Pyx_INCREF(PyTuple_GET_ITEM(__pyx_v___pyx_state, 10));
-        __Pyx_GIVEREF(PyTuple_GET_ITEM(__pyx_v___pyx_state, 10));
-        PyTuple_SET_ITEM(__pyx_t_10, 0+1, PyTuple_GET_ITEM(__pyx_v___pyx_state, 10));
-        __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_9, __pyx_t_10, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(1, 12, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_7);
-        __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+        __pyx_t_11 = PyTuple_New(1+1); if (unlikely(!__pyx_t_11)) __PYX_ERR(1, 12, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_11);
+        __Pyx_GIVEREF(__pyx_t_10); PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_10); __pyx_t_10 = NULL;
+        __Pyx_GIVEREF(__pyx_t_8);
+        PyTuple_SET_ITEM(__pyx_t_11, 0+1, __pyx_t_8);
+        __pyx_t_8 = 0;
+        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_9, __pyx_t_11, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 12, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_1);
+        __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
       }
     }
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
     /* "(tree fragment)":11
  * cdef __pyx_unpickle_ImplicitMidpointIntegrator__set_state(ImplicitMidpointIntegrator result, tuple __pyx_state):
@@ -4749,12 +4792,13 @@ static PyObject *__pyx_f_4dapy_6models_11integrators___pyx_unpickle_ImplicitMidp
   __pyx_r = Py_None; __Pyx_INCREF(Py_None);
   goto __pyx_L0;
   __pyx_L1_error:;
-  __PYX_XDEC_MEMVIEW(&__pyx_t_3, 1);
+  __Pyx_XDECREF(__pyx_t_1);
   __PYX_XDEC_MEMVIEW(&__pyx_t_4, 1);
-  __Pyx_XDECREF(__pyx_t_7);
+  __PYX_XDEC_MEMVIEW(&__pyx_t_5, 1);
   __Pyx_XDECREF(__pyx_t_8);
   __Pyx_XDECREF(__pyx_t_9);
   __Pyx_XDECREF(__pyx_t_10);
+  __Pyx_XDECREF(__pyx_t_11);
   __Pyx_AddTraceback("dapy.models.integrators.__pyx_unpickle_ImplicitMidpointIntegrator__set_state", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 0;
   __pyx_L0:;
@@ -7949,7 +7993,7 @@ static int __pyx_array___pyx_pf_15View_dot_MemoryView_5array___cinit__(struct __
         PyErr_SetString(PyExc_OverflowError, "value too large to perform division");
         __PYX_ERR(1, 178, __pyx_L1_error)
       }
-      __pyx_t_1 = (__pyx_v_self->len / __pyx_v_itemsize);
+      __pyx_t_1 = __Pyx_div_Py_ssize_t(__pyx_v_self->len, __pyx_v_itemsize);
       for (__pyx_t_8 = 0; __pyx_t_8 < __pyx_t_1; __pyx_t_8+=1) {
         __pyx_v_i = __pyx_t_8;
 
@@ -11445,7 +11489,7 @@ static PyObject *__pyx_memoryview_convert_item_to_object(struct __pyx_memoryview
  * 
  */
         __Pyx_XDECREF(__pyx_r);
-        __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_result, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 487, __pyx_L5_except_error)
+        __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_result, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 487, __pyx_L5_except_error)
         __Pyx_GOTREF(__pyx_t_1);
         __pyx_r = __pyx_t_1;
         __pyx_t_1 = 0;
@@ -15638,7 +15682,7 @@ static char *__pyx_pybuffer_index(Py_buffer *__pyx_v_view, char *__pyx_v_bufp, P
       PyErr_SetString(PyExc_OverflowError, "value too large to perform division");
       __PYX_ERR(1, 903, __pyx_L1_error)
     }
-    __pyx_v_shape = (__pyx_v_view->len / __pyx_v_itemsize);
+    __pyx_v_shape = __Pyx_div_Py_ssize_t(__pyx_v_view->len, __pyx_v_itemsize);
 
     /* "View.MemoryView":904
  *     if view.ndim == 0:
@@ -15949,7 +15993,7 @@ static int __pyx_memslice_transpose(__Pyx_memviewslice *__pyx_v_memslice) {
  *         j = ndim - 1 - i
  *         strides[i], strides[j] = strides[j], strides[i]
  */
-  __pyx_t_3 = (__pyx_v_ndim / 2);
+  __pyx_t_3 = __Pyx_div_long(__pyx_v_ndim, 2);
   for (__pyx_t_1 = 0; __pyx_t_1 < __pyx_t_3; __pyx_t_1+=1) {
     __pyx_v_i = __pyx_t_1;
 
@@ -19907,7 +19951,7 @@ static PyObject *__pyx_unpickle_Enum__set_state(struct __pyx_MemviewEnum_obj *__
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
     __PYX_ERR(1, 10, __pyx_L1_error)
   }
-  __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 10, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 10, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
   __Pyx_GOTREF(__pyx_v_result->name);
@@ -19939,7 +19983,7 @@ static PyObject *__pyx_unpickle_Enum__set_state(struct __pyx_MemviewEnum_obj *__
       PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
       __PYX_ERR(1, 12, __pyx_L1_error)
     }
-    __pyx_t_4 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 12, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 12, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __pyx_t_6 = NULL;
     if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_5))) {
@@ -20061,8 +20105,8 @@ static void __pyx_tp_dealloc_4dapy_6models_11integrators_ImplicitMidpointIntegra
 
 static PyMethodDef __pyx_methods_4dapy_6models_11integrators_ImplicitMidpointIntegrator[] = {
   {"forward_integrate", (PyCFunction)__pyx_pw_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_3forward_integrate, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_2forward_integrate},
-  {"__reduce_cython__", (PyCFunction)__pyx_pw_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_5__reduce_cython__, METH_NOARGS, __pyx_doc_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_4__reduce_cython__},
-  {"__setstate_cython__", (PyCFunction)__pyx_pw_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_7__setstate_cython__, METH_O, __pyx_doc_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_6__setstate_cython__},
+  {"__reduce_cython__", (PyCFunction)__pyx_pw_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_5__reduce_cython__, METH_NOARGS, 0},
+  {"__setstate_cython__", (PyCFunction)__pyx_pw_4dapy_6models_11integrators_26ImplicitMidpointIntegrator_7__setstate_cython__, METH_O, 0},
   {0, 0, 0, 0}
 };
 
@@ -20092,7 +20136,7 @@ static PyTypeObject __pyx_type_4dapy_6models_11integrators_ImplicitMidpointInteg
   0, /*tp_setattro*/
   0, /*tp_as_buffer*/
   Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_VERSION_TAG|Py_TPFLAGS_CHECKTYPES|Py_TPFLAGS_HAVE_NEWBUFFER|Py_TPFLAGS_BASETYPE, /*tp_flags*/
-  "ImplicitMidpointIntegrator(int dim_z, double dt, int n_steps_per_update, double tol, int max_iters, int n_threads=4)", /*tp_doc*/
+  0, /*tp_doc*/
   0, /*tp_traverse*/
   0, /*tp_clear*/
   0, /*tp_richcompare*/
@@ -20884,7 +20928,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_metaclass, __pyx_k_metaclass, sizeof(__pyx_k_metaclass), 0, 0, 1, 1},
   {&__pyx_n_s_mode, __pyx_k_mode, sizeof(__pyx_k_mode), 0, 0, 1, 1},
   {&__pyx_n_s_module, __pyx_k_module, sizeof(__pyx_k_module), 0, 0, 1, 1},
-  {&__pyx_n_s_n_steps_per_update, __pyx_k_n_steps_per_update, sizeof(__pyx_k_n_steps_per_update), 0, 0, 1, 1},
+  {&__pyx_n_s_n_steps, __pyx_k_n_steps, sizeof(__pyx_k_n_steps), 0, 0, 1, 1},
   {&__pyx_n_s_n_threads, __pyx_k_n_threads, sizeof(__pyx_k_n_threads), 0, 0, 1, 1},
   {&__pyx_n_s_name, __pyx_k_name, sizeof(__pyx_k_name), 0, 0, 1, 1},
   {&__pyx_n_s_name_2, __pyx_k_name_2, sizeof(__pyx_k_name_2), 0, 0, 1, 1},
@@ -20916,7 +20960,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_shape, __pyx_k_shape, sizeof(__pyx_k_shape), 0, 0, 1, 1},
   {&__pyx_n_s_size, __pyx_k_size, sizeof(__pyx_k_size), 0, 0, 1, 1},
   {&__pyx_n_s_start, __pyx_k_start, sizeof(__pyx_k_start), 0, 0, 1, 1},
-  {&__pyx_n_s_start_time, __pyx_k_start_time, sizeof(__pyx_k_start_time), 0, 0, 1, 1},
+  {&__pyx_n_s_start_time_index, __pyx_k_start_time_index, sizeof(__pyx_k_start_time_index), 0, 0, 1, 1},
   {&__pyx_n_s_step, __pyx_k_step, sizeof(__pyx_k_step), 0, 0, 1, 1},
   {&__pyx_n_s_stop, __pyx_k_stop, sizeof(__pyx_k_stop), 0, 0, 1, 1},
   {&__pyx_kp_s_strided_and_direct, __pyx_k_strided_and_direct, sizeof(__pyx_k_strided_and_direct), 0, 0, 1, 0},
@@ -20936,7 +20980,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {0, 0, 0, 0, 0, 0, 0}
 };
 static int __Pyx_InitCachedBuiltins(void) {
-  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 40, __pyx_L1_error)
+  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 39, __pyx_L1_error)
   __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(2, 218, __pyx_L1_error)
   __pyx_builtin_RuntimeError = __Pyx_GetBuiltinName(__pyx_n_s_RuntimeError); if (!__pyx_builtin_RuntimeError) __PYX_ERR(2, 799, __pyx_L1_error)
   __pyx_builtin_ImportError = __Pyx_GetBuiltinName(__pyx_n_s_ImportError); if (!__pyx_builtin_ImportError) __PYX_ERR(2, 989, __pyx_L1_error)
@@ -22679,6 +22723,48 @@ static CYTHON_INLINE void __Pyx_ErrFetchInState(PyThreadState *tstate, PyObject 
 }
 #endif
 
+/* WriteUnraisableException */
+    static void __Pyx_WriteUnraisable(const char *name, CYTHON_UNUSED int clineno,
+                                  CYTHON_UNUSED int lineno, CYTHON_UNUSED const char *filename,
+                                  int full_traceback, CYTHON_UNUSED int nogil) {
+    PyObject *old_exc, *old_val, *old_tb;
+    PyObject *ctx;
+    __Pyx_PyThreadState_declare
+#ifdef WITH_THREAD
+    PyGILState_STATE state;
+    if (nogil)
+        state = PyGILState_Ensure();
+#ifdef _MSC_VER
+    else state = (PyGILState_STATE)-1;
+#endif
+#endif
+    __Pyx_PyThreadState_assign
+    __Pyx_ErrFetch(&old_exc, &old_val, &old_tb);
+    if (full_traceback) {
+        Py_XINCREF(old_exc);
+        Py_XINCREF(old_val);
+        Py_XINCREF(old_tb);
+        __Pyx_ErrRestore(old_exc, old_val, old_tb);
+        PyErr_PrintEx(1);
+    }
+    #if PY_MAJOR_VERSION < 3
+    ctx = PyString_FromString(name);
+    #else
+    ctx = PyUnicode_FromString(name);
+    #endif
+    __Pyx_ErrRestore(old_exc, old_val, old_tb);
+    if (!ctx) {
+        PyErr_WriteUnraisable(Py_None);
+    } else {
+        PyErr_WriteUnraisable(ctx);
+        Py_DECREF(ctx);
+    }
+#ifdef WITH_THREAD
+    if (nogil)
+        PyGILState_Release(state);
+#endif
+}
+
 /* RaiseException */
     #if PY_MAJOR_VERSION < 3
 static void __Pyx_Raise(PyObject *type, PyObject *value, PyObject *tb,
@@ -23161,6 +23247,93 @@ static CYTHON_INLINE PyObject* __Pyx_PyObject_CallOneArg(PyObject *func, PyObjec
 }
 #endif
 
+/* GetItemInt */
+      static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Generic(PyObject *o, PyObject* j) {
+    PyObject *r;
+    if (!j) return NULL;
+    r = PyObject_GetItem(o, j);
+    Py_DECREF(j);
+    return r;
+}
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_List_Fast(PyObject *o, Py_ssize_t i,
+                                                              CYTHON_NCP_UNUSED int wraparound,
+                                                              CYTHON_NCP_UNUSED int boundscheck) {
+#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+    Py_ssize_t wrapped_i = i;
+    if (wraparound & unlikely(i < 0)) {
+        wrapped_i += PyList_GET_SIZE(o);
+    }
+    if ((!boundscheck) || likely((0 <= wrapped_i) & (wrapped_i < PyList_GET_SIZE(o)))) {
+        PyObject *r = PyList_GET_ITEM(o, wrapped_i);
+        Py_INCREF(r);
+        return r;
+    }
+    return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
+#else
+    return PySequence_GetItem(o, i);
+#endif
+}
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Tuple_Fast(PyObject *o, Py_ssize_t i,
+                                                              CYTHON_NCP_UNUSED int wraparound,
+                                                              CYTHON_NCP_UNUSED int boundscheck) {
+#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+    Py_ssize_t wrapped_i = i;
+    if (wraparound & unlikely(i < 0)) {
+        wrapped_i += PyTuple_GET_SIZE(o);
+    }
+    if ((!boundscheck) || likely((0 <= wrapped_i) & (wrapped_i < PyTuple_GET_SIZE(o)))) {
+        PyObject *r = PyTuple_GET_ITEM(o, wrapped_i);
+        Py_INCREF(r);
+        return r;
+    }
+    return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
+#else
+    return PySequence_GetItem(o, i);
+#endif
+}
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Fast(PyObject *o, Py_ssize_t i, int is_list,
+                                                     CYTHON_NCP_UNUSED int wraparound,
+                                                     CYTHON_NCP_UNUSED int boundscheck) {
+#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS && CYTHON_USE_TYPE_SLOTS
+    if (is_list || PyList_CheckExact(o)) {
+        Py_ssize_t n = ((!wraparound) | likely(i >= 0)) ? i : i + PyList_GET_SIZE(o);
+        if ((!boundscheck) || (likely((n >= 0) & (n < PyList_GET_SIZE(o))))) {
+            PyObject *r = PyList_GET_ITEM(o, n);
+            Py_INCREF(r);
+            return r;
+        }
+    }
+    else if (PyTuple_CheckExact(o)) {
+        Py_ssize_t n = ((!wraparound) | likely(i >= 0)) ? i : i + PyTuple_GET_SIZE(o);
+        if ((!boundscheck) || likely((n >= 0) & (n < PyTuple_GET_SIZE(o)))) {
+            PyObject *r = PyTuple_GET_ITEM(o, n);
+            Py_INCREF(r);
+            return r;
+        }
+    } else {
+        PySequenceMethods *m = Py_TYPE(o)->tp_as_sequence;
+        if (likely(m && m->sq_item)) {
+            if (wraparound && unlikely(i < 0) && likely(m->sq_length)) {
+                Py_ssize_t l = m->sq_length(o);
+                if (likely(l >= 0)) {
+                    i += l;
+                } else {
+                    if (!PyErr_ExceptionMatches(PyExc_OverflowError))
+                        return NULL;
+                    PyErr_Clear();
+                }
+            }
+            return m->sq_item(o, i);
+        }
+    }
+#else
+    if (is_list || PySequence_Check(o)) {
+        return PySequence_GetItem(o, i);
+    }
+#endif
+    return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
+}
+
 /* HasAttr */
       static CYTHON_INLINE int __Pyx_HasAttr(PyObject *o, PyObject *n) {
     PyObject *r;
@@ -23478,6 +23651,14 @@ return_ne:
 #endif
 }
 
+/* None */
+        static CYTHON_INLINE Py_ssize_t __Pyx_div_Py_ssize_t(Py_ssize_t a, Py_ssize_t b) {
+    Py_ssize_t q = a / b;
+    Py_ssize_t r = a - q*b;
+    q -= ((r != 0) & ((r ^ b) < 0));
+    return q;
+}
+
 /* decode_c_string */
         static CYTHON_INLINE PyObject* __Pyx_decode_c_string(
          const char* cstring, Py_ssize_t start, Py_ssize_t stop,
@@ -23535,93 +23716,6 @@ static CYTHON_INLINE void __Pyx_ExceptionSwap(PyObject **type, PyObject **value,
     *tb = tmp_tb;
 }
 #endif
-
-/* GetItemInt */
-        static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Generic(PyObject *o, PyObject* j) {
-    PyObject *r;
-    if (!j) return NULL;
-    r = PyObject_GetItem(o, j);
-    Py_DECREF(j);
-    return r;
-}
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_List_Fast(PyObject *o, Py_ssize_t i,
-                                                              CYTHON_NCP_UNUSED int wraparound,
-                                                              CYTHON_NCP_UNUSED int boundscheck) {
-#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-    Py_ssize_t wrapped_i = i;
-    if (wraparound & unlikely(i < 0)) {
-        wrapped_i += PyList_GET_SIZE(o);
-    }
-    if ((!boundscheck) || likely((0 <= wrapped_i) & (wrapped_i < PyList_GET_SIZE(o)))) {
-        PyObject *r = PyList_GET_ITEM(o, wrapped_i);
-        Py_INCREF(r);
-        return r;
-    }
-    return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
-#else
-    return PySequence_GetItem(o, i);
-#endif
-}
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Tuple_Fast(PyObject *o, Py_ssize_t i,
-                                                              CYTHON_NCP_UNUSED int wraparound,
-                                                              CYTHON_NCP_UNUSED int boundscheck) {
-#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-    Py_ssize_t wrapped_i = i;
-    if (wraparound & unlikely(i < 0)) {
-        wrapped_i += PyTuple_GET_SIZE(o);
-    }
-    if ((!boundscheck) || likely((0 <= wrapped_i) & (wrapped_i < PyTuple_GET_SIZE(o)))) {
-        PyObject *r = PyTuple_GET_ITEM(o, wrapped_i);
-        Py_INCREF(r);
-        return r;
-    }
-    return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
-#else
-    return PySequence_GetItem(o, i);
-#endif
-}
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Fast(PyObject *o, Py_ssize_t i, int is_list,
-                                                     CYTHON_NCP_UNUSED int wraparound,
-                                                     CYTHON_NCP_UNUSED int boundscheck) {
-#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS && CYTHON_USE_TYPE_SLOTS
-    if (is_list || PyList_CheckExact(o)) {
-        Py_ssize_t n = ((!wraparound) | likely(i >= 0)) ? i : i + PyList_GET_SIZE(o);
-        if ((!boundscheck) || (likely((n >= 0) & (n < PyList_GET_SIZE(o))))) {
-            PyObject *r = PyList_GET_ITEM(o, n);
-            Py_INCREF(r);
-            return r;
-        }
-    }
-    else if (PyTuple_CheckExact(o)) {
-        Py_ssize_t n = ((!wraparound) | likely(i >= 0)) ? i : i + PyTuple_GET_SIZE(o);
-        if ((!boundscheck) || likely((n >= 0) & (n < PyTuple_GET_SIZE(o)))) {
-            PyObject *r = PyTuple_GET_ITEM(o, n);
-            Py_INCREF(r);
-            return r;
-        }
-    } else {
-        PySequenceMethods *m = Py_TYPE(o)->tp_as_sequence;
-        if (likely(m && m->sq_item)) {
-            if (wraparound && unlikely(i < 0) && likely(m->sq_length)) {
-                Py_ssize_t l = m->sq_length(o);
-                if (likely(l >= 0)) {
-                    i += l;
-                } else {
-                    if (!PyErr_ExceptionMatches(PyExc_OverflowError))
-                        return NULL;
-                    PyErr_Clear();
-                }
-            }
-            return m->sq_item(o, i);
-        }
-    }
-#else
-    if (is_list || PySequence_Check(o)) {
-        return PySequence_GetItem(o, i);
-    }
-#endif
-    return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
-}
 
 /* PyIntBinop */
         #if !CYTHON_COMPILING_IN_PYPY
@@ -23744,46 +23838,12 @@ static PyObject* __Pyx_PyInt_AddObjC(PyObject *op1, PyObject *op2, CYTHON_UNUSED
     PyErr_Format(PyExc_UnboundLocalError, "local variable '%s' referenced before assignment", varname);
 }
 
-/* WriteUnraisableException */
-        static void __Pyx_WriteUnraisable(const char *name, CYTHON_UNUSED int clineno,
-                                  CYTHON_UNUSED int lineno, CYTHON_UNUSED const char *filename,
-                                  int full_traceback, CYTHON_UNUSED int nogil) {
-    PyObject *old_exc, *old_val, *old_tb;
-    PyObject *ctx;
-    __Pyx_PyThreadState_declare
-#ifdef WITH_THREAD
-    PyGILState_STATE state;
-    if (nogil)
-        state = PyGILState_Ensure();
-#ifdef _MSC_VER
-    else state = (PyGILState_STATE)-1;
-#endif
-#endif
-    __Pyx_PyThreadState_assign
-    __Pyx_ErrFetch(&old_exc, &old_val, &old_tb);
-    if (full_traceback) {
-        Py_XINCREF(old_exc);
-        Py_XINCREF(old_val);
-        Py_XINCREF(old_tb);
-        __Pyx_ErrRestore(old_exc, old_val, old_tb);
-        PyErr_PrintEx(1);
-    }
-    #if PY_MAJOR_VERSION < 3
-    ctx = PyString_FromString(name);
-    #else
-    ctx = PyUnicode_FromString(name);
-    #endif
-    __Pyx_ErrRestore(old_exc, old_val, old_tb);
-    if (!ctx) {
-        PyErr_WriteUnraisable(Py_None);
-    } else {
-        PyErr_WriteUnraisable(ctx);
-        Py_DECREF(ctx);
-    }
-#ifdef WITH_THREAD
-    if (nogil)
-        PyGILState_Release(state);
-#endif
+/* None */
+        static CYTHON_INLINE long __Pyx_div_long(long a, long b) {
+    long q = a / b;
+    long r = a - q*b;
+    q -= ((r != 0) & ((r ^ b) < 0));
+    return q;
 }
 
 /* SetVTable */

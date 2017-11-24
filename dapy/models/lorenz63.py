@@ -80,8 +80,6 @@ class Lorenz63Model(DiagonalGaussianIntegratorModel):
         self.sigma = sigma
         self.rho = rho
         self.beta = beta
-        self.dt = dt
-        self.n_steps_per_update = n_steps_per_update
         self.tol = tol
         self.max_iters = max_iters
         self.n_threads = n_threads
@@ -89,11 +87,11 @@ class Lorenz63Model(DiagonalGaussianIntegratorModel):
         dim_x = observation_func(np.zeros(3)).shape[0]
         integrator = Lorenz63Integrator(
             sigma=sigma, rho=rho, beta=beta, dt=dt, tol=tol,
-            n_steps_per_update=n_steps_per_update, max_iters=max_iters,
-            n_threads=n_threads
+            max_iters=max_iters, n_threads=n_threads
         )
         super(Lorenz63Model, self).__init__(
-            integrator=integrator, dim_z=3, dim_x=dim_x, rng=rng,
+            integrator=integrator, n_steps_per_update=n_steps_per_update,
+            dim_z=3, dim_x=dim_x, rng=rng,
             init_state_mean=init_state_mean, init_state_std=init_state_std,
             state_noise_std=state_noise_std, obser_noise_std=obser_noise_std
         )

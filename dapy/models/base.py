@@ -425,20 +425,25 @@ class DiagonalGaussianIntegratorModel(DiagonalGaussianModel):
     function and so will not have a well-defined probability density function.
     """
 
-    def __init__(self, integrator, dim_z, dim_x, rng,
-                 init_state_mean, init_state_std,
-                 state_noise_std, obser_noise_std):
+    def __init__(self, integrator, n_steps_per_update, dim_z, dim_x, rng,
+                 init_state_mean, init_state_std, state_noise_std,
+                 obser_noise_std):
         """
         Args:
             integrator (object): Integrator for model state dynamics. Object
-                should define a `forward_integrate` function with function
+                should define a `forward_integrate` method with function
                 signature
-                    def forward_integrate(self, z_curr, z_next, time)
+                    def forward_integrate(
+                        self, z_curr, z_next, start_time_index, n_step)
                 with `z_curr` an input array of a batch of state vectors at
                 current time index, `z_next` an output array to write the
-                values of the batch of state vectors at the next time index
-                and `time` a float defining the current real time (*not*
-                time index).
+                values of the batch of state vectors at the next time index,
+                `start_time_index` an integer defining the current time index
+                and `n_step` the number of integrator time steps to perform.
+                The integrator object should also have a float attribute `dt`
+                 corresponding to the integrator time step.
+            n_steps_per_update (int): Number of integrator time-steps between
+                successive observations and generated states.
             dim_z (integer): Dimension of model state vector.
             dim_x (integer): Dimension of observation vector.
             rng (RandomState): Numpy RandomState random number generator.
@@ -459,6 +464,7 @@ class DiagonalGaussianIntegratorModel(DiagonalGaussianModel):
                 i.e. a diagonal noise covariance.
         """
         self.integrator = integrator
+        self.n_steps_per_update = n_steps_per_update
         super(DiagonalGaussianIntegratorModel, self).__init__(
             dim_z=dim_z, dim_x=dim_x, rng=rng,
             init_state_mean=init_state_mean, init_state_std=init_state_std,
@@ -467,9 +473,10 @@ class DiagonalGaussianIntegratorModel(DiagonalGaussianModel):
 
     def next_state_func(self, z, t):
         z_next = np.empty(z.shape)
-        time = t * self.dt * self.n_steps_per_update
         if z.ndim == 1:
-            self.integrator.forward_integrate(z[None], z_next[None], time)
+            self.integrator.forward_integrate(
+                    z[None], z_next[None], t, self.n_steps_per_update)
         else:
-            self.integrator.forward_integrate(z, z_next, time)
+            self.integrator.forward_integrate(
+                    z, z_next, t, self.n_steps_per_update)
         return z_next

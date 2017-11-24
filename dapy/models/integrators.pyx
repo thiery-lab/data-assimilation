@@ -8,12 +8,11 @@ class ConvergenceError(Exception):
     """Raised when implicit integrator step fails to converge."""
 
 cdef class ImplicitMidpointIntegrator:
-    
-    def __init__(self, int dim_z, double dt, int n_steps_per_update, 
-                 double tol, int max_iters, int n_threads=4):
+
+    def __init__(self, int dim_z, double dt,  double tol, int max_iters,
+                 int n_threads=4):
         self.dim_z = dim_z
         self.dt = dt
-        self.n_steps_per_update = n_steps_per_update
         self.tol = tol
         self.max_iters = max_iters
         self.n_threads = n_threads
@@ -21,7 +20,7 @@ cdef class ImplicitMidpointIntegrator:
         self.z_temp = np.empty((n_threads, dim_z), dtype='double')
         self.z_half = np.empty((n_threads, dim_z), dtype='double')
         self.dz_dt = np.empty((n_threads, dim_z), dtype='double')
-    
+
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
@@ -32,7 +31,7 @@ cdef class ImplicitMidpointIntegrator:
     @cython.wraparound(False)
     @cython.cdivision(True)
     cdef bint implicit_midpoint_step(
-            self, double[:] z, double time, double[:] dz_dt, 
+            self, double[:] z, double time, double[:] dz_dt,
             double[:] z_half, double[:] z_next) nogil:
         cdef double max_abs_diff, abs_diff, prev_val
         cdef int i, j
@@ -59,7 +58,7 @@ cdef class ImplicitMidpointIntegrator:
             return 1
         else:
             return 0
-    
+
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
@@ -80,33 +79,34 @@ cdef class ImplicitMidpointIntegrator:
     @cython.wraparound(False)
     @cython.cdivision(True)
     def forward_integrate(
-            self, double[:, :] z_particles, double[:, :] z_particles_next, 
-            double start_time):
+            self, double[:, :] z_particles, double[:, :] z_particles_next,
+            int start_time_index, int n_steps=1):
         """Integrate a set of state particles forward in time.
-        
+
         Args:
             z_particles (array): Array of current state particle values of
                 shape `(n_particles, dim_z)`.
             z_particles_next (array): Array in to which forward propagated
                 state particle values are written.
-            start_time (float): Current time value.
-        Returns:
-            end_time (float): Time value after forward integration.
+            start_time_index (int): Integer indicating current time index
+                associated with the `z_curr` states (i.e. number of previous
+                `forward_integrate` calls) to allow for calculate of time for
+                non-homogeneous systems.
+            n_step (int): Number of integrator time steps to perform.
         """
         cdef int n_particles = z_particles.shape[0]
         self.partition_particles(n_particles)
-        cdef int t, p, s, 
+        cdef int t, p, s,
         cdef bint error
-        cdef double time
-        for t in prange(self.n_threads, nogil=True, schedule='static',  
+        cdef double time = start_time_index * n_steps * self.dt
+        for t in prange(self.n_threads, nogil=True, schedule='static',
                         chunksize=1, num_threads=self.n_threads):
             for p in range(self.intervals[t], self.intervals[t+1]):
-                for s in range(self.n_steps_per_update):
+                for s in range(n_steps):
                     if s == 0:
-                        time = start_time
-                        self.z_temp[t, :] = z_particles[p] 
+                        self.z_temp[t, :] = z_particles[p]
                     else:
-                        self.z_temp[t, :] = z_particles_next[p] 
+                        self.z_temp[t, :] = z_particles_next[p]
                     error = self.implicit_midpoint_step(
                         self.z_temp[t], time, self.dz_dt[t], self.z_half[t],
                         z_particles_next[p])
@@ -115,4 +115,3 @@ cdef class ImplicitMidpointIntegrator:
                             raise ConvergenceError(
                                 'Convergence error in implicit midpoint step.')
                     time = time + self.dt
-        return start_time + self.n_steps_per_update * self.dt
