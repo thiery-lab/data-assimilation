@@ -377,7 +377,7 @@ class DiagonalGaussianModel(AbstractModel):
 
     def log_prob_dens_obs_gvn_state(self, x, z, t):
         return -(
-            0.5 * ((x - self.observation_func(z)) /
+            0.5 * ((x - self.observation_func(z, t)) /
                    self.obser_noise_std)**2 +
             0.5 * np.log(2 * np.pi) + np.log(self.obser_noise_std)
         ).sum(-1)

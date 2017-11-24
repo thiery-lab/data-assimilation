@@ -41,7 +41,7 @@ class Lorenz63Model(DiagonalGaussianIntegratorModel):
     """
 
     def __init__(self, rng, init_state_mean=1., init_state_std=0.05,
-                 state_noise_std=None, observation_func=lambda z: z,
+                 state_noise_std=None, observation_func=lambda z, t: z,
                  obser_noise_std=5., sigma=10., rho=28., beta=8./3., dt=0.01,
                  n_steps_per_update=10, tol=1e-8, max_iters=100, n_threads=4):
         """
