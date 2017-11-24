@@ -347,10 +347,17 @@ class DiagonalGaussianModel(AbstractModel):
             )
 
     def observation_sampler(self, z, t):
-        return (
-            self.observation_func(z) +
-            self.rng.normal(size=self.dim_x) * self.obser_noise_std
-        )
+        if z.ndim == 2:
+            return (
+                self.observation_func(z, t) +
+                self.rng.normal(size=(z.shape[0], self.dim_x)) *
+                self.obser_noise_std
+            )
+        else:
+            return (
+                self.observation_func(z, t) +
+                self.rng.normal(size=(self.dim_x)) * self.obser_noise_std
+            )
 
     def log_prob_dens_init_state(self, z):
         return -(
