@@ -135,7 +135,8 @@ def batch_calc_grad(fields, cell_size_0, cell_size_1):
         cell_size_1 (float): Spatial extent of each grid cell along one-axis.
 
     Returns:
-        Four dimensional array corresponding to a stack of vector gradient fields, one per provided vector field. The array is of shape
+        Four dimensional array corresponding to a stack of vector gradient
+        fields, one per provided vector field. The array is of shape
         `(n_field, 2, grid_shape_0, grid_shape_1)` with the fields in the same
         order as in the provided `vector_fields`.
     """
@@ -154,15 +155,15 @@ def batch_calc_grad(fields, cell_size_0, cell_size_1):
 
 
 class FourierFluidSim2dIntegrator:
-    """Simple Navier-Stokes fluid simulation on two-dimensional periodic grid.
+    """Imcompressible Navier-Stokes fluid simulation on 2D periodic grid.
 
     Simulates evolution of a fluid velocity field and density field of a
-    carrier particle in a field on a two-dimensional torus using a finite
-    difference based implementation of the incompressible Navier-Stokes
-    equations in two-dimensions. A semi-Lagrangian method is used for the
-    advection updates and a FFT-based method used to implement the diffusion
-    of the velocity and density fields and to project the velocity field to
-    a divergence-free flow to respect the incompressibility condition [1,3].
+    carrier particle in a field on a 2-torus using a finite difference based
+    implementation of the incompressible Navier-Stokes equations in
+    two-dimensions. A semi-Lagrangian method is used for the advection updates
+    and a FFT-based method used to implement the diffusion of the velocity and
+    density fields and to project the velocity field to a divergence-free flow
+    to respect the incompressibility condition [1,3].
 
     Optionally vorticity confinement [2] may be used to compensate for the
     non-physical numerical dissipation of small-scale rotational structure in
