@@ -14,13 +14,14 @@ Alternatively `conda` or `pip` can be used to manually create a Python 3 environ
 
   * [NumPy](http://www.numpy.org/)
   * [SciPy](https://www.scipy.org/)
+  * [Numba](https://numba.pydata.org/)
   * [POT: Python Optimal Transport](http://pot.readthedocs.io/en/stable/)
   * [PyFFTW](http://pyfftw.readthedocs.io/en/latest/)
   
 are sufficient for using the inference methods and model classes implemented in the `dapy` package. To install in a `conda` environment run
 
 ```
-conda install numpy scipy
+conda install numpy scipy numba
 conda install -c conda-forge pot
 conda install -c conda-forge pyfftw
 ```
