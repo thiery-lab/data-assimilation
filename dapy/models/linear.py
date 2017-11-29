@@ -159,16 +159,19 @@ class LinearGaussianModel(AbstractModel):
                     )
             )
 
+    def observation_func(self, z, t):
+        return z.dot(self.observation_matrix.T)
+
     def observation_sampler(self, z, t):
         if z.ndim == 1:
             return (
-                self.observation_matrix.dot(z) +
+                self.observation_func(z, t) +
                 self.obser_noise_matrix.dot(
                     self.rng.normal(size=self.dim_x))
             )
         else:
             return (
-                z.dot(self.observation_matrix.T) +
+                self.observation_func(z, t) +
                 self.rng.normal(size=(z.shape[0], self.dim_x)).dot(
                         self.obser_noise_matrix.T)
             )
