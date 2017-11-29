@@ -107,7 +107,7 @@ class KalmanFilter(object):
                 self.obser_noise_covar
             )
             x_z_covar = z_covar_seq[t].dot(self.observation_matrix.T)
-            k_gain = la.solve(x_covar, x_z_covar.T, True).T
+            k_gain = la.solve(x_covar, x_z_covar.T).T
             z_mean_seq[t] += k_gain.dot(x_observed[t] - x_mean)
             covar_trans = (
                 np.eye(self.dim_z) - k_gain.dot(self.observation_matrix)
