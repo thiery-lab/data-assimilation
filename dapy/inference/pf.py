@@ -76,7 +76,7 @@ class BootstrapParticleFilter(object):
         idx = self.rng.choice(n_particles, n_particles, True, w)
         return z[idx]
 
-    def filter(self, x_observed, n_particles):
+    def filter(self, x_observed, n_particles, return_particles=False):
         """Compute filtering distribution approximations.
 
         Args:
@@ -85,12 +85,19 @@ class BootstrapParticleFilter(object):
                 sequence and `dim_x` is dimensionality of observations.
             n_particles (integer): Number of particles to use to represent
                 filtering distribution at each time step.
+            return_particles (boolean): Whether to return two-dimensional
+                array of shape `(n_steps, n_particles, dim_z)` containing all
+                state particles at each time step. Potentially memory-heavy
+                for system with large state dimensions.
 
         Returns:
             Dictionary containing arrays of filtering density parameters -
-                z_mean_seq: Array of filtering density means at all time steps.
+                z_mean_seq: Array of filtering density mean for each
+                    dimension at all time steps.
+                z_std_seq: Array of filtering density standard deviation for
+                    each dimension at all time steps.
                 z_particles_seq: Array of particles representing filtering
-                    distribution at each time step.
+                    distribution at each time step (if return_particles==True).
         """
         n_steps, dim_x = x_observed.shape
         for t in range(n_steps):
@@ -98,14 +105,23 @@ class BootstrapParticleFilter(object):
                 z_forecast = self.init_state_sampler(n_particles)
                 dim_z = z_forecast.shape[1]
                 z_mean_seq = np.full((n_steps, dim_z), np.nan)
-                z_particles_seq = np.full(
-                    (n_steps, n_particles, dim_z),  np.nan)
+                z_std_seq = np.full((n_steps, dim_z), np.nan)
+                if return_particles:
+                    z_particles_seq = np.full(
+                        (n_steps, n_particles, dim_z), np.nan)
             else:
-                z_forecast = self.next_state_sampler(z_particles_seq[t-1], t-1)
+                z_forecast = self.next_state_sampler(z_analysis, t-1)
             w = self.calculate_weights(z_forecast, x_observed[t], t)
             z_mean_seq[t] = (w[:, None] * z_forecast).sum(0)
-            z_particles_seq[t] = self.resample(z_forecast, w)
-        return {'z_mean_seq': z_mean_seq, 'z_particles_seq': z_particles_seq}
+            z_std_seq[t] = (
+                    w[:, None] * (z_forecast - z_mean_seq[t])**2).sum(0)**0.5
+            z_analysis = self.resample(z_forecast, w)
+            if return_particles:
+                z_particles_seq[t] = z_analysis
+        results = {'z_mean_seq': z_mean_seq, 'z_std_seq': z_std_seq}
+        if return_particles:
+            results['z_particles_seq'] = z_particles_seq
+        return results
 
 
 class EnsembleTransformParticleFilter(BootstrapParticleFilter):
