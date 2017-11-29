@@ -2,10 +2,12 @@
 
 import numpy as np
 import numpy.linalg as la
+from dapy.models.base import inherit_docstrings
+from dapy.inference.base import AbstractEnsembleFilter
 
 
-class EnsembleKalmanFilter(object):
-
+@inherit_docstrings
+class EnsembleKalmanFilter(AbstractEnsembleFilter):
     """Ensemble Kalman filter with perturbed observations.
 
     Assumes the system dynamics are of the form
@@ -59,51 +61,23 @@ class EnsembleKalmanFilter(object):
                 array of current state(s) and current time index as arguments.
             rng (RandomState): Numpy RandomState random number generator.
         """
-        self.init_state_sampler = init_state_sampler
-        self.next_state_sampler = next_state_sampler
+        super(EnsembleKalmanFilter, self).__init__(
+                init_state_sampler=init_state_sampler,
+                next_state_sampler=next_state_sampler, rng=rng
+        )
         self.observation_sampler = observation_sampler
-        self.rng = rng
 
-    def filter(self, x_observed, n_particles):
-        """Compute (approximate) filtering density parameters.
-
-        Args:
-            x_observed (array): Observed state sequence with shape
-                `(n_steps, dim_x)` where `n_steps` is number of time steps in
-                sequence and `dim_x` is dimensionality of observations.
-            n_particles (integer): Number of particles to use to represent
-                filtering distribution at each time step.
-
-        Returns:
-            Dictionary containing arrays of filtering density parameters -
-                z_mean_seq: Array of filtering density means at all time steps.
-                z_particles_seq: Array of particles representing filtering
-                    distribution at each time step.
-        """
-        n_steps, dim_x = x_observed.shape
-        for t in range(n_steps):
-            # forecast update
-            if t == 0:
-                z_forecast = self.init_state_sampler(n_particles)
-                dim_z = z_forecast.shape[1]
-                z_mean_seq = np.full((n_steps, dim_z), np.nan)
-                z_particles_seq = np.full(
-                    (n_steps, n_particles, dim_z), np.nan)
-            else:
-                z_forecast = self.next_state_sampler(z_analysis, t-1)
-            # analysis update
-            x_forecast = self.observation_sampler(z_forecast, t)
-            dz_forecast = z_forecast - z_forecast.mean(0)
-            dx_forecast = x_forecast - x_forecast.mean(0)
-            dx_error = x_observed[t] - x_forecast
-            z_analysis = z_forecast + (
-                dx_error.dot(la.pinv(dx_forecast))).dot(dz_forecast)
-            z_mean_seq[t] = z_analysis.mean(0)
-            z_particles_seq[t] = z_analysis
-        return {'z_mean_seq': z_mean_seq, 'z_particles_seq': z_particles_seq}
+    def analysis_update(self, z_forecast, x_observed, time_index):
+        x_forecast = self.observation_sampler(z_forecast, time_index)
+        dz_forecast = z_forecast - z_forecast.mean(0)
+        dx_forecast = x_forecast - x_forecast.mean(0)
+        dx_error = x_observed - x_forecast
+        return z_forecast + (
+            dx_error.dot(la.pinv(dx_forecast))).dot(dz_forecast)
 
 
-class EnsembleSquareRootFilter(object):
+@inherit_docstrings
+class EnsembleSquareRootFilter(AbstractEnsembleFilter):
     """Ensemble Kalman filter with deterministic matrix square root updates.
 
     Assumes the system dynamics are of the form
@@ -112,7 +86,7 @@ class EnsembleSquareRootFilter(object):
     x[0] = H.dot(z[0]) + J.dot(v[0])
     for t in range(1, T):
         z[t] = next_state_sampler(z[t-1], t-1)
-        x[t] = H.dot(z[t]) + J.dot(v[t])
+        x[t] = observation_func(z[t], t) + J.dot(v[t])
 
     where
 
@@ -120,7 +94,7 @@ class EnsembleSquareRootFilter(object):
        x[t] : observed system state at time index t,
        v[t] : zero-mean identity covariance Gaussian observation noise
               vector at time index t,
-       H: linear observation matrix,
+       observation_func: function defining observation operator,
        J: observation noise transform matrix,
        init_state_sampler: function sampling from initial state distribution,
        next_state_sampler: function sampling state at current time index given
@@ -133,13 +107,13 @@ class EnsembleSquareRootFilter(object):
     converges to giving exact results.
 
     References:
-        M. K. Tippett, J. L. Anderson, C. H. Bishop, T. M. Hamill, and J. S.
-        Whitaker, Ensemble square root filters, Monthly Weather Review, 131
-        (2003), pp. 1485--1490.
+        1. M. K. Tippett, J. L. Anderson, C. H. Bishop, T. M. Hamill,
+           and J. S. Whitaker, Ensemble square root filters,
+           Monthly Weather Review, 131 (2003), pp. 1485--1490.
     """
 
     def __init__(self, init_state_sampler, next_state_sampler,
-                 observation_matrix, obser_noise_matrix, rng):
+                 observation_func, obser_noise_matrix, rng, warn=True):
         """
         Args:
             init_state_sampler (function): Function returning sample(s) from
@@ -149,79 +123,56 @@ class EnsembleSquareRootFilter(object):
                 distribution on next state given current state(s). Takes array
                 of current state(s) and current time index as
                 arguments.
-            observation_matrix (array): Matrix defining linear obervation
-                operator.
+            observation_func (function): Function returning pre-noise
+                observations given current state(s). Takes array of current
+                state(s) and current time index as arguments.
             obser_noise_matrix (array): Matrix defining transformation of
                 additive observation noise.
             rng (RandomState): Numpy RandomState random number generator.
-        """
-        self.init_state_sampler = init_state_sampler
-        self.next_state_sampler = next_state_sampler
-        self.observation_matrix = observation_matrix
-        self.obser_noise_matrix = obser_noise_matrix
-        self.obser_noise_covar = obser_noise_matrix.dot(obser_noise_matrix.T)
-        self.rng = rng
-
-    def filter(self, x_observed, n_particles, warn=True):
-        """Compute (approximate) filtering density parameters.
-
-        Args:
-            x_observed (array): Observed state sequence with shape
-                `(n_steps, dim_x)` where `n_steps` is number of time steps in
-                sequence and `dim_x` is dimensionality of observations.
-            n_particles (integer): Number of particles to use to represent
-                filtering distribution at each time step.
             warn (boolean, default True): Warn if eigenvalues of matrix used
                 to compute matrix square root for analysis perturbation
-                ensemble update are outside of unit circle (eigenvalues are
-                clipped to [-infty, 1] during update).
-
-        Returns:
-            Dictionary containing arrays of filtering density parameters -
-                z_mean_seq: Array of filtering density means at all time steps.
-                z_particles_seq: Array of particles representing filtering
-                    distribution at each time step.
+                ensemble updates are outside of unit circle (eigenvalues are
+                clipped to [-infty, 1] during filtering updates).
         """
-        n_steps, dim_x = x_observed.shape
-        for t in range(n_steps):
-            if t == 0:
-                z_forecast = self.init_state_sampler(n_particles)
-                dim_z = z_forecast.shape[1]
-                z_mean_seq = np.full((n_steps, dim_z), np.nan)
-                z_particles_seq = np.full(
-                    (n_steps, n_particles, dim_z), np.nan)
-            else:
-                z_forecast = self.next_state_sampler(z_analysis, t-1)
-            z_mean_forecast = z_forecast.mean(0)
-            x_mean_forecast = self.observation_matrix.dot(z_mean_forecast)
-            dz_forecast = z_forecast - z_mean_forecast
-            dx_forecast = dz_forecast.dot(self.observation_matrix.T)
-            c_matrix = (
-                dx_forecast.T.dot(dx_forecast) +
-                (n_particles - 1) * self.obser_noise_covar
-            )
-            eigval_c, eigvec_c = la.eigh(c_matrix)
-            k_gain = (eigvec_c / eigval_c).dot(eigvec_c.T).dot(
-                dx_forecast.T.dot(dz_forecast))
-            z_mean_analysis = z_mean_forecast + (
-                x_observed[t] - x_mean_forecast).dot(k_gain)
-            m_matrix = dx_forecast.dot(
-                eigvec_c / eigval_c).dot(eigvec_c.T).dot(dx_forecast.T)
-            eigval_m, eigvec_m = la.eigh(m_matrix)
-            if warn and np.any(eigval_m > 1.):
-                print('Warning: eigenvalue(s) outside unit circle, max: {0}'
-                      .format(eigval_m.max()))
-            sqrt_matrix = (
-                eigvec_m * abs(1 - np.clip(eigval_m, -np.inf, 1.))**0.5
-            ).dot(eigvec_m.T)
-            dz_analysis = sqrt_matrix.dot(dz_forecast)
-            z_analysis = z_mean_analysis + dz_analysis
-            z_particles_seq[t] = z_analysis
-            z_mean_seq[t] = z_mean_analysis
-        return {'z_mean_seq': z_mean_seq, 'z_particles_seq': z_particles_seq}
+        super(EnsembleSquareRootFilter, self).__init__(
+                init_state_sampler=init_state_sampler,
+                next_state_sampler=next_state_sampler, rng=rng
+        )
+        self.observation_func = observation_func
+        self.obser_noise_matrix = obser_noise_matrix
+        self.obser_noise_covar = obser_noise_matrix.dot(obser_noise_matrix.T)
+        self.warn = warn
+
+    def analysis_update(self, z_forecast, x_observed, time_index):
+        n_particles = z_forecast.shape[0]
+        z_mean_forecast = z_forecast.mean(0)
+        dz_forecast = z_forecast - z_mean_forecast
+        x_forecast = self.observation_func(z_forecast, time_index)
+        x_mean_forecast = x_forecast.mean(0)
+        dx_forecast = x_forecast - x_mean_forecast
+        c_matrix = (
+            dx_forecast.T.dot(dx_forecast) +
+            (n_particles - 1) * self.obser_noise_covar)
+        eigval_c, eigvec_c = la.eigh(c_matrix)
+        k_gain = (eigvec_c / eigval_c).dot(eigvec_c.T).dot(
+            dx_forecast.T.dot(dz_forecast))
+        z_mean_analysis = z_mean_forecast + (
+            x_observed - x_mean_forecast).dot(k_gain)
+        m_matrix = dx_forecast.dot(
+            eigvec_c / eigval_c).dot(eigvec_c.T).dot(dx_forecast.T)
+        eigval_m, eigvec_m = la.eigh(m_matrix)
+        if self.warn and np.any(eigval_m > 1.):
+            print('Warning: eigenvalue(s) outside unit circle, max: {0}'
+                  .format(eigval_m.max()))
+        sqrt_matrix = (
+            eigvec_m * abs(1 - np.clip(eigval_m, -np.inf, 1.))**0.5
+        ).dot(eigvec_m.T)
+        dz_analysis = sqrt_matrix.dot(dz_forecast)
+        return z_mean_analysis + dz_analysis
 
 
-class WoodburyEnsembleSquareRootFilter(object):
+@inherit_docstrings
+class WoodburyEnsembleSquareRootFilter(AbstractEnsembleFilter):
     """Ensemble Kalman filter with deterministic matrix square root updates.
 
     Uses Woodbury identity to compute matrix inverse using explicit inverse
@@ -234,7 +185,7 @@ class WoodburyEnsembleSquareRootFilter(object):
     x[0] = H.dot(z[0]) + J.dot(v[0])
     for t in range(1, T):
         z[t] = next_state_sampler(z[t-1], t-1)
-        x[t] = H.dot(z[t]) + J.dot(v[t])
+        x[t] = observation_func(z[t], t) + J.dot(v[t])
 
     where
 
@@ -242,7 +193,7 @@ class WoodburyEnsembleSquareRootFilter(object):
        x[t] : observed system state at time index t,
        v[t] : zero-mean identity covariance Gaussian observation noise
               vector at time index t,
-       H: linear observation matrix,
+       observation_func: function defining observation operator,
        J: observation noise transform matrix,
        init_state_sampler: function sampling from initial state distribution,
        next_state_sampler: function sampling state at current time index given
@@ -255,13 +206,13 @@ class WoodburyEnsembleSquareRootFilter(object):
     converges to giving exact results.
 
     References:
-        M. K. Tippett, J. L. Anderson, C. H. Bishop, T. M. Hamill, and J. S.
-        Whitaker, Ensemble square root filters, Monthly Weather Review, 131
-        (2003), pp. 1485--1490.
+        1. M. K. Tippett, J. L. Anderson, C. H. Bishop, T. M. Hamill,
+           and J. S. Whitaker, Ensemble square root filters,
+           Monthly Weather Review, 131 (2003), pp. 1485--1490.
     """
 
     def __init__(self, init_state_sampler, next_state_sampler,
-                 observation_matrix, obser_noise_preci, rng):
+                 observation_func, obser_noise_preci, rng, warn=True):
         """
         Args:
             init_state_sampler (function): Function returning sample(s) from
@@ -269,73 +220,51 @@ class WoodburyEnsembleSquareRootFilter(object):
                 as argument.
             next_state_sampler (function): Function returning sample(s) from
                 distribution on next state given current state(s). Takes array
-                of current state(s) and current time index as
-                arguments.
-            observation_matrix (array): Matrix defining linear obervation
-                operator.
+                of current state(s) and current time index as arguments.
+            observation_func (function): Function returning pre-noise
+                observations given current state(s). Takes array of current
+                state(s) and current time index as arguments.
             obser_noise_preci (array): Matrix defining precision of additive
                 Gaussian observation noise (inverse of covariance matrix).
             rng (RandomState): Numpy RandomState random number generator.
-        """
-        self.init_state_sampler = init_state_sampler
-        self.next_state_sampler = next_state_sampler
-        self.observation_matrix = observation_matrix
-        self.obser_noise_preci = obser_noise_preci
-        self.rng = rng
-
-    def filter(self, x_observed, n_particles, warn=True):
-        """Compute (approximate) filtering density parameters.
-
-        Args:
-            x_observed (array): Observed state sequence with shape
-                `(n_steps, dim_x)` where `n_steps` is number of time steps in
-                sequence and `dim_x` is dimensionality of observations.
-            n_particles (integer): Number of particles to use to represent
-                filtering distribution at each time step.
             warn (boolean, default True): Warn if eigenvalues of matrix used
                 to compute matrix square root for analysis perturbation
-                ensemble update are outside of unit circle (eigenvalues are
-                clipped to [-infty, 1] during update).
-
-        Returns:
-            Dictionary containing arrays of filtering density parameters -
-                z_mean_seq: Array of filtering density means at all time steps.
-                z_particles_seq: Array of particles representing filtering
-                    distribution at each time step.
+                ensemble updates are outside of unit circle (eigenvalues are
+                clipped to [-infty, 1] during filtering updates).
         """
-        n_steps, dim_x = x_observed.shape
-        for t in range(n_steps):
-            if t == 0:
-                z_forecast = self.init_state_sampler(n_particles)
-                dim_z = z_forecast.shape[1]
-                z_mean_seq = np.full((n_steps, dim_z), np.nan)
-                z_particles_seq = np.full(
-                    (n_steps, n_particles, dim_z), np.nan)
-            else:
-                z_forecast = self.next_state_sampler(z_analysis, t-1)
-            z_mean_forecast = z_forecast.mean(0)
-            x_mean_forecast = self.observation_matrix.dot(z_mean_forecast)
-            dz_forecast = z_forecast - z_mean_forecast
-            dx_forecast = dz_forecast.dot(self.observation_matrix.T)
-            dx_error = x_observed[t] - x_mean_forecast
-            a_matrix = self.obser_noise_preci.dot(dx_forecast.T)
-            b_vector = dx_error.dot(a_matrix)
-            c_matrix = dx_forecast.dot(a_matrix)
-            d_matrix = (n_particles - 1) * np.eye(n_particles) + c_matrix
-            e_matrix = la.solve(d_matrix, c_matrix)
-            z_mean_analysis = z_mean_forecast + (
-                (b_vector - b_vector.dot(e_matrix)).dot(dz_forecast) /
-                (n_particles - 1))
-            m_matrix = (c_matrix - c_matrix.dot(e_matrix)) / (n_particles - 1)
-            eigval_m, eigvec_m = la.eigh(m_matrix)
-            if warn and np.any(eigval_m > 1.):
-                print('Warning: eigenvalue(s) outside unit circle, max: {0}'
-                      .format(eigval_m.max()))
-            sqrt_matrix = (
-                eigvec_m * (1 - np.clip(eigval_m, -np.inf, 1.))**0.5
-            ).dot(eigvec_m.T)
-            dz_analysis = sqrt_matrix.dot(dz_forecast)
-            z_analysis = z_mean_analysis + dz_analysis
-            z_particles_seq[t] = z_analysis
-            z_mean_seq[t] = z_mean_analysis
-        return {'z_mean_seq': z_mean_seq, 'z_particles_seq': z_particles_seq}
+        super(WoodburyEnsembleSquareRootFilter, self).__init__(
+                init_state_sampler=init_state_sampler,
+                next_state_sampler=next_state_sampler, rng=rng
+        )
+        self.observation_func = observation_func
+        self.obser_noise_preci = obser_noise_preci
+        self.warn = warn
+
+    def analysis_update(self, z_forecast, x_observed, time_index):
+        n_particles = z_forecast.shape[0]
+        z_mean_forecast = z_forecast.mean(0)
+        dz_forecast = z_forecast - z_mean_forecast
+        x_forecast = self.observation_func(z_forecast, time_index)
+        x_mean_forecast = x_forecast.mean(0)
+        dx_forecast = x_forecast - x_mean_forecast
+        dx_error = x_observed - x_mean_forecast
+        a_matrix = self.obser_noise_preci.dot(dx_forecast.T)
+        b_vector = dx_error.dot(a_matrix)
+        c_matrix = dx_forecast.dot(a_matrix)
+        d_matrix = (n_particles - 1) * np.eye(n_particles) + c_matrix
+        e_matrix = la.solve(d_matrix, c_matrix)
+        z_mean_analysis = z_mean_forecast + (
+            (b_vector - b_vector.dot(e_matrix)).dot(dz_forecast) /
+            (n_particles - 1))
+        m_matrix = (c_matrix - c_matrix.dot(e_matrix)) / (n_particles - 1)
+        eigval_m, eigvec_m = la.eigh(m_matrix)
+        if self.warn and np.any(eigval_m > 1.):
+            print('Warning: eigenvalue(s) outside unit circle, max: {0}'
+                  .format(eigval_m.max()))
+        sqrt_matrix = (
+            eigvec_m * (1 - np.clip(eigval_m, -np.inf, 1.))**0.5
+        ).dot(eigvec_m.T)
+        dz_analysis = sqrt_matrix.dot(dz_forecast)
+        return z_mean_analysis + dz_analysis
+
+
