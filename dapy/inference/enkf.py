@@ -268,3 +268,106 @@ class WoodburyEnsembleSquareRootFilter(AbstractEnsembleFilter):
         return z_mean_analysis + dz_analysis
 
 
+@inherit_docstrings
+class LocalEnsembleTransformKalmanFilter(AbstractEnsembleFilter):
+    """Localised ensemble transform Kalman filter for spatially extended models
+
+    References:
+        1. Hunt, B. R., Kostelich, E. J., & Szunyogh, I. (2007).
+           Efficient data assimilation for spatiotemporal chaos:
+           A local ensemble transform Kalman filter.
+           Physica D: Nonlinear Phenomena, 230(1), 112-126.
+    """
+
+    def __init__(self, init_state_sampler, next_state_sampler,
+                 observation_func, obser_noise_std, n_grid, localisation_func,
+                 inflation_factor, rng):
+        """
+        Args:
+            init_state_sampler (function): Function returning sample(s) from
+                initial state distribution. Takes number of particles to sample
+                as argument.
+            next_state_sampler (function): Function returning sample(s) from
+                distribution on next state given current state(s). Takes array
+                of current state(s) and current time index as
+                arguments.
+            observation_func (function): Function returning pre-noise
+                observations given current state(s). Takes array of current
+                state(s) and current time index as arguments.
+            obser_noise_std (array): One-dimensional array defining standard
+                deviations of additive Gaussian observation noise on each
+                dimension with it assumed that the noise is independent across
+                dimensions i.e. a diagonal observation noise covariance matrix.
+            n_grid (integer): Number of spatial points over which state is
+                defined. Typically points will be on a rectilinear grid though
+                this is not actually required. It is assumed that if `z` is a
+                state vector of size `dim_z` then `dim_z % n_grid == 0` and
+                that `z` is ordered such that iterating over the last
+                dimension of a reshaped array
+                    z_grid = z.reshape((dim_z // n_grid, n_grid))
+                will correspond to iterating over the state component values
+                across the different spatial (grid) locations.
+            localisation_func (function): Function (or callable object) which
+                given an index corresponding to a spatial grid point (i.e.
+                the iteration index over the last dimension of a reshaped
+                array `z_grid` as described above) will return an array of
+                integer indices into an observation vector and corresponding
+                array of weight coefficients specifying the observation vector
+                entries 'local' to state grid point described by the index and
+                there corresponding weights (with closer observations
+                potentially given larger weights).
+            inflation_factor (float): A value greater than or equal to one used
+                to inflate the analysis ensemble on each update as a heuristic
+                to overcome the underestimation of the uncertainty in the
+                system state by ensemble Kalman filter methods.
+            rng (RandomState): Numpy RandomState random number generator.
+        """
+        super(LocalEnsembleTransformKalmanFilter, self).__init__(
+                init_state_sampler=init_state_sampler,
+                next_state_sampler=next_state_sampler, rng=rng
+        )
+        self.observation_func = observation_func
+        self.obser_noise_std = obser_noise_std
+        self.n_grid = n_grid
+        self.localisation_func = localisation_func
+        self.inflation_factor = inflation_factor
+
+    def analysis_update(self, z_forecast, x_observed, time_index):
+        n_particles = z_forecast.shape[0]
+        z_forecast_grid = z_forecast.reshape((n_particles, -1, self.n_grid))
+        x_forecast = self.observation_func(z_forecast, time_index)
+        x_mean_forecast = x_forecast.mean(0)
+        dx_forecast = x_forecast - x_mean_forecast
+        z_mean_forecast_grid = z_forecast_grid.mean(0)
+        dz_forecast_grid = z_forecast_grid - z_mean_forecast_grid
+        z_analysis_grid = np.empty(z_forecast_grid.shape)
+        for grid_index in range(self.n_grid):
+            obs_indices, obs_weights = self.localisation_func(grid_index)
+            z_mean_forecast_local = z_mean_forecast_grid[:, grid_index]
+            dz_forecast_local = dz_forecast_grid[:, :, grid_index]
+            x_mean_forecast_local = x_mean_forecast[obs_indices]
+            dx_forecast_local = dx_forecast[:, obs_indices]
+            x_observed_local = x_observed[obs_indices]
+            obs_noise_std_local = self.obser_noise_std[obs_indices]
+            z_analysis_grid[:, :, grid_index] = self.local_analysis_update(
+                z_mean_forecast_local, dz_forecast_local,
+                x_mean_forecast_local, dx_forecast_local,
+                x_observed_local, obs_noise_std_local, obs_weights)
+        return z_analysis_grid.reshape((n_particles, -1))
+
+    def local_analysis_update(self, z_mean_forecast, dz_forecast,
+                              x_mean_forecast, dx_forecast, x_observed,
+                              obs_noise_std, localisation_weights):
+        """Perform a local analysis update for the state at a grid point."""
+        n_particles = dz_forecast.shape[0]
+        c_matrix = ((dx_forecast / obs_noise_std) * localisation_weights)
+        p_inv_matrix = (
+            (n_particles - 1) * np.eye(n_particles) / self.inflation_factor +
+            c_matrix.dot(dx_forecast.T))
+        eigval_p_inv, eigvec_p_inv = la.eigh(p_inv_matrix)
+        d_vector = c_matrix.dot(x_observed - x_mean_forecast)
+        dw_matrix = (n_particles - 1)**0.5 * eigvec_p_inv / eigval_p_inv**0.5
+        w_mean = (eigvec_p_inv / eigval_p_inv).dot(
+            eigvec_p_inv.T.dot(d_vector))
+        w_matrix = w_mean + dw_matrix
+        return z_mean_forecast + w_matrix.dot(dz_forecast)
