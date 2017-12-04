@@ -434,7 +434,7 @@ class DiagonalGaussianIntegratorModel(DiagonalGaussianModel):
                 deterministic dynamics are assumed.
             obser_noise_std (float): Standard deviation of additive Gaussian
                 noise in observations. Either a scalar or array of shape
-                `(dim_z,)`. Noise in each dimension assumed to be independent
+                `(dim_x,)`. Noise in each dimension assumed to be independent
                 i.e. a diagonal noise covariance.
         """
         self.integrator = integrator

@@ -155,7 +155,7 @@ def batch_calc_grad(fields, cell_size_0, cell_size_1):
 
 
 class FourierFluidSim2dIntegrator:
-    """Imcompressible Navier-Stokes fluid simulation on 2D periodic grid.
+    """Incompressible Navier-Stokes fluid simulation on 2D periodic grid.
 
     Simulates evolution of a fluid velocity field and density field of a
     carrier particle in a field on a 2-torus using a finite difference based

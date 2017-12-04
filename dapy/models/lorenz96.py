@@ -53,20 +53,21 @@ class Lorenz96Model(DiagonalGaussianIntegratorModel):
             dim_z (integer): Dimension of state vector, here corresponding to
                 number of grid points in spatial dimension.
             init_state_mean (float or array): Initial state distribution mean.
-                Either a scalar or array of shape `(3,)`.
+                Either a scalar or array of shape `(dim_z,)`.
             init_state_std (float or array): Initial state distribution
-                standard deviation. Either a scalar or array of shape `(3,)`.
+                standard deviation. Either a scalar or array of shape
+                `(dim_z,)`.
             state_noise_std (float or array): Standard deviation of additive
                 Gaussian noise in state update. Either a scalar or array of
-                shape `(3,)`. Noise in each dimension assumed to be independent
-                i.e. a diagonal noise covariance. If zero or None deterministic
-                dynamics are assumed.
+                shape `(dim_z,)`. Noise in each dimension assumed to be
+                independent i.e. a diagonal noise covariance. If zero or None
+                deterministic dynamics are assumed.
             observation_func (function): Function mapping from states to
                  observations, prior to addition of observation noise. Defaults
                  to identity function.
             obser_noise_std (float): Standard deviation of additive Gaussian
                 noise in observations. Either a scalar or array of shape
-                `(3,)`. Noise in each dimension assumed to be independent
+                `(dim_x,)`. Noise in each dimension assumed to be independent
                 i.e. a diagonal noise covariance.
             delta (float): Grid spacing parameter for state update.
             force (float): Forcing constant in state update.
