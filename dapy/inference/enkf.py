@@ -3,7 +3,8 @@
 import numpy as np
 import numpy.linalg as la
 from dapy.models.base import inherit_docstrings
-from dapy.inference.base import AbstractEnsembleFilter
+from dapy.inference.base import (
+        AbstractEnsembleFilter, AbstractLocalEnsembleFilter)
 
 
 @inherit_docstrings
@@ -272,7 +273,7 @@ class WoodburyEnsembleSquareRootFilter(AbstractEnsembleFilter):
 
 
 @inherit_docstrings
-class LocalEnsembleTransformKalmanFilter(AbstractEnsembleFilter):
+class LocalEnsembleTransformKalmanFilter(AbstractLocalEnsembleFilter):
     """Localised ensemble transform Kalman filter for spatially extended models
 
     References:
@@ -327,42 +328,20 @@ class LocalEnsembleTransformKalmanFilter(AbstractEnsembleFilter):
         """
         super(LocalEnsembleTransformKalmanFilter, self).__init__(
                 init_state_sampler=init_state_sampler,
-                next_state_sampler=next_state_sampler, rng=rng
+                next_state_sampler=next_state_sampler,
+                observation_func=observation_func,
+                obser_noise_std=obser_noise_std,
+                n_grid=n_grid, localisation_func=localisation_func, rng=rng
         )
-        self.observation_func = observation_func
-        self.obser_noise_std = obser_noise_std
-        self.n_grid = n_grid
-        self.localisation_func = localisation_func
         self.inflation_factor = inflation_factor
 
-    def analysis_update(self, z_forecast, x_observed, time_index):
+    def local_analysis_update(self, z_forecast, x_forecast, x_observed,
+                              obs_noise_std, localisation_weights):
         n_particles = z_forecast.shape[0]
-        z_forecast_grid = z_forecast.reshape((n_particles, -1, self.n_grid))
-        x_forecast = self.observation_func(z_forecast, time_index)
+        z_mean_forecast = z_forecast.mean(0)
+        dz_forecast = z_forecast - z_mean_forecast
         x_mean_forecast = x_forecast.mean(0)
         dx_forecast = x_forecast - x_mean_forecast
-        z_mean_forecast_grid = z_forecast_grid.mean(0)
-        dz_forecast_grid = z_forecast_grid - z_mean_forecast_grid
-        z_analysis_grid = np.empty(z_forecast_grid.shape)
-        for grid_index in range(self.n_grid):
-            obs_indices, obs_weights = self.localisation_func(grid_index)
-            z_mean_forecast_local = z_mean_forecast_grid[:, grid_index]
-            dz_forecast_local = dz_forecast_grid[:, :, grid_index]
-            x_mean_forecast_local = x_mean_forecast[obs_indices]
-            dx_forecast_local = dx_forecast[:, obs_indices]
-            x_observed_local = x_observed[obs_indices]
-            obs_noise_std_local = self.obser_noise_std[obs_indices]
-            z_analysis_grid[:, :, grid_index] = self.local_analysis_update(
-                z_mean_forecast_local, dz_forecast_local,
-                x_mean_forecast_local, dx_forecast_local,
-                x_observed_local, obs_noise_std_local, obs_weights)
-        return z_analysis_grid.reshape((n_particles, -1))
-
-    def local_analysis_update(self, z_mean_forecast, dz_forecast,
-                              x_mean_forecast, dx_forecast, x_observed,
-                              obs_noise_std, localisation_weights):
-        """Perform a local analysis update for the state at a grid point."""
-        n_particles = dz_forecast.shape[0]
         c_matrix = ((dx_forecast / obs_noise_std) * localisation_weights)
         p_inv_matrix = (
             (n_particles - 1) * np.eye(n_particles) / self.inflation_factor +
