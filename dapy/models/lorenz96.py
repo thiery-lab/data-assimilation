@@ -8,8 +8,8 @@ Model originally proposed in:
 """
 
 import numpy as np
-from dapy.models.base import (
-    DiagonalGaussianIntegratorModel, inherit_docstrings)
+from dapy.utils import inherit_docstrings
+from dapy.models.base import DiagonalGaussianIntegratorModel
 from dapy.models.lorenz96integrator import Lorenz96Integrator
 
 

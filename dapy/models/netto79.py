@@ -8,7 +8,8 @@ Model originally proposed in:
 """
 
 import numpy as np
-from dapy.models.base import DiagonalGaussianModel, inherit_docstrings
+from dapy.utils import inherit_docstrings
+from dapy.models.base import DiagonalGaussianModel
 
 
 @inherit_docstrings

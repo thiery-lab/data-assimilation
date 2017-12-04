@@ -2,7 +2,7 @@
 
 import numpy as np
 import numpy.linalg as la
-from dapy.models.base import inherit_docstrings
+from dapy.utils import inherit_docstrings
 from dapy.inference.base import (
         AbstractEnsembleFilter, AbstractLocalEnsembleFilter)
 

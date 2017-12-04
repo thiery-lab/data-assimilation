@@ -2,7 +2,8 @@
 
 import numpy as np
 import scipy.linalg as la
-from dapy.models.base import AbstractModel, inherit_docstrings
+from dapy.utils import inherit_docstrings
+from dapy.models.base import AbstractModel
 
 
 def generate_random_parameters(dim_z, dim_x, rng):

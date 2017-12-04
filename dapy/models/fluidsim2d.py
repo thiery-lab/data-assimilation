@@ -1,6 +1,6 @@
 import numpy as np
-from dapy.models.base import (
-    DiagonalGaussianIntegratorModel, inherit_docstrings)
+from dapy.utils import inherit_docstrings
+from dapy.models.base import DiagonalGaussianIntegratorModel
 from dapy.models.fluidsim2dintegrators import FourierFluidSim2dIntegrator
 
 
