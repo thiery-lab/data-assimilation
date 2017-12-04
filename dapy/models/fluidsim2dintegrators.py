@@ -167,12 +167,13 @@ class FourierFluidSim2dIntegrator:
 
     Optionally vorticity confinement [2] may be used to compensate for the
     non-physical numerical dissipation of small-scale rotational structure in
-    the simulated fields by adding an external force which injects amplifies
+    the simulated fields by adding an external force which amplifies
     voriticity in the velocity field.
 
     As an alternative (or in addition) to vorticity confinement, a second-
     order accurate BFECC (back and forward error correction and compensation)
-    method can be used to simulate the advection steps [4].
+    method can be used to simulate the advection steps [4] which decreases
+    numerical dissipation of voriticity.
 
     References:
       1. Stam, Jos. A simple fluid solver based on the FFT.
@@ -228,45 +229,53 @@ class FourierFluidSim2dIntegrator:
         self.cell_indices = np.array(np.meshgrid(
                 np.arange(self.grid_shape[0]),
                 np.arange(self.grid_shape[1]), indexing='ij'))
-        # Spatial frequency values for real-valued FFT grid layout.
-        self.freq_grid_0 = fft.fftfreq(grid_shape[0], 1. / grid_shape[0])
-        self.freq_grid_1 = np.arange(grid_shape[1] // 2 + 1)
+        # Spatial angular frequency values for real-valued FFT grid layout.
+        freq_grid_0 = np.fft.fftfreq(
+                grid_shape[0], grid_size[0] / grid_shape[0]) * 2 * np.pi
+        freq_grid_1 = np.fft.rfftfreq(
+                grid_shape[1], grid_size[1] / grid_shape[1]) * 2 * np.pi
         # Squared wavenumbers on FFT grid.
-        self.wavnum_sq_grid = (
-            self.freq_grid_0[:, None]**2 + self.freq_grid_1[None, :]**2)
-        # Clip wave number square values to above small positive constant
-        # to avoid divide by zero warnings.
-        wavnum_sq_grid_clipped = np.maximum(self.wavnum_sq_grid, 1e-8)
-        self.fft_proj_coeff_00 = (
-            1. - self.freq_grid_0[:, None]**2 / wavnum_sq_grid_clipped)
+        wavnum_sq_grid = (freq_grid_0[:, None]**2 + freq_grid_1[None, :]**2)
+        # Kernels in frequency space to simulate diffusion terms.
+        # Corresponds to solving diffusion equation in 2D exactly in time with
+        # spectral method to approximate second-order spatial derivatives.
+        self.visc_diff_kernel = np.exp(-visc_diff_coeff * dt * wavnum_sq_grid)
+        self.dens_diff_kernel = np.exp(-dens_diff_coeff * dt * wavnum_sq_grid)
+        # For first derivative expressions zero Nyquist frequency for even
+        # number of grid points:
+        # > Notes on FFT-based differentiation.
+        # > Steven G. Johnson, MIT Applied Mathematics.
+        # > http://math.mit.edu/~stevenj/fft-deriv.pdf
+        if grid_shape[0] % 2 == 0:
+            freq_grid_0[grid_shape[0] // 2] = 0
+        if grid_shape[1] % 2 == 0:
+            freq_grid_1[grid_shape[1] // 2] = 0
+        wavnum_sq_grid = (freq_grid_0[:, None]**2 + freq_grid_1[None, :]**2)
+        # Clip zero wave number square values to small positive constant to
+        # avoid divide by zero warnings.
+        wavnum_sq_grid = np.maximum(wavnum_sq_grid, 1e-8)
         # Coefficients of vector field frequency components to solve Poisson's
         # equation to project to divergence-free field.
-        self.fft_proj_coeff_11 = (
-            1. - self.freq_grid_1[None, :]**2 / wavnum_sq_grid_clipped)
+        self.fft_proj_coeff_00 = freq_grid_1[None, :]**2 / wavnum_sq_grid
+        self.fft_proj_coeff_11 = freq_grid_0[:, None]**2 / wavnum_sq_grid
         self.fft_proj_coeff_01 = (
-            self.freq_grid_0[:, None] * self.freq_grid_1[None, :] /
-            wavnum_sq_grid_clipped)
-        # Kernel in frequency space to simulate viscous diffusion of velocity.
-        self.visc_diff_kernel = np.exp(
-            -self.wavnum_sq_grid * dt * visc_diff_coeff)
-        # Kernel in frequency space to simulate diffusion of density.
-        self.dens_diff_kernel = np.exp(
-            -self.wavnum_sq_grid * dt * dens_diff_coeff)
+            freq_grid_0[:, None] * freq_grid_1[None, :] / wavnum_sq_grid)
 
     def project_and_diffuse_velocity(self, velocity):
         """Diffuse velocity and project so divergence free using FFT method."""
         # Calculate 2D real-valued FFT of velocity fields.
         velocity_fft = fft.rfft2(velocity)
-        # Solve Poisson equation to project to divergence free field and
-        # convolve with viscous diffusion kernel in frequency space.
-        velocity_fft_new = self.visc_diff_kernel * np.stack([
-            self.fft_proj_coeff_00 * velocity_fft[:, 0] -
-            self.fft_proj_coeff_01 * velocity_fft[:, 1],
-            self.fft_proj_coeff_11 * velocity_fft[:, 1] -
-            self.fft_proj_coeff_01 * velocity_fft[:, 0]
+        # Convolve with viscous diffusion kernel in frequency space.
+        velocity_fft_new = self.visc_diff_kernel * velocity_fft
+        # Solve Poisson equation to project to divergence free field.
+        velocity_fft_new = np.stack([
+            self.fft_proj_coeff_00 * velocity_fft_new[:, 0] -
+            self.fft_proj_coeff_01 * velocity_fft_new[:, 1],
+            self.fft_proj_coeff_11 * velocity_fft_new[:, 1] -
+            self.fft_proj_coeff_01 * velocity_fft_new[:, 0]
         ], axis=1)
         # Set zero-frequency component to previous value.
-        velocity_fft_new[:, 0, 0] = velocity_fft[:, 0, 0]
+        velocity_fft_new[:, :, 0, 0] = velocity_fft[:, :, 0, 0]
         # Perform inverse 2D real-valued FFT to map back to spatial fields.
         return fft.irfft2(velocity_fft_new, overwrite_input=True)
 
@@ -337,11 +346,12 @@ class FourierFluidSim2dIntegrator:
             density = density + self.dt * self.density_source
         # Advect density field by current velocity field.
         density = self.advect(density, velocity)
-        if self.use_bfecc:
-            # BFECC can produce non-positive density fields therefore clip.
-            np.clip(density, 0, None, density)
-        # Diffuse density field and return.
-        return self.diffuse_density(density)
+        # Diffuse density field.
+        density = self.diffuse_density(density)
+        # Diffusion and advection steps can produce non-positive density
+        # fields therefore clip.
+        np.clip(density, 0., None, density)
+        return density
 
     def forward_integrate(self, z_curr, z_next, start_time_index, n_step=1):
         """Forward integrate system state one or more time steps.
@@ -350,7 +360,7 @@ class FourierFluidSim2dIntegrator:
         corrrespond to the velocity field, where
             n_grid = grid_shape[0] * grid_shape[1]
         is the number of elements in the spatial grid and the last `n_grid`
-        elements correspond to the density field.
+        elements correspond to the *logarithm* of the density field.
 
         Args:
             z_curr (array): Two dimensional array of current system states of
@@ -376,6 +386,6 @@ class FourierFluidSim2dIntegrator:
             velocity = self.update_velocity(velocity)
             # Update density fields by a single time step.
             density = self.update_density(density, velocity)
-        # Write updated velocity and density fields in to new state vector.
+        # Write updated velocity and log density fields in to new state vector.
         z_next[:, :2 * self.n_grid] = velocity.reshape((n_batch, -1))
         z_next[:, 2 * self.n_grid:] = density.reshape((n_batch, -1))
