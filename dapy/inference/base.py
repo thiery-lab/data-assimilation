@@ -1,6 +1,7 @@
-"""Base class for filters implementing common interfaces."""
+"""Base classes for ensemble filters implementing common interface."""
 
 import numpy as np
+from dapy.models.base import inherit_docstrings
 
 
 class AbstractEnsembleFilter(object):
@@ -34,8 +35,14 @@ class AbstractEnsembleFilter(object):
             time_index (integer): Current time index.
 
         Returns:
-             Two-dimensional array of shape `(n_particle, dim_z)` with each
-             row a state particle in analysis ensemble.
+            z_analysis (array): Two-dimensional array of shape
+                `(n_particle, dim_z)` with each row a state particle in
+                analysis ensemble.
+            z_analysis_mean (array): One-dimensional array of shape `(dim_z, )`
+                corresponding to estimated mean of state analysis distribution.
+            z_analysis_std (array): One-dimensional array of shape `(dim_z, )`
+                corresponding to estimated per-dimension standard deviations
+                of analysis distribution.
         """
         raise NotImplementedError()
 
@@ -76,10 +83,11 @@ class AbstractEnsembleFilter(object):
             else:
                 z_forecast = self.next_state_sampler(z_analysis, t-1)
             # Analysis update.
-            z_analysis = self.analysis_update(z_forecast, x_observed_seq[t], t)
+            z_analysis, z_analysis_mean, z_analysis_std = self.analysis_update(
+                z_forecast, x_observed_seq[t], t)
             # Record updated ensemble statistics.
-            z_mean_seq[t] = z_analysis.mean(0)
-            z_std_seq[t] = z_analysis.std(0)
+            z_mean_seq[t] = z_analysis_mean
+            z_std_seq[t] = z_analysis_std
             if return_particles:
                 z_particles_seq[t] = z_analysis
         results = {'z_mean_seq': z_mean_seq, 'z_std_seq': z_std_seq}

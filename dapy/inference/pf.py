@@ -2,9 +2,10 @@
 
 import numpy as np
 import ot
+from dapy.inference.base import AbstractEnsembleFilter
 
 
-class BootstrapParticleFilter(object):
+class BootstrapParticleFilter(AbstractEnsembleFilter):
     """Bootstrap particle filter (sequential importance resampling).
 
     Resampling step uses multinomial resampling.
@@ -58,10 +59,11 @@ class BootstrapParticleFilter(object):
                 time index.
             rng (RandomState): Numpy RandomState random number generator.
         """
-        self.init_state_sampler = init_state_sampler
-        self.next_state_sampler = next_state_sampler
+        super(BootstrapParticleFilter, self).__init__(
+                init_state_sampler=init_state_sampler,
+                next_state_sampler=next_state_sampler, rng=rng
+        )
         self.log_prob_dens_obs_gvn_state = log_prob_dens_obs_gvn_state
-        self.rng = rng
 
     def calculate_weights(self, z, x, t):
         """Calculate importance weights for particles given observations."""
@@ -76,52 +78,13 @@ class BootstrapParticleFilter(object):
         idx = self.rng.choice(n_particles, n_particles, True, w)
         return z[idx]
 
-    def filter(self, x_observed, n_particles, return_particles=False):
-        """Compute filtering distribution approximations.
-
-        Args:
-            x_observed (array): Observed state sequence with shape
-                `(n_steps, dim_x)` where `n_steps` is number of time steps in
-                sequence and `dim_x` is dimensionality of observations.
-            n_particles (integer): Number of particles to use to represent
-                filtering distribution at each time step.
-            return_particles (boolean): Whether to return two-dimensional
-                array of shape `(n_steps, n_particles, dim_z)` containing all
-                state particles at each time step. Potentially memory-heavy
-                for system with large state dimensions.
-
-        Returns:
-            Dictionary containing arrays of filtering density parameters -
-                z_mean_seq: Array of filtering density mean for each
-                    dimension at all time steps.
-                z_std_seq: Array of filtering density standard deviation for
-                    each dimension at all time steps.
-                z_particles_seq: Array of particles representing filtering
-                    distribution at each time step (if return_particles==True).
-        """
-        n_steps, dim_x = x_observed.shape
-        for t in range(n_steps):
-            if t == 0:
-                z_forecast = self.init_state_sampler(n_particles)
-                dim_z = z_forecast.shape[1]
-                z_mean_seq = np.full((n_steps, dim_z), np.nan)
-                z_std_seq = np.full((n_steps, dim_z), np.nan)
-                if return_particles:
-                    z_particles_seq = np.full(
-                        (n_steps, n_particles, dim_z), np.nan)
-            else:
-                z_forecast = self.next_state_sampler(z_analysis, t-1)
-            w = self.calculate_weights(z_forecast, x_observed[t], t)
-            z_mean_seq[t] = (w[:, None] * z_forecast).sum(0)
-            z_std_seq[t] = (
-                    w[:, None] * (z_forecast - z_mean_seq[t])**2).sum(0)**0.5
-            z_analysis = self.resample(z_forecast, w)
-            if return_particles:
-                z_particles_seq[t] = z_analysis
-        results = {'z_mean_seq': z_mean_seq, 'z_std_seq': z_std_seq}
-        if return_particles:
-            results['z_particles_seq'] = z_particles_seq
-        return results
+    def analysis_update(self, z_forecast, x_observed, time_index):
+        w = self.calculate_weights(z_forecast, x_observed, time_index)
+        z_analysis_mean = (w[:, None] * z_forecast).sum(0)
+        z_analysis_std = (
+                w[:, None] * (z_forecast - z_analysis_mean)**2).sum(0)**0.5
+        z_analysis = self.resample(z_forecast, w)
+        return z_analysis, z_analysis_mean, z_analysis_std
 
 
 class EnsembleTransformParticleFilter(BootstrapParticleFilter):

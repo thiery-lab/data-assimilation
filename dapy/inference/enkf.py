@@ -72,8 +72,9 @@ class EnsembleKalmanFilter(AbstractEnsembleFilter):
         dz_forecast = z_forecast - z_forecast.mean(0)
         dx_forecast = x_forecast - x_forecast.mean(0)
         dx_error = x_observed - x_forecast
-        return z_forecast + (
+        z_analysis = z_forecast + (
             dx_error.dot(la.pinv(dx_forecast))).dot(dz_forecast)
+        return z_analysis, z_analysis.mean(0), z_analysis.std(0)
 
 
 @inherit_docstrings
@@ -168,7 +169,8 @@ class EnsembleSquareRootFilter(AbstractEnsembleFilter):
             eigvec_m * abs(1 - np.clip(eigval_m, -np.inf, 1.))**0.5
         ).dot(eigvec_m.T)
         dz_analysis = sqrt_matrix.dot(dz_forecast)
-        return z_mean_analysis + dz_analysis
+        return (z_mean_analysis + dz_analysis, z_mean_analysis,
+                (dz_analysis**2).mean(0)**0.5)
 
 
 @inherit_docstrings
@@ -265,7 +267,8 @@ class WoodburyEnsembleSquareRootFilter(AbstractEnsembleFilter):
             eigvec_m * (1 - np.clip(eigval_m, -np.inf, 1.))**0.5
         ).dot(eigvec_m.T)
         dz_analysis = sqrt_matrix.dot(dz_forecast)
-        return z_mean_analysis + dz_analysis
+        return (z_mean_analysis + dz_analysis, z_mean_analysis,
+                (dz_analysis**2).mean(0)**0.5)
 
 
 @inherit_docstrings
