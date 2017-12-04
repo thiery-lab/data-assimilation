@@ -3,8 +3,10 @@
 import numpy as np
 import ot
 from dapy.inference.base import AbstractEnsembleFilter
+from dapy.utils import inherit_docstrings
 
 
+@inherit_docstrings
 class BootstrapParticleFilter(AbstractEnsembleFilter):
     """Bootstrap particle filter (sequential importance resampling).
 
@@ -87,6 +89,7 @@ class BootstrapParticleFilter(AbstractEnsembleFilter):
         return z_analysis, z_analysis_mean, z_analysis_std
 
 
+@inherit_docstrings
 class EnsembleTransformParticleFilter(BootstrapParticleFilter):
     """Ensemble transform particle filter.
 
