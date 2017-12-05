@@ -342,7 +342,7 @@ class LocalEnsembleTransformKalmanFilter(AbstractLocalEnsembleFilter):
         dz_forecast = z_forecast - z_mean_forecast
         x_mean_forecast = x_forecast.mean(0)
         dx_forecast = x_forecast - x_mean_forecast
-        c_matrix = ((dx_forecast / obs_noise_std) * localisation_weights)
+        c_matrix = ((dx_forecast / obs_noise_std**2) * localisation_weights)
         p_inv_matrix = (
             (n_particles - 1) * np.eye(n_particles) / self.inflation_factor +
             c_matrix.dot(dx_forecast.T))
