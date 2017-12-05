@@ -7,7 +7,8 @@ from dapy.inference.localisation import (
         LocalisationFunction, PeriodicLocalisationFunction)
 from dapy.inference.kf import KalmanFilter
 from dapy.inference.pf import (
-    BootstrapParticleFilter, EnsembleTransformParticleFilter)
+    BootstrapParticleFilter, EnsembleTransformParticleFilter,
+    LocalEnsembleTransformParticleFilter)
 
 __all__ = ['enkf', 'localisation', 'kf', 'pf']
 __authors__ = 'Matt Graham'

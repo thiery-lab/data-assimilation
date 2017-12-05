@@ -2,8 +2,22 @@
 
 import numpy as np
 import ot
-from dapy.inference.base import AbstractEnsembleFilter
+from dapy.inference.base import (
+        AbstractEnsembleFilter, AbstractLocalEnsembleFilter)
 from dapy.utils import inherit_docstrings
+
+
+def log_sum_exp(x):
+    """Compute logarithm of sum of exponents with improved numerical stability.
+
+    Args:
+        x (array): One-dimension arrray of values to calculate log-sum-exp of.
+
+    Returns:
+        Scalar corresponding to logarith of sum of exponents of x values.
+    """
+    x_max = x.max()
+    return x_max + np.log(np.exp(x - x_max).sum())
 
 
 @inherit_docstrings
@@ -70,8 +84,7 @@ class BootstrapParticleFilter(AbstractEnsembleFilter):
     def calculate_weights(self, z, x, t):
         """Calculate importance weights for particles given observations."""
         log_w = self.log_prob_dens_obs_gvn_state(x, z, t)
-        log_w_max = log_w.max()
-        log_sum_w = log_w_max + np.log(np.exp(log_w - log_w_max).sum())
+        log_sum_w = log_sum_exp(log_w)
         return np.exp(log_w - log_sum_w)
 
     def resample(self, z, w):
@@ -134,3 +147,76 @@ class EnsembleTransformParticleFilter(BootstrapParticleFilter):
         cost_mtx = ot.dist(z, z)
         trans_mtx = ot.emd(w, u, cost_mtx) * n_particles
         return trans_mtx.T.dot(z)
+
+
+class LocalEnsembleTransformParticleFilter(AbstractLocalEnsembleFilter):
+
+    def __init__(self, init_state_sampler, next_state_sampler,
+                 observation_func, obser_noise_std, n_grid, localisation_func,
+                 inflation_factor, rng):
+        """
+        Args:
+            init_state_sampler (function): Function returning sample(s) from
+                initial state distribution. Takes number of particles to sample
+                as argument.
+            next_state_sampler (function): Function returning sample(s) from
+                distribution on next state given current state(s). Takes array
+                of current state(s) and current time index as
+                arguments.
+            observation_func (function): Function returning pre-noise
+                observations given current state(s). Takes array of current
+                state(s) and current time index as arguments.
+            obser_noise_std (array): One-dimensional array defining standard
+                deviations of additive Gaussian observation noise on each
+                dimension with it assumed that the noise is independent across
+                dimensions i.e. a diagonal observation noise covariance matrix.
+            n_grid (integer): Number of spatial points over which state is
+                defined. Typically points will be on a rectilinear grid though
+                this is not actually required. It is assumed that if `z` is a
+                state vector of size `dim_z` then `dim_z % n_grid == 0` and
+                that `z` is ordered such that iterating over the last
+                dimension of a reshaped array
+                    z_grid = z.reshape((dim_z // n_grid, n_grid))
+                will correspond to iterating over the state component values
+                across the different spatial (grid) locations.
+            localisation_func (function): Function (or callable object) which
+                given an index corresponding to a spatial grid point (i.e.
+                the iteration index over the last dimension of a reshaped
+                array `z_grid` as described above) will return an array of
+                integer indices into an observation vector and corresponding
+                array of weight coefficients specifying the observation vector
+                entries 'local' to state grid point described by the index and
+                there corresponding weights (with closer observations
+                potentially given larger weights).
+            inflation_factor (float): A value greater than or equal to one used
+                to inflate the analysis ensemble on each update as a heuristic
+                to overcome the underestimation of the uncertainty in the
+                system state by ensemble Kalman filter methods.
+            rng (RandomState): Numpy RandomState random number generator.
+        """
+        super(LocalEnsembleTransformParticleFilter, self).__init__(
+                init_state_sampler=init_state_sampler,
+                next_state_sampler=next_state_sampler,
+                observation_func=observation_func,
+                obser_noise_std=obser_noise_std,
+                n_grid=n_grid, localisation_func=localisation_func, rng=rng
+        )
+        self.inflation_factor = inflation_factor
+
+    def local_analysis_update(self, z_forecast, x_forecast, x_observed,
+                              obs_noise_std, localisation_weights):
+        n_particles = z_forecast.shape[0]
+        dx_error = x_forecast - x_observed
+        log_particle_weights = -0.5 * (
+            dx_error * (localisation_weights / obs_noise_std**2) * dx_error
+        ).sum(-1)
+        log_particle_weights_sum = log_sum_exp(log_particle_weights)
+        particle_weights = np.exp(
+                log_particle_weights - log_particle_weights_sum)
+        u = np.ones(n_particles) / n_particles
+        cost_mtx = ot.dist(z_forecast, z_forecast)
+        trans_mtx = ot.emd(particle_weights, u, cost_mtx) * n_particles
+        z_analysis = trans_mtx.T.dot(z_forecast)
+        z_analysis_mean = z_analysis.mean(0)
+        dz_analysis = z_analysis - z_analysis_mean
+        return z_analysis_mean + dz_analysis * self.inflation_factor
