@@ -239,7 +239,7 @@ class FourierFluidSim2dIntegrator:
                 grid_shape[1], grid_size[1] / grid_shape[1]) * 2 * np.pi
         # Squared wavenumbers on FFT grid.
         self.wavnum_sq_grid = freq_grid_0[:, None]**2 + freq_grid_1[None, :]**2
-            # Kernels in frequency space to simulate diffusion terms.
+        # Kernels in frequency space to simulate diffusion terms.
         # Corresponds to solving diffusion equation in 2D exactly in time with
         # spectral method to approximate second-order spatial derivatives.
         self.visc_diff_kernel = np.exp(

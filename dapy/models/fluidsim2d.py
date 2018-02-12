@@ -157,8 +157,9 @@ class FluidSim2DModel(IntegratorModel, DiagonalGaussianObservationModel):
             self.init_dens_region_val)
         noise_2d_fft = np.fft.rfft2(
             self.rng.normal(size=(n, 1) + self.integrator.grid_shape))
-        init_velocity = np.fft.irfft2(self.init_vel_ampl_scale * noise_2d_fft *
-            self.vel_fft_noise_kernel[None])
+        init_velocity = np.fft.irfft2(
+                self.init_vel_ampl_scale * noise_2d_fft *
+                self.vel_fft_noise_kernel[None])
         init_state = np.concatenate([
             init_velocity.reshape((n, -1)), init_density.reshape((n, -1))
         ], axis=1)
@@ -182,8 +183,9 @@ class FluidSim2DModel(IntegratorModel, DiagonalGaussianObservationModel):
         noise_2d_fft = np.fft.rfft2(self.rng.normal(
                 size=(n_particle, 1) + self.integrator.grid_shape))
         timestep = self.integrator.dt * self.n_steps_per_update
-        vel_noise_fft = (timestep**0.5 * self.vel_noise_ampl_scale *
-            noise_2d_fft * self.vel_fft_noise_kernel[None])
+        vel_noise_fft = (
+                timestep**0.5 * self.vel_noise_ampl_scale *
+                noise_2d_fft * self.vel_fft_noise_kernel[None])
         velocity_new = np.fft.irfft2(np.fft.rfft2(velocity) + vel_noise_fft)
         density_new = density * np.exp(
             self.log_dens_noise_std *

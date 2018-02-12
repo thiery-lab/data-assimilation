@@ -464,7 +464,7 @@ class DiagonalGaussianModel(
         super(DiagonalGaussianModel, self).__init__(
             dim_z=dim_z, dim_x=dim_x, rng=rng,
             init_state_mean=init_state_mean,
-            init_state_std=init_state_std,state_noise_std=state_noise_std,
+            init_state_std=init_state_std, state_noise_std=state_noise_std,
             obser_noise_std=obser_noise_std, **kwargs)
 
 
@@ -506,7 +506,7 @@ class IntegratorModel(AbstractModel):
         state calculated by output of this function corrupted by noise
         (may be e.g. additive or multiplicative).
 
-        For models with fully-determinstic state dynamics no noise is added so 
+        For models with fully-determinstic state dynamics no noise is added so
         this function exactly calculates the next state.
 
         Args:
