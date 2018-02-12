@@ -79,23 +79,27 @@ cdef class ImplicitMidpointIntegrator:
     @cython.wraparound(False)
     @cython.cdivision(True)
     def forward_integrate(
-            self, double[:, :] z_particles, double[:, :] z_particles_next,
-            int start_time_index, int n_steps=1):
+            self, double[:, :] z_particles, int start_time_index,
+            int n_steps=1):
         """Integrate a set of state particles forward in time.
 
         Args:
             z_particles (array): Array of current state particle values of
                 shape `(n_particles, dim_z)`.
-            z_particles_next (array): Array in to which forward propagated
-                state particle values are written.
             start_time_index (int): Integer indicating current time index
                 associated with the `z_curr` states (i.e. number of previous
                 `forward_integrate` calls) to allow for calculate of time for
                 non-homogeneous systems.
             n_step (int): Number of integrator time steps to perform.
+
+        Returns:
+            Array of forward propagated state particle values of shape
+            `(n_particles, dim_z)`.
         """
         cdef int n_particles = z_particles.shape[0]
         self.partition_particles(n_particles)
+        cdef double[:, :] z_particles_next = np.empty(
+            (n_particles, self.dim_z), dtype='double')
         cdef int t, p, s,
         cdef bint error
         cdef double time = start_time_index * n_steps * self.dt
@@ -115,3 +119,4 @@ cdef class ImplicitMidpointIntegrator:
                             raise ConvergenceError(
                                 'Convergence error in implicit midpoint step.')
                     time = time + self.dt
+        return z_particles_next

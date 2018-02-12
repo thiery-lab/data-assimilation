@@ -9,12 +9,12 @@ Model originally proposed in:
 
 import numpy as np
 from dapy.utils import inherit_docstrings
-from dapy.models.base import DiagonalGaussianIntegratorModel
+from dapy.models.base import DiagonalGaussianModel, IntegratorModel
 from dapy.models.lorenz96integrator import Lorenz96Integrator
 
 
 @inherit_docstrings
-class Lorenz96Model(DiagonalGaussianIntegratorModel):
+class Lorenz96Model(IntegratorModel, DiagonalGaussianModel):
     """Model with 1D spatial extent and chaotic non-linear dynamics.
 
     Model dynamics defined by the system of ODEs

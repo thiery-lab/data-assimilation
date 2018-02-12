@@ -9,12 +9,12 @@ Model originally proposed in:
 
 import numpy as np
 from dapy.utils import inherit_docstrings
-from dapy.models.base import DiagonalGaussianIntegratorModel
+from dapy.models.base import DiagonalGaussianModel, IntegratorModel
 from dapy.models.lorenz63integrator import Lorenz63Integrator
 
 
 @inherit_docstrings
-class Lorenz63Model(DiagonalGaussianIntegratorModel):
+class Lorenz63Model(IntegratorModel, DiagonalGaussianModel):
     """Three-dimensional model with chaotic non-linear dynamics
 
     Model dynamics defined by the system of ODEs
