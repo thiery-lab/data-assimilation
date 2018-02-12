@@ -153,7 +153,7 @@ class LocalEnsembleTransformParticleFilter(AbstractLocalEnsembleFilter):
 
     def __init__(self, init_state_sampler, next_state_sampler,
                  observation_func, obser_noise_std, n_grid, localisation_func,
-                 inflation_factor, rng):
+                 inflation_factor, rng, use_sinkhorn=False, sinkhorn_reg=1e-3):
         """
         Args:
             init_state_sampler (function): Function returning sample(s) from
@@ -193,6 +193,11 @@ class LocalEnsembleTransformParticleFilter(AbstractLocalEnsembleFilter):
                 to overcome the underestimation of the uncertainty in the
                 system state by ensemble Kalman filter methods.
             rng (RandomState): Numpy RandomState random number generator.
+            use_sinkhorn (bool): Flag indicating whether to use entropic
+                regularised optimal transport solution using Sinkhorn-Knopp
+                algorithm rather than non-regularised earth mover distance.
+            sinkhorn_reg (float): Positive entropic regularisation coefficient
+                if using Sinkhorn optimal transport solver.
         """
         super(LocalEnsembleTransformParticleFilter, self).__init__(
                 init_state_sampler=init_state_sampler,
@@ -202,6 +207,8 @@ class LocalEnsembleTransformParticleFilter(AbstractLocalEnsembleFilter):
                 n_grid=n_grid, localisation_func=localisation_func, rng=rng
         )
         self.inflation_factor = inflation_factor
+        self.use_sinkhorn = use_sinkhorn
+        self.sinkhorn_reg = sinkhorn_reg
 
     def local_analysis_update(self, z_forecast, x_forecast, x_observed,
                               obs_noise_std, localisation_weights):
@@ -212,10 +219,14 @@ class LocalEnsembleTransformParticleFilter(AbstractLocalEnsembleFilter):
         ).sum(-1)
         log_particle_weights_sum = log_sum_exp(log_particle_weights)
         particle_weights = np.exp(
-                log_particle_weights - log_particle_weights_sum)
-        u = np.ones(n_particles) / n_particles
+            log_particle_weights - log_particle_weights_sum)
+        u = ot.unif(n_particles)
         cost_mtx = ot.dist(z_forecast, z_forecast)
-        trans_mtx = ot.emd(particle_weights, u, cost_mtx) * n_particles
+        if self.use_sinkhorn:
+            trans_mtx = ot.sinkhorn(
+                particle_weights, u, cost_mtx, self.sinkhorn_reg) * n_particles
+        else:
+            trans_mtx = ot.emd(particle_weights, u, cost_mtx) * n_particles
         z_analysis = trans_mtx.T.dot(z_forecast)
         z_analysis_mean = z_analysis.mean(0)
         dz_analysis = z_analysis - z_analysis_mean
