@@ -1,8 +1,8 @@
-cimport dapy.models.integrators as integrators
-import dapy.models.integrators as integrators
+cimport dapy.integrators.implicitmidpoint as impl
+import dapy.integrators.implicitmidpoint as impl
 
 
-cdef class Lorenz96Integrator(integrators.ImplicitMidpointIntegrator):
+cdef class Lorenz96Integrator(impl.ImplicitMidpointIntegrator):
 
     cdef double delta, force
 

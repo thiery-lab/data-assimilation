@@ -1,7 +1,8 @@
-cimport dapy.models.integrators as integrators
-import dapy.models.integrators as integrators
+cimport dapy.integrators.implicitmidpoint as impl
+import dapy.integrators.implicitmidpoint as impl
 
-cdef class Lorenz63Integrator(integrators.ImplicitMidpointIntegrator):
+
+cdef class Lorenz63Integrator(impl.ImplicitMidpointIntegrator):
 
     cdef double sigma, rho, beta
 

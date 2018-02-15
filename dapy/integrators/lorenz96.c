@@ -9,12 +9,12 @@
         "extra_link_args": [
             "-fopenmp"
         ],
-        "name": "dapy.models.lorenz63integrator",
+        "name": "dapy.integrators.lorenz96",
         "sources": [
-            "dapy/models/lorenz63integrator.pyx"
+            "dapy/integrators/lorenz96.pyx"
         ]
     },
-    "module_name": "dapy.models.lorenz63integrator"
+    "module_name": "dapy.integrators.lorenz96"
 }
 END: Cython Metadata */
 
@@ -485,8 +485,8 @@ static CYTHON_INLINE float __PYX_NAN() {
   #endif
 #endif
 
-#define __PYX_HAVE__dapy__models__lorenz63integrator
-#define __PYX_HAVE_API__dapy__models__lorenz63integrator
+#define __PYX_HAVE__dapy__integrators__lorenz96
+#define __PYX_HAVE_API__dapy__integrators__lorenz96
 #include "pythread.h"
 #include <string.h>
 #include <stdlib.h>
@@ -692,7 +692,7 @@ static const char *__pyx_filename;
 
 
 static const char *__pyx_f[] = {
-  "dapy/models/lorenz63integrator.pyx",
+  "dapy/integrators/lorenz96.pyx",
   "stringsource",
 };
 /* MemviewSliceStruct.proto */
@@ -792,21 +792,21 @@ typedef volatile __pyx_atomic_int_type __pyx_atomic_int;
 
 
 /*--- Type declarations ---*/
-struct __pyx_obj_4dapy_6models_11integrators_ImplicitMidpointIntegrator;
-struct __pyx_obj_4dapy_6models_18lorenz63integrator_Lorenz63Integrator;
+struct __pyx_obj_4dapy_11integrators_16implicitmidpoint_ImplicitMidpointIntegrator;
+struct __pyx_obj_4dapy_11integrators_8lorenz96_Lorenz96Integrator;
 struct __pyx_array_obj;
 struct __pyx_MemviewEnum_obj;
 struct __pyx_memoryview_obj;
 struct __pyx_memoryviewslice_obj;
 
-/* "dapy/models/integrators.pxd":1
+/* "dapy/integrators/implicitmidpoint.pxd":1
  * cdef class ImplicitMidpointIntegrator:             # <<<<<<<<<<<<<<
  * 
  *     cdef double dt, tol
  */
-struct __pyx_obj_4dapy_6models_11integrators_ImplicitMidpointIntegrator {
+struct __pyx_obj_4dapy_11integrators_16implicitmidpoint_ImplicitMidpointIntegrator {
   PyObject_HEAD
-  struct __pyx_vtabstruct_4dapy_6models_11integrators_ImplicitMidpointIntegrator *__pyx_vtab;
+  struct __pyx_vtabstruct_4dapy_11integrators_16implicitmidpoint_ImplicitMidpointIntegrator *__pyx_vtab;
   double dt;
   double tol;
   int dim_z;
@@ -820,18 +820,17 @@ struct __pyx_obj_4dapy_6models_11integrators_ImplicitMidpointIntegrator {
 };
 
 
-/* "dapy/models/lorenz63integrator.pyx":4
- * import dapy.models.integrators as integrators
+/* "dapy/integrators/lorenz96.pyx":5
  * 
- * cdef class Lorenz63Integrator(integrators.ImplicitMidpointIntegrator):             # <<<<<<<<<<<<<<
  * 
- *     cdef double sigma, rho, beta
+ * cdef class Lorenz96Integrator(impl.ImplicitMidpointIntegrator):             # <<<<<<<<<<<<<<
+ * 
+ *     cdef double delta, force
  */
-struct __pyx_obj_4dapy_6models_18lorenz63integrator_Lorenz63Integrator {
-  struct __pyx_obj_4dapy_6models_11integrators_ImplicitMidpointIntegrator __pyx_base;
-  double sigma;
-  double rho;
-  double beta;
+struct __pyx_obj_4dapy_11integrators_8lorenz96_Lorenz96Integrator {
+  struct __pyx_obj_4dapy_11integrators_16implicitmidpoint_ImplicitMidpointIntegrator __pyx_base;
+  double delta;
+  double force;
 };
 
 
@@ -913,32 +912,33 @@ struct __pyx_memoryviewslice_obj {
 
 
 
-/* "dapy/models/integrators.pxd":1
+/* "dapy/integrators/implicitmidpoint.pxd":1
  * cdef class ImplicitMidpointIntegrator:             # <<<<<<<<<<<<<<
  * 
  *     cdef double dt, tol
  */
 
-struct __pyx_vtabstruct_4dapy_6models_11integrators_ImplicitMidpointIntegrator {
-  void (*update_dz_dt)(struct __pyx_obj_4dapy_6models_11integrators_ImplicitMidpointIntegrator *, __Pyx_memviewslice, double, __Pyx_memviewslice);
-  int (*implicit_midpoint_step)(struct __pyx_obj_4dapy_6models_11integrators_ImplicitMidpointIntegrator *, __Pyx_memviewslice, double, __Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice);
-  void (*partition_particles)(struct __pyx_obj_4dapy_6models_11integrators_ImplicitMidpointIntegrator *, int);
+struct __pyx_vtabstruct_4dapy_11integrators_16implicitmidpoint_ImplicitMidpointIntegrator {
+  void (*update_dz_dt)(struct __pyx_obj_4dapy_11integrators_16implicitmidpoint_ImplicitMidpointIntegrator *, __Pyx_memviewslice, double, __Pyx_memviewslice);
+  int (*implicit_midpoint_step)(struct __pyx_obj_4dapy_11integrators_16implicitmidpoint_ImplicitMidpointIntegrator *, __Pyx_memviewslice, double, __Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice);
+  void (*partition_particles)(struct __pyx_obj_4dapy_11integrators_16implicitmidpoint_ImplicitMidpointIntegrator *, int);
 };
-static struct __pyx_vtabstruct_4dapy_6models_11integrators_ImplicitMidpointIntegrator *__pyx_vtabptr_4dapy_6models_11integrators_ImplicitMidpointIntegrator;
+static struct __pyx_vtabstruct_4dapy_11integrators_16implicitmidpoint_ImplicitMidpointIntegrator *__pyx_vtabptr_4dapy_11integrators_16implicitmidpoint_ImplicitMidpointIntegrator;
 
 
-/* "dapy/models/lorenz63integrator.pyx":4
- * import dapy.models.integrators as integrators
+/* "dapy/integrators/lorenz96.pyx":5
  * 
- * cdef class Lorenz63Integrator(integrators.ImplicitMidpointIntegrator):             # <<<<<<<<<<<<<<
  * 
- *     cdef double sigma, rho, beta
+ * cdef class Lorenz96Integrator(impl.ImplicitMidpointIntegrator):             # <<<<<<<<<<<<<<
+ * 
+ *     cdef double delta, force
  */
 
-struct __pyx_vtabstruct_4dapy_6models_18lorenz63integrator_Lorenz63Integrator {
-  struct __pyx_vtabstruct_4dapy_6models_11integrators_ImplicitMidpointIntegrator __pyx_base;
+struct __pyx_vtabstruct_4dapy_11integrators_8lorenz96_Lorenz96Integrator {
+  struct __pyx_vtabstruct_4dapy_11integrators_16implicitmidpoint_ImplicitMidpointIntegrator __pyx_base;
+  int (*circ_shift)(struct __pyx_obj_4dapy_11integrators_8lorenz96_Lorenz96Integrator *, int, int);
 };
-static struct __pyx_vtabstruct_4dapy_6models_18lorenz63integrator_Lorenz63Integrator *__pyx_vtabptr_4dapy_6models_18lorenz63integrator_Lorenz63Integrator;
+static struct __pyx_vtabstruct_4dapy_11integrators_8lorenz96_Lorenz96Integrator *__pyx_vtabptr_4dapy_11integrators_8lorenz96_Lorenz96Integrator;
 
 
 /* "View.MemoryView":103
@@ -1108,11 +1108,20 @@ static CYTHON_INLINE PyObject *__Pyx_PyCFunction_FastCall(PyObject *func, PyObje
 #define __Pyx_PyCFunction_FastCall(func, args, nargs)  (assert(0), NULL)
 #endif
 
-/* BufferIndexError.proto */
-static void __Pyx_RaiseBufferIndexError(int axis);
+/* None.proto */
+static CYTHON_INLINE int __Pyx_mod_int(int, int);
 
-/* BufferIndexErrorNogil.proto */
-static void __Pyx_RaiseBufferIndexErrorNogil(int axis);
+/* ForceInitThreads.proto */
+#ifndef __PYX_FORCE_INIT_THREADS
+  #define __PYX_FORCE_INIT_THREADS 0
+#endif
+
+/* NoFastGil.proto */
+#define __Pyx_PyGILState_Ensure PyGILState_Ensure
+#define __Pyx_PyGILState_Release PyGILState_Release
+#define __Pyx_FastGIL_Remember()
+#define __Pyx_FastGIL_Forget()
+#define __Pyx_FastGilFuncInit()
 
 /* PyThreadStateGet.proto */
 #if CYTHON_FAST_THREAD_STATE
@@ -1142,6 +1151,12 @@ static CYTHON_INLINE void __Pyx_ErrFetchInState(PyThreadState *tstate, PyObject 
 static void __Pyx_WriteUnraisable(const char *name, int clineno,
                                   int lineno, const char *filename,
                                   int full_traceback, int nogil);
+
+/* BufferIndexError.proto */
+static void __Pyx_RaiseBufferIndexError(int axis);
+
+/* BufferIndexErrorNogil.proto */
+static void __Pyx_RaiseBufferIndexErrorNogil(int axis);
 
 /* GetAttr.proto */
 static CYTHON_INLINE PyObject *__Pyx_GetAttr(PyObject *, PyObject *);
@@ -1384,18 +1399,6 @@ static CYTHON_INLINE int __Pyx_PyList_Append(PyObject* list, PyObject* x) {
 /* None.proto */
 static CYTHON_INLINE void __Pyx_RaiseUnboundLocalError(const char *varname);
 
-/* ForceInitThreads.proto */
-#ifndef __PYX_FORCE_INIT_THREADS
-  #define __PYX_FORCE_INIT_THREADS 0
-#endif
-
-/* NoFastGil.proto */
-#define __Pyx_PyGILState_Ensure PyGILState_Ensure
-#define __Pyx_PyGILState_Release PyGILState_Release
-#define __Pyx_FastGIL_Remember()
-#define __Pyx_FastGIL_Forget()
-#define __Pyx_FastGilFuncInit()
-
 /* None.proto */
 static CYTHON_INLINE long __Pyx_div_long(long, long);
 
@@ -1543,7 +1546,8 @@ static PyTypeObject *__Pyx_ImportType(const char *module_name, const char *class
 /* InitStrings.proto */
 static int __Pyx_InitStrings(__Pyx_StringTabEntry *t);
 
-static void __pyx_f_4dapy_6models_18lorenz63integrator_18Lorenz63Integrator_update_dz_dt(struct __pyx_obj_4dapy_6models_18lorenz63integrator_Lorenz63Integrator *__pyx_v_self, __Pyx_memviewslice __pyx_v_z, CYTHON_UNUSED double __pyx_v_t, __Pyx_memviewslice __pyx_v_dz_dt); /* proto*/
+static int __pyx_f_4dapy_11integrators_8lorenz96_18Lorenz96Integrator_circ_shift(struct __pyx_obj_4dapy_11integrators_8lorenz96_Lorenz96Integrator *__pyx_v_self, int __pyx_v_i, int __pyx_v_s); /* proto*/
+static void __pyx_f_4dapy_11integrators_8lorenz96_18Lorenz96Integrator_update_dz_dt(struct __pyx_obj_4dapy_11integrators_8lorenz96_Lorenz96Integrator *__pyx_v_self, __Pyx_memviewslice __pyx_v_z, CYTHON_UNUSED double __pyx_v_t, __Pyx_memviewslice __pyx_v_dz_dt); /* proto*/
 static PyObject *__pyx_array_get_memview(struct __pyx_array_obj *__pyx_v_self); /* proto*/
 static char *__pyx_memoryview_get_item_pointer(struct __pyx_memoryview_obj *__pyx_v_self, PyObject *__pyx_v_index); /* proto*/
 static PyObject *__pyx_memoryview_is_slice(struct __pyx_memoryview_obj *__pyx_v_self, PyObject *__pyx_v_obj); /* proto*/
@@ -1555,11 +1559,11 @@ static PyObject *__pyx_memoryview_assign_item_from_object(struct __pyx_memoryvie
 static PyObject *__pyx_memoryviewslice_convert_item_to_object(struct __pyx_memoryviewslice_obj *__pyx_v_self, char *__pyx_v_itemp); /* proto*/
 static PyObject *__pyx_memoryviewslice_assign_item_from_object(struct __pyx_memoryviewslice_obj *__pyx_v_self, char *__pyx_v_itemp, PyObject *__pyx_v_value); /* proto*/
 
-/* Module declarations from 'dapy.models.integrators' */
-static PyTypeObject *__pyx_ptype_4dapy_6models_11integrators_ImplicitMidpointIntegrator = 0;
+/* Module declarations from 'dapy.integrators.implicitmidpoint' */
+static PyTypeObject *__pyx_ptype_4dapy_11integrators_16implicitmidpoint_ImplicitMidpointIntegrator = 0;
 
-/* Module declarations from 'dapy.models.lorenz63integrator' */
-static PyTypeObject *__pyx_ptype_4dapy_6models_18lorenz63integrator_Lorenz63Integrator = 0;
+/* Module declarations from 'dapy.integrators.lorenz96' */
+static PyTypeObject *__pyx_ptype_4dapy_11integrators_8lorenz96_Lorenz96Integrator = 0;
 static PyTypeObject *__pyx_array_type = 0;
 static PyTypeObject *__pyx_MemviewEnum_type = 0;
 static PyTypeObject *__pyx_memoryview_type = 0;
@@ -1571,7 +1575,7 @@ static PyObject *contiguous = 0;
 static PyObject *indirect_contiguous = 0;
 static int __pyx_memoryview_thread_locks_used;
 static PyThread_type_lock __pyx_memoryview_thread_locks[8];
-static PyObject *__pyx_f_4dapy_6models_18lorenz63integrator___pyx_unpickle_Lorenz63Integrator__set_state(struct __pyx_obj_4dapy_6models_18lorenz63integrator_Lorenz63Integrator *, PyObject *); /*proto*/
+static PyObject *__pyx_f_4dapy_11integrators_8lorenz96___pyx_unpickle_Lorenz96Integrator__set_state(struct __pyx_obj_4dapy_11integrators_8lorenz96_Lorenz96Integrator *, PyObject *); /*proto*/
 static struct __pyx_array_obj *__pyx_array_new(PyObject *, Py_ssize_t, char *, char *, char *); /*proto*/
 static void *__pyx_align_pointer(void *, size_t); /*proto*/
 static PyObject *__pyx_memoryview_new(PyObject *, int, int, __Pyx_TypeInfo *); /*proto*/
@@ -1607,15 +1611,15 @@ static void __pyx_memoryview__slice_assign_scalar(char *, Py_ssize_t *, Py_ssize
 static PyObject *__pyx_unpickle_Enum__set_state(struct __pyx_MemviewEnum_obj *, PyObject *); /*proto*/
 static __Pyx_TypeInfo __Pyx_TypeInfo_double = { "double", NULL, sizeof(double), { 0 }, 0, 'R', 0, 0 };
 static __Pyx_TypeInfo __Pyx_TypeInfo_int = { "int", NULL, sizeof(int), { 0 }, 0, IS_UNSIGNED(int) ? 'U' : 'I', IS_UNSIGNED(int), 0 };
-#define __Pyx_MODULE_NAME "dapy.models.lorenz63integrator"
-int __pyx_module_is_main_dapy__models__lorenz63integrator = 0;
+#define __Pyx_MODULE_NAME "dapy.integrators.lorenz96"
+int __pyx_module_is_main_dapy__integrators__lorenz96 = 0;
 
-/* Implementation of 'dapy.models.lorenz63integrator' */
+/* Implementation of 'dapy.integrators.lorenz96' */
 static PyObject *__pyx_builtin_super;
+static PyObject *__pyx_builtin_range;
 static PyObject *__pyx_builtin_ValueError;
 static PyObject *__pyx_builtin_MemoryError;
 static PyObject *__pyx_builtin_enumerate;
-static PyObject *__pyx_builtin_range;
 static PyObject *__pyx_builtin_TypeError;
 static PyObject *__pyx_builtin_Ellipsis;
 static PyObject *__pyx_builtin_id;
@@ -1627,11 +1631,10 @@ static const char __pyx_k_id[] = "id";
 static const char __pyx_k__21[] = "*";
 static const char __pyx_k_new[] = "__new__";
 static const char __pyx_k_obj[] = "obj";
-static const char __pyx_k_rho[] = "rho";
 static const char __pyx_k_tol[] = "tol";
 static const char __pyx_k_base[] = "base";
-static const char __pyx_k_beta[] = "beta";
 static const char __pyx_k_dict[] = "__dict__";
+static const char __pyx_k_impl[] = "impl";
 static const char __pyx_k_init[] = "__init__";
 static const char __pyx_k_main[] = "__main__";
 static const char __pyx_k_mode[] = "mode";
@@ -1644,11 +1647,13 @@ static const char __pyx_k_stop[] = "stop";
 static const char __pyx_k_test[] = "__test__";
 static const char __pyx_k_ASCII[] = "ASCII";
 static const char __pyx_k_class[] = "__class__";
+static const char __pyx_k_delta[] = "delta";
+static const char __pyx_k_dim_z[] = "dim_z";
 static const char __pyx_k_error[] = "error";
 static const char __pyx_k_flags[] = "flags";
+static const char __pyx_k_force[] = "force";
 static const char __pyx_k_range[] = "range";
 static const char __pyx_k_shape[] = "shape";
-static const char __pyx_k_sigma[] = "sigma";
 static const char __pyx_k_start[] = "start";
 static const char __pyx_k_super[] = "super";
 static const char __pyx_k_encode[] = "encode";
@@ -1675,7 +1680,6 @@ static const char __pyx_k_ValueError[] = "ValueError";
 static const char __pyx_k_pyx_vtable[] = "__pyx_vtable__";
 static const char __pyx_k_MemoryError[] = "MemoryError";
 static const char __pyx_k_PickleError[] = "PickleError";
-static const char __pyx_k_integrators[] = "integrators";
 static const char __pyx_k_pyx_checksum[] = "__pyx_checksum";
 static const char __pyx_k_stringsource[] = "stringsource";
 static const char __pyx_k_pyx_getbuffer[] = "__pyx_getbuffer";
@@ -1692,23 +1696,23 @@ static const char __pyx_k_contiguous_and_direct[] = "<contiguous and direct>";
 static const char __pyx_k_MemoryView_of_r_object[] = "<MemoryView of %r object>";
 static const char __pyx_k_MemoryView_of_r_at_0x_x[] = "<MemoryView of %r at 0x%x>";
 static const char __pyx_k_contiguous_and_indirect[] = "<contiguous and indirect>";
-static const char __pyx_k_dapy_models_integrators[] = "dapy.models.integrators";
 static const char __pyx_k_Cannot_index_with_type_s[] = "Cannot index with type '%s'";
 static const char __pyx_k_Invalid_shape_in_axis_d_d[] = "Invalid shape in axis %d: %d.";
+static const char __pyx_k_dapy_integrators_lorenz96[] = "dapy.integrators.lorenz96";
 static const char __pyx_k_itemsize_0_for_cython_array[] = "itemsize <= 0 for cython.array";
 static const char __pyx_k_unable_to_allocate_array_data[] = "unable to allocate array data.";
-static const char __pyx_k_dapy_models_lorenz63integrator[] = "dapy.models.lorenz63integrator";
-static const char __pyx_k_pyx_unpickle_Lorenz63Integrato[] = "__pyx_unpickle_Lorenz63Integrator";
+static const char __pyx_k_pyx_unpickle_Lorenz96Integrato[] = "__pyx_unpickle_Lorenz96Integrator";
 static const char __pyx_k_strided_and_direct_or_indirect[] = "<strided and direct or indirect>";
 static const char __pyx_k_Buffer_view_does_not_expose_stri[] = "Buffer view does not expose strides";
 static const char __pyx_k_Can_only_create_a_buffer_that_is[] = "Can only create a buffer that is contiguous in memory.";
 static const char __pyx_k_Empty_shape_tuple_for_cython_arr[] = "Empty shape tuple for cython.array";
-static const char __pyx_k_Incompatible_checksums_s_vs_0x4c[] = "Incompatible checksums (%s vs 0x4c55285 = (beta, dim_z, dt, dz_dt, intervals, max_iters, n_steps_per_update, n_threads, rho, sigma, tol, z_half, z_temp))";
 static const char __pyx_k_Incompatible_checksums_s_vs_0xb0[] = "Incompatible checksums (%s vs 0xb068931 = (name))";
+static const char __pyx_k_Incompatible_checksums_s_vs_0xb7[] = "Incompatible checksums (%s vs 0xb76e140 = (delta, dim_z, dt, dz_dt, force, intervals, max_iters, n_steps_per_update, n_threads, tol, z_half, z_temp))";
 static const char __pyx_k_Indirect_dimensions_not_supporte[] = "Indirect dimensions not supported";
 static const char __pyx_k_Invalid_mode_expected_c_or_fortr[] = "Invalid mode, expected 'c' or 'fortran', got %s";
 static const char __pyx_k_Out_of_bounds_on_buffer_access_a[] = "Out of bounds on buffer access (axis %d)";
 static const char __pyx_k_Unable_to_convert_item_to_object[] = "Unable to convert item to object";
+static const char __pyx_k_dapy_integrators_implicitmidpoin[] = "dapy.integrators.implicitmidpoint";
 static const char __pyx_k_got_differing_extents_in_dimensi[] = "got differing extents in dimension %d (got %d and %d)";
 static const char __pyx_k_no_default___reduce___due_to_non[] = "no default __reduce__ due to non-trivial __cinit__";
 static const char __pyx_k_unable_to_allocate_shape_and_str[] = "unable to allocate shape and strides.";
@@ -1718,8 +1722,8 @@ static PyObject *__pyx_kp_s_Can_only_create_a_buffer_that_is;
 static PyObject *__pyx_kp_s_Cannot_index_with_type_s;
 static PyObject *__pyx_n_s_Ellipsis;
 static PyObject *__pyx_kp_s_Empty_shape_tuple_for_cython_arr;
-static PyObject *__pyx_kp_s_Incompatible_checksums_s_vs_0x4c;
 static PyObject *__pyx_kp_s_Incompatible_checksums_s_vs_0xb0;
+static PyObject *__pyx_kp_s_Incompatible_checksums_s_vs_0xb7;
 static PyObject *__pyx_n_s_IndexError;
 static PyObject *__pyx_kp_s_Indirect_dimensions_not_supporte;
 static PyObject *__pyx_kp_s_Invalid_mode_expected_c_or_fortr;
@@ -1737,30 +1741,32 @@ static PyObject *__pyx_n_s_View_MemoryView;
 static PyObject *__pyx_n_s__21;
 static PyObject *__pyx_n_s_allocate_buffer;
 static PyObject *__pyx_n_s_base;
-static PyObject *__pyx_n_s_beta;
 static PyObject *__pyx_n_s_c;
 static PyObject *__pyx_n_u_c;
 static PyObject *__pyx_n_s_class;
 static PyObject *__pyx_n_s_cline_in_traceback;
 static PyObject *__pyx_kp_s_contiguous_and_direct;
 static PyObject *__pyx_kp_s_contiguous_and_indirect;
-static PyObject *__pyx_n_s_dapy_models_integrators;
-static PyObject *__pyx_n_s_dapy_models_lorenz63integrator;
+static PyObject *__pyx_n_s_dapy_integrators_implicitmidpoin;
+static PyObject *__pyx_n_s_dapy_integrators_lorenz96;
+static PyObject *__pyx_n_s_delta;
 static PyObject *__pyx_n_s_dict;
+static PyObject *__pyx_n_s_dim_z;
 static PyObject *__pyx_n_s_dt;
 static PyObject *__pyx_n_s_dtype_is_object;
 static PyObject *__pyx_n_s_encode;
 static PyObject *__pyx_n_s_enumerate;
 static PyObject *__pyx_n_s_error;
 static PyObject *__pyx_n_s_flags;
+static PyObject *__pyx_n_s_force;
 static PyObject *__pyx_n_s_format;
 static PyObject *__pyx_n_s_fortran;
 static PyObject *__pyx_n_u_fortran;
 static PyObject *__pyx_kp_s_got_differing_extents_in_dimensi;
 static PyObject *__pyx_n_s_id;
+static PyObject *__pyx_n_s_impl;
 static PyObject *__pyx_n_s_import;
 static PyObject *__pyx_n_s_init;
-static PyObject *__pyx_n_s_integrators;
 static PyObject *__pyx_n_s_itemsize;
 static PyObject *__pyx_kp_s_itemsize_0_for_cython_array;
 static PyObject *__pyx_n_s_main;
@@ -1781,15 +1787,13 @@ static PyObject *__pyx_n_s_pyx_getbuffer;
 static PyObject *__pyx_n_s_pyx_state;
 static PyObject *__pyx_n_s_pyx_type;
 static PyObject *__pyx_n_s_pyx_unpickle_Enum;
-static PyObject *__pyx_n_s_pyx_unpickle_Lorenz63Integrato;
+static PyObject *__pyx_n_s_pyx_unpickle_Lorenz96Integrato;
 static PyObject *__pyx_n_s_pyx_vtable;
 static PyObject *__pyx_n_s_range;
 static PyObject *__pyx_n_s_reduce_cython;
 static PyObject *__pyx_n_s_result;
-static PyObject *__pyx_n_s_rho;
 static PyObject *__pyx_n_s_setstate_cython;
 static PyObject *__pyx_n_s_shape;
-static PyObject *__pyx_n_s_sigma;
 static PyObject *__pyx_n_s_size;
 static PyObject *__pyx_n_s_start;
 static PyObject *__pyx_n_s_step;
@@ -1806,10 +1810,10 @@ static PyObject *__pyx_kp_s_unable_to_allocate_array_data;
 static PyObject *__pyx_kp_s_unable_to_allocate_shape_and_str;
 static PyObject *__pyx_n_s_unpack;
 static PyObject *__pyx_n_s_update;
-static int __pyx_pf_4dapy_6models_18lorenz63integrator_18Lorenz63Integrator___init__(struct __pyx_obj_4dapy_6models_18lorenz63integrator_Lorenz63Integrator *__pyx_v_self, double __pyx_v_sigma, double __pyx_v_rho, double __pyx_v_beta, double __pyx_v_dt, double __pyx_v_tol, int __pyx_v_max_iters, int __pyx_v_n_threads); /* proto */
-static PyObject *__pyx_pf_4dapy_6models_18lorenz63integrator_18Lorenz63Integrator_2__reduce_cython__(struct __pyx_obj_4dapy_6models_18lorenz63integrator_Lorenz63Integrator *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_4dapy_6models_18lorenz63integrator_18Lorenz63Integrator_4__setstate_cython__(struct __pyx_obj_4dapy_6models_18lorenz63integrator_Lorenz63Integrator *__pyx_v_self, PyObject *__pyx_v___pyx_state); /* proto */
-static PyObject *__pyx_pf_4dapy_6models_18lorenz63integrator___pyx_unpickle_Lorenz63Integrator(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state); /* proto */
+static int __pyx_pf_4dapy_11integrators_8lorenz96_18Lorenz96Integrator___init__(struct __pyx_obj_4dapy_11integrators_8lorenz96_Lorenz96Integrator *__pyx_v_self, PyObject *__pyx_v_dim_z, double __pyx_v_delta, double __pyx_v_force, double __pyx_v_dt, double __pyx_v_tol, int __pyx_v_max_iters, int __pyx_v_n_threads); /* proto */
+static PyObject *__pyx_pf_4dapy_11integrators_8lorenz96_18Lorenz96Integrator_2__reduce_cython__(struct __pyx_obj_4dapy_11integrators_8lorenz96_Lorenz96Integrator *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_4dapy_11integrators_8lorenz96_18Lorenz96Integrator_4__setstate_cython__(struct __pyx_obj_4dapy_11integrators_8lorenz96_Lorenz96Integrator *__pyx_v_self, PyObject *__pyx_v___pyx_state); /* proto */
+static PyObject *__pyx_pf_4dapy_11integrators_8lorenz96___pyx_unpickle_Lorenz96Integrator(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state); /* proto */
 static int __pyx_array___pyx_pf_15View_dot_MemoryView_5array___cinit__(struct __pyx_array_obj *__pyx_v_self, PyObject *__pyx_v_shape, Py_ssize_t __pyx_v_itemsize, PyObject *__pyx_v_format, PyObject *__pyx_v_mode, int __pyx_v_allocate_buffer); /* proto */
 static int __pyx_array___pyx_pf_15View_dot_MemoryView_5array_2__getbuffer__(struct __pyx_array_obj *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
 static void __pyx_array___pyx_pf_15View_dot_MemoryView_5array_4__dealloc__(struct __pyx_array_obj *__pyx_v_self); /* proto */
@@ -1851,16 +1855,16 @@ static PyObject *__pyx_pf_15View_dot_MemoryView_16_memoryviewslice_4base___get__
 static PyObject *__pyx_pf___pyx_memoryviewslice___reduce_cython__(CYTHON_UNUSED struct __pyx_memoryviewslice_obj *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf___pyx_memoryviewslice_2__setstate_cython__(CYTHON_UNUSED struct __pyx_memoryviewslice_obj *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state); /* proto */
 static PyObject *__pyx_pf_15View_dot_MemoryView___pyx_unpickle_Enum(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state); /* proto */
-static PyObject *__pyx_tp_new_4dapy_6models_18lorenz63integrator_Lorenz63Integrator(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
+static PyObject *__pyx_tp_new_4dapy_11integrators_8lorenz96_Lorenz96Integrator(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_tp_new_array(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_tp_new_Enum(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_tp_new_memoryview(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_tp_new__memoryviewslice(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_int_0;
 static PyObject *__pyx_int_1;
-static PyObject *__pyx_int_3;
-static PyObject *__pyx_int_80040581;
+static PyObject *__pyx_int_40;
 static PyObject *__pyx_int_184977713;
+static PyObject *__pyx_int_192340288;
 static PyObject *__pyx_int_neg_1;
 static double __pyx_k_;
 static PyObject *__pyx_tuple__2;
@@ -1892,20 +1896,20 @@ static PyObject *__pyx_tuple__29;
 static PyObject *__pyx_codeobj__23;
 static PyObject *__pyx_codeobj__30;
 
-/* "dapy/models/lorenz63integrator.pyx":8
- *     cdef double sigma, rho, beta
+/* "dapy/integrators/lorenz96.pyx":9
+ *     cdef double delta, force
  * 
- *     def __init__(self, double sigma=10., double rho=28., double beta=8./3.,             # <<<<<<<<<<<<<<
- *                  double dt=0.01, double tol=1e-8, int max_iters=100,
+ *     def __init__(self, dim_z=40, double delta=1./3., double force=8.,             # <<<<<<<<<<<<<<
+ *                  double dt=0.005, double tol=1e-8,  int max_iters=100,
  *                  int n_threads=4):
  */
 
 /* Python wrapper */
-static int __pyx_pw_4dapy_6models_18lorenz63integrator_18Lorenz63Integrator_1__init__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static int __pyx_pw_4dapy_6models_18lorenz63integrator_18Lorenz63Integrator_1__init__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
-  double __pyx_v_sigma;
-  double __pyx_v_rho;
-  double __pyx_v_beta;
+static int __pyx_pw_4dapy_11integrators_8lorenz96_18Lorenz96Integrator_1__init__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static int __pyx_pw_4dapy_11integrators_8lorenz96_18Lorenz96Integrator_1__init__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  PyObject *__pyx_v_dim_z = 0;
+  double __pyx_v_delta;
+  double __pyx_v_force;
   double __pyx_v_dt;
   double __pyx_v_tol;
   int __pyx_v_max_iters;
@@ -1914,8 +1918,9 @@ static int __pyx_pw_4dapy_6models_18lorenz63integrator_18Lorenz63Integrator_1__i
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__init__ (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_sigma,&__pyx_n_s_rho,&__pyx_n_s_beta,&__pyx_n_s_dt,&__pyx_n_s_tol,&__pyx_n_s_max_iters,&__pyx_n_s_n_threads,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_dim_z,&__pyx_n_s_delta,&__pyx_n_s_force,&__pyx_n_s_dt,&__pyx_n_s_tol,&__pyx_n_s_max_iters,&__pyx_n_s_n_threads,0};
     PyObject* values[7] = {0,0,0,0,0,0,0};
+    values[0] = ((PyObject *)__pyx_int_40);
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
       const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
@@ -1941,19 +1946,19 @@ static int __pyx_pw_4dapy_6models_18lorenz63integrator_18Lorenz63Integrator_1__i
       switch (pos_args) {
         case  0:
         if (kw_args > 0) {
-          PyObject* value = PyDict_GetItem(__pyx_kwds, __pyx_n_s_sigma);
+          PyObject* value = PyDict_GetItem(__pyx_kwds, __pyx_n_s_dim_z);
           if (value) { values[0] = value; kw_args--; }
         }
         CYTHON_FALLTHROUGH;
         case  1:
         if (kw_args > 0) {
-          PyObject* value = PyDict_GetItem(__pyx_kwds, __pyx_n_s_rho);
+          PyObject* value = PyDict_GetItem(__pyx_kwds, __pyx_n_s_delta);
           if (value) { values[1] = value; kw_args--; }
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (kw_args > 0) {
-          PyObject* value = PyDict_GetItem(__pyx_kwds, __pyx_n_s_beta);
+          PyObject* value = PyDict_GetItem(__pyx_kwds, __pyx_n_s_force);
           if (value) { values[2] = value; kw_args--; }
         }
         CYTHON_FALLTHROUGH;
@@ -1982,7 +1987,7 @@ static int __pyx_pw_4dapy_6models_18lorenz63integrator_18Lorenz63Integrator_1__i
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 8, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 9, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -2004,58 +2009,54 @@ static int __pyx_pw_4dapy_6models_18lorenz63integrator_18Lorenz63Integrator_1__i
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    if (values[0]) {
-      __pyx_v_sigma = __pyx_PyFloat_AsDouble(values[0]); if (unlikely((__pyx_v_sigma == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 8, __pyx_L3_error)
-    } else {
-      __pyx_v_sigma = ((double)10.);
-    }
+    __pyx_v_dim_z = values[0];
     if (values[1]) {
-      __pyx_v_rho = __pyx_PyFloat_AsDouble(values[1]); if (unlikely((__pyx_v_rho == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 8, __pyx_L3_error)
+      __pyx_v_delta = __pyx_PyFloat_AsDouble(values[1]); if (unlikely((__pyx_v_delta == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 9, __pyx_L3_error)
     } else {
-      __pyx_v_rho = ((double)28.);
+      __pyx_v_delta = __pyx_k_;
     }
     if (values[2]) {
-      __pyx_v_beta = __pyx_PyFloat_AsDouble(values[2]); if (unlikely((__pyx_v_beta == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 8, __pyx_L3_error)
+      __pyx_v_force = __pyx_PyFloat_AsDouble(values[2]); if (unlikely((__pyx_v_force == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 9, __pyx_L3_error)
     } else {
-      __pyx_v_beta = __pyx_k_;
+      __pyx_v_force = ((double)8.);
     }
     if (values[3]) {
-      __pyx_v_dt = __pyx_PyFloat_AsDouble(values[3]); if (unlikely((__pyx_v_dt == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 9, __pyx_L3_error)
+      __pyx_v_dt = __pyx_PyFloat_AsDouble(values[3]); if (unlikely((__pyx_v_dt == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 10, __pyx_L3_error)
     } else {
-      __pyx_v_dt = ((double)0.01);
+      __pyx_v_dt = ((double)0.005);
     }
     if (values[4]) {
-      __pyx_v_tol = __pyx_PyFloat_AsDouble(values[4]); if (unlikely((__pyx_v_tol == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 9, __pyx_L3_error)
+      __pyx_v_tol = __pyx_PyFloat_AsDouble(values[4]); if (unlikely((__pyx_v_tol == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 10, __pyx_L3_error)
     } else {
       __pyx_v_tol = ((double)1e-8);
     }
     if (values[5]) {
-      __pyx_v_max_iters = __Pyx_PyInt_As_int(values[5]); if (unlikely((__pyx_v_max_iters == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 9, __pyx_L3_error)
+      __pyx_v_max_iters = __Pyx_PyInt_As_int(values[5]); if (unlikely((__pyx_v_max_iters == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 10, __pyx_L3_error)
     } else {
       __pyx_v_max_iters = ((int)0x64);
     }
     if (values[6]) {
-      __pyx_v_n_threads = __Pyx_PyInt_As_int(values[6]); if (unlikely((__pyx_v_n_threads == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 10, __pyx_L3_error)
+      __pyx_v_n_threads = __Pyx_PyInt_As_int(values[6]); if (unlikely((__pyx_v_n_threads == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 11, __pyx_L3_error)
     } else {
       __pyx_v_n_threads = ((int)4);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__init__", 0, 0, 7, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 8, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__init__", 0, 0, 7, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 9, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("dapy.models.lorenz63integrator.Lorenz63Integrator.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("dapy.integrators.lorenz96.Lorenz96Integrator.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return -1;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_4dapy_6models_18lorenz63integrator_18Lorenz63Integrator___init__(((struct __pyx_obj_4dapy_6models_18lorenz63integrator_Lorenz63Integrator *)__pyx_v_self), __pyx_v_sigma, __pyx_v_rho, __pyx_v_beta, __pyx_v_dt, __pyx_v_tol, __pyx_v_max_iters, __pyx_v_n_threads);
+  __pyx_r = __pyx_pf_4dapy_11integrators_8lorenz96_18Lorenz96Integrator___init__(((struct __pyx_obj_4dapy_11integrators_8lorenz96_Lorenz96Integrator *)__pyx_v_self), __pyx_v_dim_z, __pyx_v_delta, __pyx_v_force, __pyx_v_dt, __pyx_v_tol, __pyx_v_max_iters, __pyx_v_n_threads);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static int __pyx_pf_4dapy_6models_18lorenz63integrator_18Lorenz63Integrator___init__(struct __pyx_obj_4dapy_6models_18lorenz63integrator_Lorenz63Integrator *__pyx_v_self, double __pyx_v_sigma, double __pyx_v_rho, double __pyx_v_beta, double __pyx_v_dt, double __pyx_v_tol, int __pyx_v_max_iters, int __pyx_v_n_threads) {
+static int __pyx_pf_4dapy_11integrators_8lorenz96_18Lorenz96Integrator___init__(struct __pyx_obj_4dapy_11integrators_8lorenz96_Lorenz96Integrator *__pyx_v_self, PyObject *__pyx_v_dim_z, double __pyx_v_delta, double __pyx_v_force, double __pyx_v_dt, double __pyx_v_tol, int __pyx_v_max_iters, int __pyx_v_n_threads) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -2069,45 +2070,36 @@ static int __pyx_pf_4dapy_6models_18lorenz63integrator_18Lorenz63Integrator___in
   PyObject *__pyx_t_9 = NULL;
   __Pyx_RefNannySetupContext("__init__", 0);
 
-  /* "dapy/models/lorenz63integrator.pyx":11
- *                  double dt=0.01, double tol=1e-8, int max_iters=100,
+  /* "dapy/integrators/lorenz96.pyx":12
+ *                  double dt=0.005, double tol=1e-8,  int max_iters=100,
  *                  int n_threads=4):
- *         self.sigma = sigma             # <<<<<<<<<<<<<<
- *         self.rho = rho
- *         self.beta = beta
+ *         self.delta = delta             # <<<<<<<<<<<<<<
+ *         self.force = force
+ *         super(Lorenz96Integrator, self).__init__(
  */
-  __pyx_v_self->sigma = __pyx_v_sigma;
+  __pyx_v_self->delta = __pyx_v_delta;
 
-  /* "dapy/models/lorenz63integrator.pyx":12
+  /* "dapy/integrators/lorenz96.pyx":13
  *                  int n_threads=4):
- *         self.sigma = sigma
- *         self.rho = rho             # <<<<<<<<<<<<<<
- *         self.beta = beta
- *         super(Lorenz63Integrator, self).__init__(
+ *         self.delta = delta
+ *         self.force = force             # <<<<<<<<<<<<<<
+ *         super(Lorenz96Integrator, self).__init__(
+ *             dim_z, dt, tol, max_iters, n_threads)
  */
-  __pyx_v_self->rho = __pyx_v_rho;
+  __pyx_v_self->force = __pyx_v_force;
 
-  /* "dapy/models/lorenz63integrator.pyx":13
- *         self.sigma = sigma
- *         self.rho = rho
- *         self.beta = beta             # <<<<<<<<<<<<<<
- *         super(Lorenz63Integrator, self).__init__(
- *             3, dt, tol, max_iters, n_threads)
- */
-  __pyx_v_self->beta = __pyx_v_beta;
-
-  /* "dapy/models/lorenz63integrator.pyx":14
- *         self.rho = rho
- *         self.beta = beta
- *         super(Lorenz63Integrator, self).__init__(             # <<<<<<<<<<<<<<
- *             3, dt, tol, max_iters, n_threads)
+  /* "dapy/integrators/lorenz96.pyx":14
+ *         self.delta = delta
+ *         self.force = force
+ *         super(Lorenz96Integrator, self).__init__(             # <<<<<<<<<<<<<<
+ *             dim_z, dt, tol, max_iters, n_threads)
  * 
  */
   __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 14, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_INCREF(((PyObject *)__pyx_ptype_4dapy_6models_18lorenz63integrator_Lorenz63Integrator));
-  __Pyx_GIVEREF(((PyObject *)__pyx_ptype_4dapy_6models_18lorenz63integrator_Lorenz63Integrator));
-  PyTuple_SET_ITEM(__pyx_t_2, 0, ((PyObject *)__pyx_ptype_4dapy_6models_18lorenz63integrator_Lorenz63Integrator));
+  __Pyx_INCREF(((PyObject *)__pyx_ptype_4dapy_11integrators_8lorenz96_Lorenz96Integrator));
+  __Pyx_GIVEREF(((PyObject *)__pyx_ptype_4dapy_11integrators_8lorenz96_Lorenz96Integrator));
+  PyTuple_SET_ITEM(__pyx_t_2, 0, ((PyObject *)__pyx_ptype_4dapy_11integrators_8lorenz96_Lorenz96Integrator));
   __Pyx_INCREF(((PyObject *)__pyx_v_self));
   __Pyx_GIVEREF(((PyObject *)__pyx_v_self));
   PyTuple_SET_ITEM(__pyx_t_2, 1, ((PyObject *)__pyx_v_self));
@@ -2118,12 +2110,12 @@ static int __pyx_pf_4dapy_6models_18lorenz63integrator_18Lorenz63Integrator___in
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "dapy/models/lorenz63integrator.pyx":15
- *         self.beta = beta
- *         super(Lorenz63Integrator, self).__init__(
- *             3, dt, tol, max_iters, n_threads)             # <<<<<<<<<<<<<<
+  /* "dapy/integrators/lorenz96.pyx":15
+ *         self.force = force
+ *         super(Lorenz96Integrator, self).__init__(
+ *             dim_z, dt, tol, max_iters, n_threads)             # <<<<<<<<<<<<<<
  * 
- *     cdef void update_dz_dt(self, double[:] z, double t, double[:] dz_dt) nogil:
+ *     cdef int circ_shift(self, int i, int s) nogil:
  */
   __pyx_t_3 = PyFloat_FromDouble(__pyx_v_dt); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 15, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
@@ -2147,7 +2139,7 @@ static int __pyx_pf_4dapy_6models_18lorenz63integrator_18Lorenz63Integrator___in
   }
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_2)) {
-    PyObject *__pyx_temp[6] = {__pyx_t_7, __pyx_int_3, __pyx_t_3, __pyx_t_4, __pyx_t_5, __pyx_t_6};
+    PyObject *__pyx_temp[6] = {__pyx_t_7, __pyx_v_dim_z, __pyx_t_3, __pyx_t_4, __pyx_t_5, __pyx_t_6};
     __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_8, 5+__pyx_t_8); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 14, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
     __Pyx_GOTREF(__pyx_t_1);
@@ -2159,7 +2151,7 @@ static int __pyx_pf_4dapy_6models_18lorenz63integrator_18Lorenz63Integrator___in
   #endif
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
-    PyObject *__pyx_temp[6] = {__pyx_t_7, __pyx_int_3, __pyx_t_3, __pyx_t_4, __pyx_t_5, __pyx_t_6};
+    PyObject *__pyx_temp[6] = {__pyx_t_7, __pyx_v_dim_z, __pyx_t_3, __pyx_t_4, __pyx_t_5, __pyx_t_6};
     __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_8, 5+__pyx_t_8); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 14, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
     __Pyx_GOTREF(__pyx_t_1);
@@ -2175,9 +2167,9 @@ static int __pyx_pf_4dapy_6models_18lorenz63integrator_18Lorenz63Integrator___in
     if (__pyx_t_7) {
       __Pyx_GIVEREF(__pyx_t_7); PyTuple_SET_ITEM(__pyx_t_9, 0, __pyx_t_7); __pyx_t_7 = NULL;
     }
-    __Pyx_INCREF(__pyx_int_3);
-    __Pyx_GIVEREF(__pyx_int_3);
-    PyTuple_SET_ITEM(__pyx_t_9, 0+__pyx_t_8, __pyx_int_3);
+    __Pyx_INCREF(__pyx_v_dim_z);
+    __Pyx_GIVEREF(__pyx_v_dim_z);
+    PyTuple_SET_ITEM(__pyx_t_9, 0+__pyx_t_8, __pyx_v_dim_z);
     __Pyx_GIVEREF(__pyx_t_3);
     PyTuple_SET_ITEM(__pyx_t_9, 1+__pyx_t_8, __pyx_t_3);
     __Pyx_GIVEREF(__pyx_t_4);
@@ -2197,11 +2189,11 @@ static int __pyx_pf_4dapy_6models_18lorenz63integrator_18Lorenz63Integrator___in
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "dapy/models/lorenz63integrator.pyx":8
- *     cdef double sigma, rho, beta
+  /* "dapy/integrators/lorenz96.pyx":9
+ *     cdef double delta, force
  * 
- *     def __init__(self, double sigma=10., double rho=28., double beta=8./3.,             # <<<<<<<<<<<<<<
- *                  double dt=0.01, double tol=1e-8, int max_iters=100,
+ *     def __init__(self, dim_z=40, double delta=1./3., double force=8.,             # <<<<<<<<<<<<<<
+ *                  double dt=0.005, double tol=1e-8,  int max_iters=100,
  *                  int n_threads=4):
  */
 
@@ -2217,204 +2209,285 @@ static int __pyx_pf_4dapy_6models_18lorenz63integrator_18Lorenz63Integrator___in
   __Pyx_XDECREF(__pyx_t_6);
   __Pyx_XDECREF(__pyx_t_7);
   __Pyx_XDECREF(__pyx_t_9);
-  __Pyx_AddTraceback("dapy.models.lorenz63integrator.Lorenz63Integrator.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("dapy.integrators.lorenz96.Lorenz96Integrator.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = -1;
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-/* "dapy/models/lorenz63integrator.pyx":17
- *             3, dt, tol, max_iters, n_threads)
+/* "dapy/integrators/lorenz96.pyx":17
+ *             dim_z, dt, tol, max_iters, n_threads)
  * 
- *     cdef void update_dz_dt(self, double[:] z, double t, double[:] dz_dt) nogil:             # <<<<<<<<<<<<<<
- *         dz_dt[0] = self.sigma * (z[1] - z[0])
- *         dz_dt[1] = z[0] * (self.rho - z[2]) - z[1]
+ *     cdef int circ_shift(self, int i, int s) nogil:             # <<<<<<<<<<<<<<
+ *         cdef int j = (i + s) % self.dim_z
+ *         if j >= 0:
  */
 
-static void __pyx_f_4dapy_6models_18lorenz63integrator_18Lorenz63Integrator_update_dz_dt(struct __pyx_obj_4dapy_6models_18lorenz63integrator_Lorenz63Integrator *__pyx_v_self, __Pyx_memviewslice __pyx_v_z, CYTHON_UNUSED double __pyx_v_t, __Pyx_memviewslice __pyx_v_dz_dt) {
-  Py_ssize_t __pyx_t_1;
+static int __pyx_f_4dapy_11integrators_8lorenz96_18Lorenz96Integrator_circ_shift(struct __pyx_obj_4dapy_11integrators_8lorenz96_Lorenz96Integrator *__pyx_v_self, int __pyx_v_i, int __pyx_v_s) {
+  int __pyx_v_j;
+  int __pyx_r;
+  int __pyx_t_1;
+  int __pyx_t_2;
+
+  /* "dapy/integrators/lorenz96.pyx":18
+ * 
+ *     cdef int circ_shift(self, int i, int s) nogil:
+ *         cdef int j = (i + s) % self.dim_z             # <<<<<<<<<<<<<<
+ *         if j >= 0:
+ *             return j
+ */
+  __pyx_t_1 = (__pyx_v_i + __pyx_v_s);
+  if (unlikely(__pyx_v_self->__pyx_base.dim_z == 0)) {
+    #ifdef WITH_THREAD
+    PyGILState_STATE __pyx_gilstate_save = __Pyx_PyGILState_Ensure();
+    #endif
+    PyErr_SetString(PyExc_ZeroDivisionError, "integer division or modulo by zero");
+    #ifdef WITH_THREAD
+    __Pyx_PyGILState_Release(__pyx_gilstate_save);
+    #endif
+    __PYX_ERR(0, 18, __pyx_L1_error)
+  }
+  __pyx_v_j = __Pyx_mod_int(__pyx_t_1, __pyx_v_self->__pyx_base.dim_z);
+
+  /* "dapy/integrators/lorenz96.pyx":19
+ *     cdef int circ_shift(self, int i, int s) nogil:
+ *         cdef int j = (i + s) % self.dim_z
+ *         if j >= 0:             # <<<<<<<<<<<<<<
+ *             return j
+ *         else:
+ */
+  __pyx_t_2 = ((__pyx_v_j >= 0) != 0);
+  if (__pyx_t_2) {
+
+    /* "dapy/integrators/lorenz96.pyx":20
+ *         cdef int j = (i + s) % self.dim_z
+ *         if j >= 0:
+ *             return j             # <<<<<<<<<<<<<<
+ *         else:
+ *             return j + self.dim_z
+ */
+    __pyx_r = __pyx_v_j;
+    goto __pyx_L0;
+
+    /* "dapy/integrators/lorenz96.pyx":19
+ *     cdef int circ_shift(self, int i, int s) nogil:
+ *         cdef int j = (i + s) % self.dim_z
+ *         if j >= 0:             # <<<<<<<<<<<<<<
+ *             return j
+ *         else:
+ */
+  }
+
+  /* "dapy/integrators/lorenz96.pyx":22
+ *             return j
+ *         else:
+ *             return j + self.dim_z             # <<<<<<<<<<<<<<
+ * 
+ *     cdef void update_dz_dt(self, double[:] z, double t, double[:] dz_dt) nogil:
+ */
+  /*else*/ {
+    __pyx_r = (__pyx_v_j + __pyx_v_self->__pyx_base.dim_z);
+    goto __pyx_L0;
+  }
+
+  /* "dapy/integrators/lorenz96.pyx":17
+ *             dim_z, dt, tol, max_iters, n_threads)
+ * 
+ *     cdef int circ_shift(self, int i, int s) nogil:             # <<<<<<<<<<<<<<
+ *         cdef int j = (i + s) % self.dim_z
+ *         if j >= 0:
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_WriteUnraisable("dapy.integrators.lorenz96.Lorenz96Integrator.circ_shift", __pyx_clineno, __pyx_lineno, __pyx_filename, 1, 1);
+  __pyx_r = 0;
+  __pyx_L0:;
+  return __pyx_r;
+}
+
+/* "dapy/integrators/lorenz96.pyx":24
+ *             return j + self.dim_z
+ * 
+ *     cdef void update_dz_dt(self, double[:] z, double t, double[:] dz_dt) nogil:             # <<<<<<<<<<<<<<
+ *         cdef int i
+ *         for i in range(self.dim_z):
+ */
+
+static void __pyx_f_4dapy_11integrators_8lorenz96_18Lorenz96Integrator_update_dz_dt(struct __pyx_obj_4dapy_11integrators_8lorenz96_Lorenz96Integrator *__pyx_v_self, __Pyx_memviewslice __pyx_v_z, CYTHON_UNUSED double __pyx_v_t, __Pyx_memviewslice __pyx_v_dz_dt) {
+  int __pyx_v_i;
+  int __pyx_t_1;
   int __pyx_t_2;
   Py_ssize_t __pyx_t_3;
-  Py_ssize_t __pyx_t_4;
+  int __pyx_t_4;
   Py_ssize_t __pyx_t_5;
   Py_ssize_t __pyx_t_6;
-  Py_ssize_t __pyx_t_7;
-  Py_ssize_t __pyx_t_8;
+  double __pyx_t_7;
+  double __pyx_t_8;
   Py_ssize_t __pyx_t_9;
   Py_ssize_t __pyx_t_10;
-  Py_ssize_t __pyx_t_11;
-  Py_ssize_t __pyx_t_12;
 
-  /* "dapy/models/lorenz63integrator.pyx":18
- * 
+  /* "dapy/integrators/lorenz96.pyx":26
  *     cdef void update_dz_dt(self, double[:] z, double t, double[:] dz_dt) nogil:
- *         dz_dt[0] = self.sigma * (z[1] - z[0])             # <<<<<<<<<<<<<<
- *         dz_dt[1] = z[0] * (self.rho - z[2]) - z[1]
- *         dz_dt[2] = z[0] * z[1] - self.beta * z[2]
+ *         cdef int i
+ *         for i in range(self.dim_z):             # <<<<<<<<<<<<<<
+ *             dz_dt[i] = -z[self.circ_shift(i, -1)] * (
+ *                 z[self.circ_shift(i, 1)] - z[self.circ_shift(i, -2)]) / (
  */
-  __pyx_t_1 = 1;
-  __pyx_t_2 = -1;
-  if (__pyx_t_1 < 0) {
-    __pyx_t_1 += __pyx_v_z.shape[0];
-    if (unlikely(__pyx_t_1 < 0)) __pyx_t_2 = 0;
-  } else if (unlikely(__pyx_t_1 >= __pyx_v_z.shape[0])) __pyx_t_2 = 0;
-  if (unlikely(__pyx_t_2 != -1)) {
-    __Pyx_RaiseBufferIndexErrorNogil(__pyx_t_2);
-    __PYX_ERR(0, 18, __pyx_L1_error)
-  }
-  __pyx_t_3 = 0;
-  __pyx_t_2 = -1;
-  if (__pyx_t_3 < 0) {
-    __pyx_t_3 += __pyx_v_z.shape[0];
-    if (unlikely(__pyx_t_3 < 0)) __pyx_t_2 = 0;
-  } else if (unlikely(__pyx_t_3 >= __pyx_v_z.shape[0])) __pyx_t_2 = 0;
-  if (unlikely(__pyx_t_2 != -1)) {
-    __Pyx_RaiseBufferIndexErrorNogil(__pyx_t_2);
-    __PYX_ERR(0, 18, __pyx_L1_error)
-  }
-  __pyx_t_4 = 0;
-  __pyx_t_2 = -1;
-  if (__pyx_t_4 < 0) {
-    __pyx_t_4 += __pyx_v_dz_dt.shape[0];
-    if (unlikely(__pyx_t_4 < 0)) __pyx_t_2 = 0;
-  } else if (unlikely(__pyx_t_4 >= __pyx_v_dz_dt.shape[0])) __pyx_t_2 = 0;
-  if (unlikely(__pyx_t_2 != -1)) {
-    __Pyx_RaiseBufferIndexErrorNogil(__pyx_t_2);
-    __PYX_ERR(0, 18, __pyx_L1_error)
-  }
-  *((double *) ( /* dim=0 */ (__pyx_v_dz_dt.data + __pyx_t_4 * __pyx_v_dz_dt.strides[0]) )) = (__pyx_v_self->sigma * ((*((double *) ( /* dim=0 */ (__pyx_v_z.data + __pyx_t_1 * __pyx_v_z.strides[0]) ))) - (*((double *) ( /* dim=0 */ (__pyx_v_z.data + __pyx_t_3 * __pyx_v_z.strides[0]) )))));
+  __pyx_t_1 = __pyx_v_self->__pyx_base.dim_z;
+  for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
+    __pyx_v_i = __pyx_t_2;
 
-  /* "dapy/models/lorenz63integrator.pyx":19
- *     cdef void update_dz_dt(self, double[:] z, double t, double[:] dz_dt) nogil:
- *         dz_dt[0] = self.sigma * (z[1] - z[0])
- *         dz_dt[1] = z[0] * (self.rho - z[2]) - z[1]             # <<<<<<<<<<<<<<
- *         dz_dt[2] = z[0] * z[1] - self.beta * z[2]
+    /* "dapy/integrators/lorenz96.pyx":27
+ *         cdef int i
+ *         for i in range(self.dim_z):
+ *             dz_dt[i] = -z[self.circ_shift(i, -1)] * (             # <<<<<<<<<<<<<<
+ *                 z[self.circ_shift(i, 1)] - z[self.circ_shift(i, -2)]) / (
+ *                     3 * self.delta) - z[i] + self.force
  */
-  __pyx_t_5 = 0;
-  __pyx_t_2 = -1;
-  if (__pyx_t_5 < 0) {
-    __pyx_t_5 += __pyx_v_z.shape[0];
-    if (unlikely(__pyx_t_5 < 0)) __pyx_t_2 = 0;
-  } else if (unlikely(__pyx_t_5 >= __pyx_v_z.shape[0])) __pyx_t_2 = 0;
-  if (unlikely(__pyx_t_2 != -1)) {
-    __Pyx_RaiseBufferIndexErrorNogil(__pyx_t_2);
-    __PYX_ERR(0, 19, __pyx_L1_error)
-  }
-  __pyx_t_6 = 2;
-  __pyx_t_2 = -1;
-  if (__pyx_t_6 < 0) {
-    __pyx_t_6 += __pyx_v_z.shape[0];
-    if (unlikely(__pyx_t_6 < 0)) __pyx_t_2 = 0;
-  } else if (unlikely(__pyx_t_6 >= __pyx_v_z.shape[0])) __pyx_t_2 = 0;
-  if (unlikely(__pyx_t_2 != -1)) {
-    __Pyx_RaiseBufferIndexErrorNogil(__pyx_t_2);
-    __PYX_ERR(0, 19, __pyx_L1_error)
-  }
-  __pyx_t_7 = 1;
-  __pyx_t_2 = -1;
-  if (__pyx_t_7 < 0) {
-    __pyx_t_7 += __pyx_v_z.shape[0];
-    if (unlikely(__pyx_t_7 < 0)) __pyx_t_2 = 0;
-  } else if (unlikely(__pyx_t_7 >= __pyx_v_z.shape[0])) __pyx_t_2 = 0;
-  if (unlikely(__pyx_t_2 != -1)) {
-    __Pyx_RaiseBufferIndexErrorNogil(__pyx_t_2);
-    __PYX_ERR(0, 19, __pyx_L1_error)
-  }
-  __pyx_t_8 = 1;
-  __pyx_t_2 = -1;
-  if (__pyx_t_8 < 0) {
-    __pyx_t_8 += __pyx_v_dz_dt.shape[0];
-    if (unlikely(__pyx_t_8 < 0)) __pyx_t_2 = 0;
-  } else if (unlikely(__pyx_t_8 >= __pyx_v_dz_dt.shape[0])) __pyx_t_2 = 0;
-  if (unlikely(__pyx_t_2 != -1)) {
-    __Pyx_RaiseBufferIndexErrorNogil(__pyx_t_2);
-    __PYX_ERR(0, 19, __pyx_L1_error)
-  }
-  *((double *) ( /* dim=0 */ (__pyx_v_dz_dt.data + __pyx_t_8 * __pyx_v_dz_dt.strides[0]) )) = (((*((double *) ( /* dim=0 */ (__pyx_v_z.data + __pyx_t_5 * __pyx_v_z.strides[0]) ))) * (__pyx_v_self->rho - (*((double *) ( /* dim=0 */ (__pyx_v_z.data + __pyx_t_6 * __pyx_v_z.strides[0]) ))))) - (*((double *) ( /* dim=0 */ (__pyx_v_z.data + __pyx_t_7 * __pyx_v_z.strides[0]) ))));
+    __pyx_t_3 = ((struct __pyx_vtabstruct_4dapy_11integrators_8lorenz96_Lorenz96Integrator *)__pyx_v_self->__pyx_base.__pyx_vtab)->circ_shift(__pyx_v_self, __pyx_v_i, -1);
+    __pyx_t_4 = -1;
+    if (__pyx_t_3 < 0) {
+      __pyx_t_3 += __pyx_v_z.shape[0];
+      if (unlikely(__pyx_t_3 < 0)) __pyx_t_4 = 0;
+    } else if (unlikely(__pyx_t_3 >= __pyx_v_z.shape[0])) __pyx_t_4 = 0;
+    if (unlikely(__pyx_t_4 != -1)) {
+      __Pyx_RaiseBufferIndexErrorNogil(__pyx_t_4);
+      __PYX_ERR(0, 27, __pyx_L1_error)
+    }
 
-  /* "dapy/models/lorenz63integrator.pyx":20
- *         dz_dt[0] = self.sigma * (z[1] - z[0])
- *         dz_dt[1] = z[0] * (self.rho - z[2]) - z[1]
- *         dz_dt[2] = z[0] * z[1] - self.beta * z[2]             # <<<<<<<<<<<<<<
+    /* "dapy/integrators/lorenz96.pyx":28
+ *         for i in range(self.dim_z):
+ *             dz_dt[i] = -z[self.circ_shift(i, -1)] * (
+ *                 z[self.circ_shift(i, 1)] - z[self.circ_shift(i, -2)]) / (             # <<<<<<<<<<<<<<
+ *                     3 * self.delta) - z[i] + self.force
  */
-  __pyx_t_9 = 0;
-  __pyx_t_2 = -1;
-  if (__pyx_t_9 < 0) {
-    __pyx_t_9 += __pyx_v_z.shape[0];
-    if (unlikely(__pyx_t_9 < 0)) __pyx_t_2 = 0;
-  } else if (unlikely(__pyx_t_9 >= __pyx_v_z.shape[0])) __pyx_t_2 = 0;
-  if (unlikely(__pyx_t_2 != -1)) {
-    __Pyx_RaiseBufferIndexErrorNogil(__pyx_t_2);
-    __PYX_ERR(0, 20, __pyx_L1_error)
-  }
-  __pyx_t_10 = 1;
-  __pyx_t_2 = -1;
-  if (__pyx_t_10 < 0) {
-    __pyx_t_10 += __pyx_v_z.shape[0];
-    if (unlikely(__pyx_t_10 < 0)) __pyx_t_2 = 0;
-  } else if (unlikely(__pyx_t_10 >= __pyx_v_z.shape[0])) __pyx_t_2 = 0;
-  if (unlikely(__pyx_t_2 != -1)) {
-    __Pyx_RaiseBufferIndexErrorNogil(__pyx_t_2);
-    __PYX_ERR(0, 20, __pyx_L1_error)
-  }
-  __pyx_t_11 = 2;
-  __pyx_t_2 = -1;
-  if (__pyx_t_11 < 0) {
-    __pyx_t_11 += __pyx_v_z.shape[0];
-    if (unlikely(__pyx_t_11 < 0)) __pyx_t_2 = 0;
-  } else if (unlikely(__pyx_t_11 >= __pyx_v_z.shape[0])) __pyx_t_2 = 0;
-  if (unlikely(__pyx_t_2 != -1)) {
-    __Pyx_RaiseBufferIndexErrorNogil(__pyx_t_2);
-    __PYX_ERR(0, 20, __pyx_L1_error)
-  }
-  __pyx_t_12 = 2;
-  __pyx_t_2 = -1;
-  if (__pyx_t_12 < 0) {
-    __pyx_t_12 += __pyx_v_dz_dt.shape[0];
-    if (unlikely(__pyx_t_12 < 0)) __pyx_t_2 = 0;
-  } else if (unlikely(__pyx_t_12 >= __pyx_v_dz_dt.shape[0])) __pyx_t_2 = 0;
-  if (unlikely(__pyx_t_2 != -1)) {
-    __Pyx_RaiseBufferIndexErrorNogil(__pyx_t_2);
-    __PYX_ERR(0, 20, __pyx_L1_error)
-  }
-  *((double *) ( /* dim=0 */ (__pyx_v_dz_dt.data + __pyx_t_12 * __pyx_v_dz_dt.strides[0]) )) = (((*((double *) ( /* dim=0 */ (__pyx_v_z.data + __pyx_t_9 * __pyx_v_z.strides[0]) ))) * (*((double *) ( /* dim=0 */ (__pyx_v_z.data + __pyx_t_10 * __pyx_v_z.strides[0]) )))) - (__pyx_v_self->beta * (*((double *) ( /* dim=0 */ (__pyx_v_z.data + __pyx_t_11 * __pyx_v_z.strides[0]) )))));
+    __pyx_t_5 = ((struct __pyx_vtabstruct_4dapy_11integrators_8lorenz96_Lorenz96Integrator *)__pyx_v_self->__pyx_base.__pyx_vtab)->circ_shift(__pyx_v_self, __pyx_v_i, 1);
+    __pyx_t_4 = -1;
+    if (__pyx_t_5 < 0) {
+      __pyx_t_5 += __pyx_v_z.shape[0];
+      if (unlikely(__pyx_t_5 < 0)) __pyx_t_4 = 0;
+    } else if (unlikely(__pyx_t_5 >= __pyx_v_z.shape[0])) __pyx_t_4 = 0;
+    if (unlikely(__pyx_t_4 != -1)) {
+      __Pyx_RaiseBufferIndexErrorNogil(__pyx_t_4);
+      __PYX_ERR(0, 28, __pyx_L1_error)
+    }
+    __pyx_t_6 = ((struct __pyx_vtabstruct_4dapy_11integrators_8lorenz96_Lorenz96Integrator *)__pyx_v_self->__pyx_base.__pyx_vtab)->circ_shift(__pyx_v_self, __pyx_v_i, -2);
+    __pyx_t_4 = -1;
+    if (__pyx_t_6 < 0) {
+      __pyx_t_6 += __pyx_v_z.shape[0];
+      if (unlikely(__pyx_t_6 < 0)) __pyx_t_4 = 0;
+    } else if (unlikely(__pyx_t_6 >= __pyx_v_z.shape[0])) __pyx_t_4 = 0;
+    if (unlikely(__pyx_t_4 != -1)) {
+      __Pyx_RaiseBufferIndexErrorNogil(__pyx_t_4);
+      __PYX_ERR(0, 28, __pyx_L1_error)
+    }
 
-  /* "dapy/models/lorenz63integrator.pyx":17
- *             3, dt, tol, max_iters, n_threads)
+    /* "dapy/integrators/lorenz96.pyx":27
+ *         cdef int i
+ *         for i in range(self.dim_z):
+ *             dz_dt[i] = -z[self.circ_shift(i, -1)] * (             # <<<<<<<<<<<<<<
+ *                 z[self.circ_shift(i, 1)] - z[self.circ_shift(i, -2)]) / (
+ *                     3 * self.delta) - z[i] + self.force
+ */
+    __pyx_t_7 = ((-(*((double *) ( /* dim=0 */ (__pyx_v_z.data + __pyx_t_3 * __pyx_v_z.strides[0]) )))) * ((*((double *) ( /* dim=0 */ (__pyx_v_z.data + __pyx_t_5 * __pyx_v_z.strides[0]) ))) - (*((double *) ( /* dim=0 */ (__pyx_v_z.data + __pyx_t_6 * __pyx_v_z.strides[0]) )))));
+
+    /* "dapy/integrators/lorenz96.pyx":29
+ *             dz_dt[i] = -z[self.circ_shift(i, -1)] * (
+ *                 z[self.circ_shift(i, 1)] - z[self.circ_shift(i, -2)]) / (
+ *                     3 * self.delta) - z[i] + self.force             # <<<<<<<<<<<<<<
+ */
+    __pyx_t_8 = (3.0 * __pyx_v_self->delta);
+
+    /* "dapy/integrators/lorenz96.pyx":28
+ *         for i in range(self.dim_z):
+ *             dz_dt[i] = -z[self.circ_shift(i, -1)] * (
+ *                 z[self.circ_shift(i, 1)] - z[self.circ_shift(i, -2)]) / (             # <<<<<<<<<<<<<<
+ *                     3 * self.delta) - z[i] + self.force
+ */
+    if (unlikely(__pyx_t_8 == 0)) {
+      #ifdef WITH_THREAD
+      PyGILState_STATE __pyx_gilstate_save = __Pyx_PyGILState_Ensure();
+      #endif
+      PyErr_SetString(PyExc_ZeroDivisionError, "float division");
+      #ifdef WITH_THREAD
+      __Pyx_PyGILState_Release(__pyx_gilstate_save);
+      #endif
+      __PYX_ERR(0, 28, __pyx_L1_error)
+    }
+
+    /* "dapy/integrators/lorenz96.pyx":29
+ *             dz_dt[i] = -z[self.circ_shift(i, -1)] * (
+ *                 z[self.circ_shift(i, 1)] - z[self.circ_shift(i, -2)]) / (
+ *                     3 * self.delta) - z[i] + self.force             # <<<<<<<<<<<<<<
+ */
+    __pyx_t_9 = __pyx_v_i;
+    __pyx_t_4 = -1;
+    if (__pyx_t_9 < 0) {
+      __pyx_t_9 += __pyx_v_z.shape[0];
+      if (unlikely(__pyx_t_9 < 0)) __pyx_t_4 = 0;
+    } else if (unlikely(__pyx_t_9 >= __pyx_v_z.shape[0])) __pyx_t_4 = 0;
+    if (unlikely(__pyx_t_4 != -1)) {
+      __Pyx_RaiseBufferIndexErrorNogil(__pyx_t_4);
+      __PYX_ERR(0, 29, __pyx_L1_error)
+    }
+
+    /* "dapy/integrators/lorenz96.pyx":27
+ *         cdef int i
+ *         for i in range(self.dim_z):
+ *             dz_dt[i] = -z[self.circ_shift(i, -1)] * (             # <<<<<<<<<<<<<<
+ *                 z[self.circ_shift(i, 1)] - z[self.circ_shift(i, -2)]) / (
+ *                     3 * self.delta) - z[i] + self.force
+ */
+    __pyx_t_10 = __pyx_v_i;
+    __pyx_t_4 = -1;
+    if (__pyx_t_10 < 0) {
+      __pyx_t_10 += __pyx_v_dz_dt.shape[0];
+      if (unlikely(__pyx_t_10 < 0)) __pyx_t_4 = 0;
+    } else if (unlikely(__pyx_t_10 >= __pyx_v_dz_dt.shape[0])) __pyx_t_4 = 0;
+    if (unlikely(__pyx_t_4 != -1)) {
+      __Pyx_RaiseBufferIndexErrorNogil(__pyx_t_4);
+      __PYX_ERR(0, 27, __pyx_L1_error)
+    }
+    *((double *) ( /* dim=0 */ (__pyx_v_dz_dt.data + __pyx_t_10 * __pyx_v_dz_dt.strides[0]) )) = (((__pyx_t_7 / __pyx_t_8) - (*((double *) ( /* dim=0 */ (__pyx_v_z.data + __pyx_t_9 * __pyx_v_z.strides[0]) )))) + __pyx_v_self->force);
+  }
+
+  /* "dapy/integrators/lorenz96.pyx":24
+ *             return j + self.dim_z
  * 
  *     cdef void update_dz_dt(self, double[:] z, double t, double[:] dz_dt) nogil:             # <<<<<<<<<<<<<<
- *         dz_dt[0] = self.sigma * (z[1] - z[0])
- *         dz_dt[1] = z[0] * (self.rho - z[2]) - z[1]
+ *         cdef int i
+ *         for i in range(self.dim_z):
  */
 
   /* function exit code */
   goto __pyx_L0;
   __pyx_L1_error:;
-  __Pyx_WriteUnraisable("dapy.models.lorenz63integrator.Lorenz63Integrator.update_dz_dt", __pyx_clineno, __pyx_lineno, __pyx_filename, 1, 1);
+  __Pyx_WriteUnraisable("dapy.integrators.lorenz96.Lorenz96Integrator.update_dz_dt", __pyx_clineno, __pyx_lineno, __pyx_filename, 1, 1);
   __pyx_L0:;
 }
 
 /* "(tree fragment)":1
  * def __reduce_cython__(self):             # <<<<<<<<<<<<<<
  *     cdef bint use_setstate
- *     state = (self.beta, self.dim_z, self.dt, self.dz_dt, self.intervals, self.max_iters, self.n_steps_per_update, self.n_threads, self.rho, self.sigma, self.tol, self.z_half, self.z_temp)
+ *     state = (self.delta, self.dim_z, self.dt, self.dz_dt, self.force, self.intervals, self.max_iters, self.n_steps_per_update, self.n_threads, self.tol, self.z_half, self.z_temp)
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_4dapy_6models_18lorenz63integrator_18Lorenz63Integrator_3__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static PyObject *__pyx_pw_4dapy_6models_18lorenz63integrator_18Lorenz63Integrator_3__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_4dapy_11integrators_8lorenz96_18Lorenz96Integrator_3__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyObject *__pyx_pw_4dapy_11integrators_8lorenz96_18Lorenz96Integrator_3__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__reduce_cython__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_4dapy_6models_18lorenz63integrator_18Lorenz63Integrator_2__reduce_cython__(((struct __pyx_obj_4dapy_6models_18lorenz63integrator_Lorenz63Integrator *)__pyx_v_self));
+  __pyx_r = __pyx_pf_4dapy_11integrators_8lorenz96_18Lorenz96Integrator_2__reduce_cython__(((struct __pyx_obj_4dapy_11integrators_8lorenz96_Lorenz96Integrator *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4dapy_6models_18lorenz63integrator_18Lorenz63Integrator_2__reduce_cython__(struct __pyx_obj_4dapy_6models_18lorenz63integrator_Lorenz63Integrator *__pyx_v_self) {
+static PyObject *__pyx_pf_4dapy_11integrators_8lorenz96_18Lorenz96Integrator_2__reduce_cython__(struct __pyx_obj_4dapy_11integrators_8lorenz96_Lorenz96Integrator *__pyx_v_self) {
   int __pyx_v_use_setstate;
   PyObject *__pyx_v_state = NULL;
   PyObject *__pyx_v__dict = NULL;
@@ -2433,19 +2506,18 @@ static PyObject *__pyx_pf_4dapy_6models_18lorenz63integrator_18Lorenz63Integrato
   PyObject *__pyx_t_11 = NULL;
   PyObject *__pyx_t_12 = NULL;
   PyObject *__pyx_t_13 = NULL;
-  PyObject *__pyx_t_14 = NULL;
+  int __pyx_t_14;
   int __pyx_t_15;
-  int __pyx_t_16;
   __Pyx_RefNannySetupContext("__reduce_cython__", 0);
 
   /* "(tree fragment)":3
  * def __reduce_cython__(self):
  *     cdef bint use_setstate
- *     state = (self.beta, self.dim_z, self.dt, self.dz_dt, self.intervals, self.max_iters, self.n_steps_per_update, self.n_threads, self.rho, self.sigma, self.tol, self.z_half, self.z_temp)             # <<<<<<<<<<<<<<
+ *     state = (self.delta, self.dim_z, self.dt, self.dz_dt, self.force, self.intervals, self.max_iters, self.n_steps_per_update, self.n_threads, self.tol, self.z_half, self.z_temp)             # <<<<<<<<<<<<<<
  *     _dict = getattr(self, '__dict__', None)
  *     if _dict is not None:
  */
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_self->beta); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 3, __pyx_L1_error)
+  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_self->delta); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 3, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_self->__pyx_base.dim_z); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 3, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -2454,55 +2526,51 @@ static PyObject *__pyx_pf_4dapy_6models_18lorenz63integrator_18Lorenz63Integrato
   if (unlikely(!__pyx_v_self->__pyx_base.dz_dt.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");__PYX_ERR(1, 3, __pyx_L1_error)}
   __pyx_t_4 = __pyx_memoryview_fromslice(__pyx_v_self->__pyx_base.dz_dt, 2, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 3, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (unlikely(!__pyx_v_self->__pyx_base.intervals.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");__PYX_ERR(1, 3, __pyx_L1_error)}
-  __pyx_t_5 = __pyx_memoryview_fromslice(__pyx_v_self->__pyx_base.intervals, 1, (PyObject *(*)(char *)) __pyx_memview_get_int, (int (*)(char *, PyObject *)) __pyx_memview_set_int, 0);; if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 3, __pyx_L1_error)
+  __pyx_t_5 = PyFloat_FromDouble(__pyx_v_self->force); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 3, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_6 = __Pyx_PyInt_From_int(__pyx_v_self->__pyx_base.max_iters); if (unlikely(!__pyx_t_6)) __PYX_ERR(1, 3, __pyx_L1_error)
+  if (unlikely(!__pyx_v_self->__pyx_base.intervals.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");__PYX_ERR(1, 3, __pyx_L1_error)}
+  __pyx_t_6 = __pyx_memoryview_fromslice(__pyx_v_self->__pyx_base.intervals, 1, (PyObject *(*)(char *)) __pyx_memview_get_int, (int (*)(char *, PyObject *)) __pyx_memview_set_int, 0);; if (unlikely(!__pyx_t_6)) __PYX_ERR(1, 3, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_7 = __Pyx_PyInt_From_int(__pyx_v_self->__pyx_base.n_steps_per_update); if (unlikely(!__pyx_t_7)) __PYX_ERR(1, 3, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyInt_From_int(__pyx_v_self->__pyx_base.max_iters); if (unlikely(!__pyx_t_7)) __PYX_ERR(1, 3, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
-  __pyx_t_8 = __Pyx_PyInt_From_int(__pyx_v_self->__pyx_base.n_threads); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 3, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyInt_From_int(__pyx_v_self->__pyx_base.n_steps_per_update); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 3, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
-  __pyx_t_9 = PyFloat_FromDouble(__pyx_v_self->rho); if (unlikely(!__pyx_t_9)) __PYX_ERR(1, 3, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyInt_From_int(__pyx_v_self->__pyx_base.n_threads); if (unlikely(!__pyx_t_9)) __PYX_ERR(1, 3, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
-  __pyx_t_10 = PyFloat_FromDouble(__pyx_v_self->sigma); if (unlikely(!__pyx_t_10)) __PYX_ERR(1, 3, __pyx_L1_error)
+  __pyx_t_10 = PyFloat_FromDouble(__pyx_v_self->__pyx_base.tol); if (unlikely(!__pyx_t_10)) __PYX_ERR(1, 3, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_10);
-  __pyx_t_11 = PyFloat_FromDouble(__pyx_v_self->__pyx_base.tol); if (unlikely(!__pyx_t_11)) __PYX_ERR(1, 3, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_11);
   if (unlikely(!__pyx_v_self->__pyx_base.z_half.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");__PYX_ERR(1, 3, __pyx_L1_error)}
-  __pyx_t_12 = __pyx_memoryview_fromslice(__pyx_v_self->__pyx_base.z_half, 2, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_12)) __PYX_ERR(1, 3, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_12);
+  __pyx_t_11 = __pyx_memoryview_fromslice(__pyx_v_self->__pyx_base.z_half, 2, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_11)) __PYX_ERR(1, 3, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_11);
   if (unlikely(!__pyx_v_self->__pyx_base.z_temp.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");__PYX_ERR(1, 3, __pyx_L1_error)}
-  __pyx_t_13 = __pyx_memoryview_fromslice(__pyx_v_self->__pyx_base.z_temp, 2, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_13)) __PYX_ERR(1, 3, __pyx_L1_error)
+  __pyx_t_12 = __pyx_memoryview_fromslice(__pyx_v_self->__pyx_base.z_temp, 2, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_12)) __PYX_ERR(1, 3, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_12);
+  __pyx_t_13 = PyTuple_New(12); if (unlikely(!__pyx_t_13)) __PYX_ERR(1, 3, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_13);
-  __pyx_t_14 = PyTuple_New(13); if (unlikely(!__pyx_t_14)) __PYX_ERR(1, 3, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_14);
   __Pyx_GIVEREF(__pyx_t_1);
-  PyTuple_SET_ITEM(__pyx_t_14, 0, __pyx_t_1);
+  PyTuple_SET_ITEM(__pyx_t_13, 0, __pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_2);
-  PyTuple_SET_ITEM(__pyx_t_14, 1, __pyx_t_2);
+  PyTuple_SET_ITEM(__pyx_t_13, 1, __pyx_t_2);
   __Pyx_GIVEREF(__pyx_t_3);
-  PyTuple_SET_ITEM(__pyx_t_14, 2, __pyx_t_3);
+  PyTuple_SET_ITEM(__pyx_t_13, 2, __pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_4);
-  PyTuple_SET_ITEM(__pyx_t_14, 3, __pyx_t_4);
+  PyTuple_SET_ITEM(__pyx_t_13, 3, __pyx_t_4);
   __Pyx_GIVEREF(__pyx_t_5);
-  PyTuple_SET_ITEM(__pyx_t_14, 4, __pyx_t_5);
+  PyTuple_SET_ITEM(__pyx_t_13, 4, __pyx_t_5);
   __Pyx_GIVEREF(__pyx_t_6);
-  PyTuple_SET_ITEM(__pyx_t_14, 5, __pyx_t_6);
+  PyTuple_SET_ITEM(__pyx_t_13, 5, __pyx_t_6);
   __Pyx_GIVEREF(__pyx_t_7);
-  PyTuple_SET_ITEM(__pyx_t_14, 6, __pyx_t_7);
+  PyTuple_SET_ITEM(__pyx_t_13, 6, __pyx_t_7);
   __Pyx_GIVEREF(__pyx_t_8);
-  PyTuple_SET_ITEM(__pyx_t_14, 7, __pyx_t_8);
+  PyTuple_SET_ITEM(__pyx_t_13, 7, __pyx_t_8);
   __Pyx_GIVEREF(__pyx_t_9);
-  PyTuple_SET_ITEM(__pyx_t_14, 8, __pyx_t_9);
+  PyTuple_SET_ITEM(__pyx_t_13, 8, __pyx_t_9);
   __Pyx_GIVEREF(__pyx_t_10);
-  PyTuple_SET_ITEM(__pyx_t_14, 9, __pyx_t_10);
+  PyTuple_SET_ITEM(__pyx_t_13, 9, __pyx_t_10);
   __Pyx_GIVEREF(__pyx_t_11);
-  PyTuple_SET_ITEM(__pyx_t_14, 10, __pyx_t_11);
+  PyTuple_SET_ITEM(__pyx_t_13, 10, __pyx_t_11);
   __Pyx_GIVEREF(__pyx_t_12);
-  PyTuple_SET_ITEM(__pyx_t_14, 11, __pyx_t_12);
-  __Pyx_GIVEREF(__pyx_t_13);
-  PyTuple_SET_ITEM(__pyx_t_14, 12, __pyx_t_13);
+  PyTuple_SET_ITEM(__pyx_t_13, 11, __pyx_t_12);
   __pyx_t_1 = 0;
   __pyx_t_2 = 0;
   __pyx_t_3 = 0;
@@ -2515,32 +2583,31 @@ static PyObject *__pyx_pf_4dapy_6models_18lorenz63integrator_18Lorenz63Integrato
   __pyx_t_10 = 0;
   __pyx_t_11 = 0;
   __pyx_t_12 = 0;
+  __pyx_v_state = __pyx_t_13;
   __pyx_t_13 = 0;
-  __pyx_v_state = __pyx_t_14;
-  __pyx_t_14 = 0;
 
   /* "(tree fragment)":4
  *     cdef bint use_setstate
- *     state = (self.beta, self.dim_z, self.dt, self.dz_dt, self.intervals, self.max_iters, self.n_steps_per_update, self.n_threads, self.rho, self.sigma, self.tol, self.z_half, self.z_temp)
+ *     state = (self.delta, self.dim_z, self.dt, self.dz_dt, self.force, self.intervals, self.max_iters, self.n_steps_per_update, self.n_threads, self.tol, self.z_half, self.z_temp)
  *     _dict = getattr(self, '__dict__', None)             # <<<<<<<<<<<<<<
  *     if _dict is not None:
  *         state += _dict,
  */
-  __pyx_t_14 = __Pyx_GetAttr3(((PyObject *)__pyx_v_self), __pyx_n_s_dict, Py_None); if (unlikely(!__pyx_t_14)) __PYX_ERR(1, 4, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_14);
-  __pyx_v__dict = __pyx_t_14;
-  __pyx_t_14 = 0;
+  __pyx_t_13 = __Pyx_GetAttr3(((PyObject *)__pyx_v_self), __pyx_n_s_dict, Py_None); if (unlikely(!__pyx_t_13)) __PYX_ERR(1, 4, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_13);
+  __pyx_v__dict = __pyx_t_13;
+  __pyx_t_13 = 0;
 
   /* "(tree fragment)":5
- *     state = (self.beta, self.dim_z, self.dt, self.dz_dt, self.intervals, self.max_iters, self.n_steps_per_update, self.n_threads, self.rho, self.sigma, self.tol, self.z_half, self.z_temp)
+ *     state = (self.delta, self.dim_z, self.dt, self.dz_dt, self.force, self.intervals, self.max_iters, self.n_steps_per_update, self.n_threads, self.tol, self.z_half, self.z_temp)
  *     _dict = getattr(self, '__dict__', None)
  *     if _dict is not None:             # <<<<<<<<<<<<<<
  *         state += _dict,
  *         use_setstate = True
  */
-  __pyx_t_15 = (__pyx_v__dict != Py_None);
-  __pyx_t_16 = (__pyx_t_15 != 0);
-  if (__pyx_t_16) {
+  __pyx_t_14 = (__pyx_v__dict != Py_None);
+  __pyx_t_15 = (__pyx_t_14 != 0);
+  if (__pyx_t_15) {
 
     /* "(tree fragment)":6
  *     _dict = getattr(self, '__dict__', None)
@@ -2549,16 +2616,16 @@ static PyObject *__pyx_pf_4dapy_6models_18lorenz63integrator_18Lorenz63Integrato
  *         use_setstate = True
  *     else:
  */
-    __pyx_t_14 = PyTuple_New(1); if (unlikely(!__pyx_t_14)) __PYX_ERR(1, 6, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_14);
+    __pyx_t_13 = PyTuple_New(1); if (unlikely(!__pyx_t_13)) __PYX_ERR(1, 6, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_13);
     __Pyx_INCREF(__pyx_v__dict);
     __Pyx_GIVEREF(__pyx_v__dict);
-    PyTuple_SET_ITEM(__pyx_t_14, 0, __pyx_v__dict);
-    __pyx_t_13 = PyNumber_InPlaceAdd(__pyx_v_state, __pyx_t_14); if (unlikely(!__pyx_t_13)) __PYX_ERR(1, 6, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_13);
-    __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
-    __Pyx_DECREF_SET(__pyx_v_state, __pyx_t_13);
-    __pyx_t_13 = 0;
+    PyTuple_SET_ITEM(__pyx_t_13, 0, __pyx_v__dict);
+    __pyx_t_12 = PyNumber_InPlaceAdd(__pyx_v_state, __pyx_t_13); if (unlikely(!__pyx_t_12)) __PYX_ERR(1, 6, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_12);
+    __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
+    __Pyx_DECREF_SET(__pyx_v_state, __pyx_t_12);
+    __pyx_t_12 = 0;
 
     /* "(tree fragment)":7
  *     if _dict is not None:
@@ -2570,7 +2637,7 @@ static PyObject *__pyx_pf_4dapy_6models_18lorenz63integrator_18Lorenz63Integrato
     __pyx_v_use_setstate = 1;
 
     /* "(tree fragment)":5
- *     state = (self.beta, self.dim_z, self.dt, self.dz_dt, self.intervals, self.max_iters, self.n_steps_per_update, self.n_threads, self.rho, self.sigma, self.tol, self.z_half, self.z_temp)
+ *     state = (self.delta, self.dim_z, self.dt, self.dz_dt, self.force, self.intervals, self.max_iters, self.n_steps_per_update, self.n_threads, self.tol, self.z_half, self.z_temp)
  *     _dict = getattr(self, '__dict__', None)
  *     if _dict is not None:             # <<<<<<<<<<<<<<
  *         state += _dict,
@@ -2584,7 +2651,7 @@ static PyObject *__pyx_pf_4dapy_6models_18lorenz63integrator_18Lorenz63Integrato
  *     else:
  *         use_setstate = False             # <<<<<<<<<<<<<<
  *     if use_setstate:
- *         return __pyx_unpickle_Lorenz63Integrator, (type(self), 0x4c55285, None), state
+ *         return __pyx_unpickle_Lorenz96Integrator, (type(self), 0xb76e140, None), state
  */
   /*else*/ {
     __pyx_v_use_setstate = 0;
@@ -2595,96 +2662,96 @@ static PyObject *__pyx_pf_4dapy_6models_18lorenz63integrator_18Lorenz63Integrato
  *     else:
  *         use_setstate = False
  *     if use_setstate:             # <<<<<<<<<<<<<<
- *         return __pyx_unpickle_Lorenz63Integrator, (type(self), 0x4c55285, None), state
+ *         return __pyx_unpickle_Lorenz96Integrator, (type(self), 0xb76e140, None), state
  *     else:
  */
-  __pyx_t_16 = (__pyx_v_use_setstate != 0);
-  if (__pyx_t_16) {
+  __pyx_t_15 = (__pyx_v_use_setstate != 0);
+  if (__pyx_t_15) {
 
     /* "(tree fragment)":11
  *         use_setstate = False
  *     if use_setstate:
- *         return __pyx_unpickle_Lorenz63Integrator, (type(self), 0x4c55285, None), state             # <<<<<<<<<<<<<<
+ *         return __pyx_unpickle_Lorenz96Integrator, (type(self), 0xb76e140, None), state             # <<<<<<<<<<<<<<
  *     else:
- *         return __pyx_unpickle_Lorenz63Integrator, (type(self), 0x4c55285, state)
+ *         return __pyx_unpickle_Lorenz96Integrator, (type(self), 0xb76e140, state)
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_13 = __Pyx_GetModuleGlobalName(__pyx_n_s_pyx_unpickle_Lorenz63Integrato); if (unlikely(!__pyx_t_13)) __PYX_ERR(1, 11, __pyx_L1_error)
+    __pyx_t_12 = __Pyx_GetModuleGlobalName(__pyx_n_s_pyx_unpickle_Lorenz96Integrato); if (unlikely(!__pyx_t_12)) __PYX_ERR(1, 11, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_12);
+    __pyx_t_13 = PyTuple_New(3); if (unlikely(!__pyx_t_13)) __PYX_ERR(1, 11, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_13);
-    __pyx_t_14 = PyTuple_New(3); if (unlikely(!__pyx_t_14)) __PYX_ERR(1, 11, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_14);
     __Pyx_INCREF(((PyObject *)Py_TYPE(((PyObject *)__pyx_v_self))));
     __Pyx_GIVEREF(((PyObject *)Py_TYPE(((PyObject *)__pyx_v_self))));
-    PyTuple_SET_ITEM(__pyx_t_14, 0, ((PyObject *)Py_TYPE(((PyObject *)__pyx_v_self))));
-    __Pyx_INCREF(__pyx_int_80040581);
-    __Pyx_GIVEREF(__pyx_int_80040581);
-    PyTuple_SET_ITEM(__pyx_t_14, 1, __pyx_int_80040581);
+    PyTuple_SET_ITEM(__pyx_t_13, 0, ((PyObject *)Py_TYPE(((PyObject *)__pyx_v_self))));
+    __Pyx_INCREF(__pyx_int_192340288);
+    __Pyx_GIVEREF(__pyx_int_192340288);
+    PyTuple_SET_ITEM(__pyx_t_13, 1, __pyx_int_192340288);
     __Pyx_INCREF(Py_None);
     __Pyx_GIVEREF(Py_None);
-    PyTuple_SET_ITEM(__pyx_t_14, 2, Py_None);
-    __pyx_t_12 = PyTuple_New(3); if (unlikely(!__pyx_t_12)) __PYX_ERR(1, 11, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_12);
+    PyTuple_SET_ITEM(__pyx_t_13, 2, Py_None);
+    __pyx_t_11 = PyTuple_New(3); if (unlikely(!__pyx_t_11)) __PYX_ERR(1, 11, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_11);
+    __Pyx_GIVEREF(__pyx_t_12);
+    PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_12);
     __Pyx_GIVEREF(__pyx_t_13);
-    PyTuple_SET_ITEM(__pyx_t_12, 0, __pyx_t_13);
-    __Pyx_GIVEREF(__pyx_t_14);
-    PyTuple_SET_ITEM(__pyx_t_12, 1, __pyx_t_14);
+    PyTuple_SET_ITEM(__pyx_t_11, 1, __pyx_t_13);
     __Pyx_INCREF(__pyx_v_state);
     __Pyx_GIVEREF(__pyx_v_state);
-    PyTuple_SET_ITEM(__pyx_t_12, 2, __pyx_v_state);
-    __pyx_t_13 = 0;
-    __pyx_t_14 = 0;
-    __pyx_r = __pyx_t_12;
+    PyTuple_SET_ITEM(__pyx_t_11, 2, __pyx_v_state);
     __pyx_t_12 = 0;
+    __pyx_t_13 = 0;
+    __pyx_r = __pyx_t_11;
+    __pyx_t_11 = 0;
     goto __pyx_L0;
 
     /* "(tree fragment)":10
  *     else:
  *         use_setstate = False
  *     if use_setstate:             # <<<<<<<<<<<<<<
- *         return __pyx_unpickle_Lorenz63Integrator, (type(self), 0x4c55285, None), state
+ *         return __pyx_unpickle_Lorenz96Integrator, (type(self), 0xb76e140, None), state
  *     else:
  */
   }
 
   /* "(tree fragment)":13
- *         return __pyx_unpickle_Lorenz63Integrator, (type(self), 0x4c55285, None), state
+ *         return __pyx_unpickle_Lorenz96Integrator, (type(self), 0xb76e140, None), state
  *     else:
- *         return __pyx_unpickle_Lorenz63Integrator, (type(self), 0x4c55285, state)             # <<<<<<<<<<<<<<
+ *         return __pyx_unpickle_Lorenz96Integrator, (type(self), 0xb76e140, state)             # <<<<<<<<<<<<<<
  * def __setstate_cython__(self, __pyx_state):
- *     __pyx_unpickle_Lorenz63Integrator__set_state(self, __pyx_state)
+ *     __pyx_unpickle_Lorenz96Integrator__set_state(self, __pyx_state)
  */
   /*else*/ {
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_12 = __Pyx_GetModuleGlobalName(__pyx_n_s_pyx_unpickle_Lorenz63Integrato); if (unlikely(!__pyx_t_12)) __PYX_ERR(1, 13, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_12);
-    __pyx_t_14 = PyTuple_New(3); if (unlikely(!__pyx_t_14)) __PYX_ERR(1, 13, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_14);
+    __pyx_t_11 = __Pyx_GetModuleGlobalName(__pyx_n_s_pyx_unpickle_Lorenz96Integrato); if (unlikely(!__pyx_t_11)) __PYX_ERR(1, 13, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_11);
+    __pyx_t_13 = PyTuple_New(3); if (unlikely(!__pyx_t_13)) __PYX_ERR(1, 13, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_13);
     __Pyx_INCREF(((PyObject *)Py_TYPE(((PyObject *)__pyx_v_self))));
     __Pyx_GIVEREF(((PyObject *)Py_TYPE(((PyObject *)__pyx_v_self))));
-    PyTuple_SET_ITEM(__pyx_t_14, 0, ((PyObject *)Py_TYPE(((PyObject *)__pyx_v_self))));
-    __Pyx_INCREF(__pyx_int_80040581);
-    __Pyx_GIVEREF(__pyx_int_80040581);
-    PyTuple_SET_ITEM(__pyx_t_14, 1, __pyx_int_80040581);
+    PyTuple_SET_ITEM(__pyx_t_13, 0, ((PyObject *)Py_TYPE(((PyObject *)__pyx_v_self))));
+    __Pyx_INCREF(__pyx_int_192340288);
+    __Pyx_GIVEREF(__pyx_int_192340288);
+    PyTuple_SET_ITEM(__pyx_t_13, 1, __pyx_int_192340288);
     __Pyx_INCREF(__pyx_v_state);
     __Pyx_GIVEREF(__pyx_v_state);
-    PyTuple_SET_ITEM(__pyx_t_14, 2, __pyx_v_state);
-    __pyx_t_13 = PyTuple_New(2); if (unlikely(!__pyx_t_13)) __PYX_ERR(1, 13, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_13);
-    __Pyx_GIVEREF(__pyx_t_12);
-    PyTuple_SET_ITEM(__pyx_t_13, 0, __pyx_t_12);
-    __Pyx_GIVEREF(__pyx_t_14);
-    PyTuple_SET_ITEM(__pyx_t_13, 1, __pyx_t_14);
-    __pyx_t_12 = 0;
-    __pyx_t_14 = 0;
-    __pyx_r = __pyx_t_13;
+    PyTuple_SET_ITEM(__pyx_t_13, 2, __pyx_v_state);
+    __pyx_t_12 = PyTuple_New(2); if (unlikely(!__pyx_t_12)) __PYX_ERR(1, 13, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_12);
+    __Pyx_GIVEREF(__pyx_t_11);
+    PyTuple_SET_ITEM(__pyx_t_12, 0, __pyx_t_11);
+    __Pyx_GIVEREF(__pyx_t_13);
+    PyTuple_SET_ITEM(__pyx_t_12, 1, __pyx_t_13);
+    __pyx_t_11 = 0;
     __pyx_t_13 = 0;
+    __pyx_r = __pyx_t_12;
+    __pyx_t_12 = 0;
     goto __pyx_L0;
   }
 
   /* "(tree fragment)":1
  * def __reduce_cython__(self):             # <<<<<<<<<<<<<<
  *     cdef bint use_setstate
- *     state = (self.beta, self.dim_z, self.dt, self.dz_dt, self.intervals, self.max_iters, self.n_steps_per_update, self.n_threads, self.rho, self.sigma, self.tol, self.z_half, self.z_temp)
+ *     state = (self.delta, self.dim_z, self.dt, self.dz_dt, self.force, self.intervals, self.max_iters, self.n_steps_per_update, self.n_threads, self.tol, self.z_half, self.z_temp)
  */
 
   /* function exit code */
@@ -2702,8 +2769,7 @@ static PyObject *__pyx_pf_4dapy_6models_18lorenz63integrator_18Lorenz63Integrato
   __Pyx_XDECREF(__pyx_t_11);
   __Pyx_XDECREF(__pyx_t_12);
   __Pyx_XDECREF(__pyx_t_13);
-  __Pyx_XDECREF(__pyx_t_14);
-  __Pyx_AddTraceback("dapy.models.lorenz63integrator.Lorenz63Integrator.__reduce_cython__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("dapy.integrators.lorenz96.Lorenz96Integrator.__reduce_cython__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_state);
@@ -2715,45 +2781,45 @@ static PyObject *__pyx_pf_4dapy_6models_18lorenz63integrator_18Lorenz63Integrato
 
 /* "(tree fragment)":14
  *     else:
- *         return __pyx_unpickle_Lorenz63Integrator, (type(self), 0x4c55285, state)
+ *         return __pyx_unpickle_Lorenz96Integrator, (type(self), 0xb76e140, state)
  * def __setstate_cython__(self, __pyx_state):             # <<<<<<<<<<<<<<
- *     __pyx_unpickle_Lorenz63Integrator__set_state(self, __pyx_state)
+ *     __pyx_unpickle_Lorenz96Integrator__set_state(self, __pyx_state)
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_4dapy_6models_18lorenz63integrator_18Lorenz63Integrator_5__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state); /*proto*/
-static PyObject *__pyx_pw_4dapy_6models_18lorenz63integrator_18Lorenz63Integrator_5__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state) {
+static PyObject *__pyx_pw_4dapy_11integrators_8lorenz96_18Lorenz96Integrator_5__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state); /*proto*/
+static PyObject *__pyx_pw_4dapy_11integrators_8lorenz96_18Lorenz96Integrator_5__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__setstate_cython__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_4dapy_6models_18lorenz63integrator_18Lorenz63Integrator_4__setstate_cython__(((struct __pyx_obj_4dapy_6models_18lorenz63integrator_Lorenz63Integrator *)__pyx_v_self), ((PyObject *)__pyx_v___pyx_state));
+  __pyx_r = __pyx_pf_4dapy_11integrators_8lorenz96_18Lorenz96Integrator_4__setstate_cython__(((struct __pyx_obj_4dapy_11integrators_8lorenz96_Lorenz96Integrator *)__pyx_v_self), ((PyObject *)__pyx_v___pyx_state));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4dapy_6models_18lorenz63integrator_18Lorenz63Integrator_4__setstate_cython__(struct __pyx_obj_4dapy_6models_18lorenz63integrator_Lorenz63Integrator *__pyx_v_self, PyObject *__pyx_v___pyx_state) {
+static PyObject *__pyx_pf_4dapy_11integrators_8lorenz96_18Lorenz96Integrator_4__setstate_cython__(struct __pyx_obj_4dapy_11integrators_8lorenz96_Lorenz96Integrator *__pyx_v_self, PyObject *__pyx_v___pyx_state) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__setstate_cython__", 0);
 
   /* "(tree fragment)":15
- *         return __pyx_unpickle_Lorenz63Integrator, (type(self), 0x4c55285, state)
+ *         return __pyx_unpickle_Lorenz96Integrator, (type(self), 0xb76e140, state)
  * def __setstate_cython__(self, __pyx_state):
- *     __pyx_unpickle_Lorenz63Integrator__set_state(self, __pyx_state)             # <<<<<<<<<<<<<<
+ *     __pyx_unpickle_Lorenz96Integrator__set_state(self, __pyx_state)             # <<<<<<<<<<<<<<
  */
   if (!(likely(PyTuple_CheckExact(__pyx_v___pyx_state))||((__pyx_v___pyx_state) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "tuple", Py_TYPE(__pyx_v___pyx_state)->tp_name), 0))) __PYX_ERR(1, 15, __pyx_L1_error)
-  __pyx_t_1 = __pyx_f_4dapy_6models_18lorenz63integrator___pyx_unpickle_Lorenz63Integrator__set_state(__pyx_v_self, ((PyObject*)__pyx_v___pyx_state)); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 15, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_4dapy_11integrators_8lorenz96___pyx_unpickle_Lorenz96Integrator__set_state(__pyx_v_self, ((PyObject*)__pyx_v___pyx_state)); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 15, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "(tree fragment)":14
  *     else:
- *         return __pyx_unpickle_Lorenz63Integrator, (type(self), 0x4c55285, state)
+ *         return __pyx_unpickle_Lorenz96Integrator, (type(self), 0xb76e140, state)
  * def __setstate_cython__(self, __pyx_state):             # <<<<<<<<<<<<<<
- *     __pyx_unpickle_Lorenz63Integrator__set_state(self, __pyx_state)
+ *     __pyx_unpickle_Lorenz96Integrator__set_state(self, __pyx_state)
  */
 
   /* function exit code */
@@ -2761,7 +2827,7 @@ static PyObject *__pyx_pf_4dapy_6models_18lorenz63integrator_18Lorenz63Integrato
   goto __pyx_L0;
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("dapy.models.lorenz63integrator.Lorenz63Integrator.__setstate_cython__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("dapy.integrators.lorenz96.Lorenz96Integrator.__setstate_cython__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -2770,21 +2836,21 @@ static PyObject *__pyx_pf_4dapy_6models_18lorenz63integrator_18Lorenz63Integrato
 }
 
 /* "(tree fragment)":1
- * def __pyx_unpickle_Lorenz63Integrator(__pyx_type, long __pyx_checksum, __pyx_state):             # <<<<<<<<<<<<<<
- *     if __pyx_checksum != 0x4c55285:
+ * def __pyx_unpickle_Lorenz96Integrator(__pyx_type, long __pyx_checksum, __pyx_state):             # <<<<<<<<<<<<<<
+ *     if __pyx_checksum != 0xb76e140:
  *         from pickle import PickleError
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_4dapy_6models_18lorenz63integrator_1__pyx_unpickle_Lorenz63Integrator(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_mdef_4dapy_6models_18lorenz63integrator_1__pyx_unpickle_Lorenz63Integrator = {"__pyx_unpickle_Lorenz63Integrator", (PyCFunction)__pyx_pw_4dapy_6models_18lorenz63integrator_1__pyx_unpickle_Lorenz63Integrator, METH_VARARGS|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_4dapy_6models_18lorenz63integrator_1__pyx_unpickle_Lorenz63Integrator(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_4dapy_11integrators_8lorenz96_1__pyx_unpickle_Lorenz96Integrator(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_mdef_4dapy_11integrators_8lorenz96_1__pyx_unpickle_Lorenz96Integrator = {"__pyx_unpickle_Lorenz96Integrator", (PyCFunction)__pyx_pw_4dapy_11integrators_8lorenz96_1__pyx_unpickle_Lorenz96Integrator, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_4dapy_11integrators_8lorenz96_1__pyx_unpickle_Lorenz96Integrator(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v___pyx_type = 0;
   long __pyx_v___pyx_checksum;
   PyObject *__pyx_v___pyx_state = 0;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("__pyx_unpickle_Lorenz63Integrator (wrapper)", 0);
+  __Pyx_RefNannySetupContext("__pyx_unpickle_Lorenz96Integrator (wrapper)", 0);
   {
     static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_pyx_type,&__pyx_n_s_pyx_checksum,&__pyx_n_s_pyx_state,0};
     PyObject* values[3] = {0,0,0};
@@ -2810,17 +2876,17 @@ static PyObject *__pyx_pw_4dapy_6models_18lorenz63integrator_1__pyx_unpickle_Lor
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_pyx_checksum)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__pyx_unpickle_Lorenz63Integrator", 1, 3, 3, 1); __PYX_ERR(1, 1, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__pyx_unpickle_Lorenz96Integrator", 1, 3, 3, 1); __PYX_ERR(1, 1, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_pyx_state)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__pyx_unpickle_Lorenz63Integrator", 1, 3, 3, 2); __PYX_ERR(1, 1, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__pyx_unpickle_Lorenz96Integrator", 1, 3, 3, 2); __PYX_ERR(1, 1, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__pyx_unpickle_Lorenz63Integrator") < 0)) __PYX_ERR(1, 1, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__pyx_unpickle_Lorenz96Integrator") < 0)) __PYX_ERR(1, 1, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -2835,20 +2901,20 @@ static PyObject *__pyx_pw_4dapy_6models_18lorenz63integrator_1__pyx_unpickle_Lor
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__pyx_unpickle_Lorenz63Integrator", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 1, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__pyx_unpickle_Lorenz96Integrator", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 1, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("dapy.models.lorenz63integrator.__pyx_unpickle_Lorenz63Integrator", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("dapy.integrators.lorenz96.__pyx_unpickle_Lorenz96Integrator", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_4dapy_6models_18lorenz63integrator___pyx_unpickle_Lorenz63Integrator(__pyx_self, __pyx_v___pyx_type, __pyx_v___pyx_checksum, __pyx_v___pyx_state);
+  __pyx_r = __pyx_pf_4dapy_11integrators_8lorenz96___pyx_unpickle_Lorenz96Integrator(__pyx_self, __pyx_v___pyx_type, __pyx_v___pyx_checksum, __pyx_v___pyx_state);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4dapy_6models_18lorenz63integrator___pyx_unpickle_Lorenz63Integrator(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state) {
+static PyObject *__pyx_pf_4dapy_11integrators_8lorenz96___pyx_unpickle_Lorenz96Integrator(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state) {
   PyObject *__pyx_v_PickleError = NULL;
   PyObject *__pyx_v_result = NULL;
   PyObject *__pyx_r = NULL;
@@ -2860,23 +2926,23 @@ static PyObject *__pyx_pf_4dapy_6models_18lorenz63integrator___pyx_unpickle_Lore
   PyObject *__pyx_t_5 = NULL;
   PyObject *__pyx_t_6 = NULL;
   int __pyx_t_7;
-  __Pyx_RefNannySetupContext("__pyx_unpickle_Lorenz63Integrator", 0);
+  __Pyx_RefNannySetupContext("__pyx_unpickle_Lorenz96Integrator", 0);
 
   /* "(tree fragment)":2
- * def __pyx_unpickle_Lorenz63Integrator(__pyx_type, long __pyx_checksum, __pyx_state):
- *     if __pyx_checksum != 0x4c55285:             # <<<<<<<<<<<<<<
+ * def __pyx_unpickle_Lorenz96Integrator(__pyx_type, long __pyx_checksum, __pyx_state):
+ *     if __pyx_checksum != 0xb76e140:             # <<<<<<<<<<<<<<
  *         from pickle import PickleError
- *         raise PickleError("Incompatible checksums (%s vs 0x4c55285 = (beta, dim_z, dt, dz_dt, intervals, max_iters, n_steps_per_update, n_threads, rho, sigma, tol, z_half, z_temp))" % __pyx_checksum)
+ *         raise PickleError("Incompatible checksums (%s vs 0xb76e140 = (delta, dim_z, dt, dz_dt, force, intervals, max_iters, n_steps_per_update, n_threads, tol, z_half, z_temp))" % __pyx_checksum)
  */
-  __pyx_t_1 = ((__pyx_v___pyx_checksum != 0x4c55285) != 0);
+  __pyx_t_1 = ((__pyx_v___pyx_checksum != 0xb76e140) != 0);
   if (__pyx_t_1) {
 
     /* "(tree fragment)":3
- * def __pyx_unpickle_Lorenz63Integrator(__pyx_type, long __pyx_checksum, __pyx_state):
- *     if __pyx_checksum != 0x4c55285:
+ * def __pyx_unpickle_Lorenz96Integrator(__pyx_type, long __pyx_checksum, __pyx_state):
+ *     if __pyx_checksum != 0xb76e140:
  *         from pickle import PickleError             # <<<<<<<<<<<<<<
- *         raise PickleError("Incompatible checksums (%s vs 0x4c55285 = (beta, dim_z, dt, dz_dt, intervals, max_iters, n_steps_per_update, n_threads, rho, sigma, tol, z_half, z_temp))" % __pyx_checksum)
- *     result = Lorenz63Integrator.__new__(__pyx_type)
+ *         raise PickleError("Incompatible checksums (%s vs 0xb76e140 = (delta, dim_z, dt, dz_dt, force, intervals, max_iters, n_steps_per_update, n_threads, tol, z_half, z_temp))" % __pyx_checksum)
+ *     result = Lorenz96Integrator.__new__(__pyx_type)
  */
     __pyx_t_2 = PyList_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 3, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
@@ -2894,15 +2960,15 @@ static PyObject *__pyx_pf_4dapy_6models_18lorenz63integrator___pyx_unpickle_Lore
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
     /* "(tree fragment)":4
- *     if __pyx_checksum != 0x4c55285:
+ *     if __pyx_checksum != 0xb76e140:
  *         from pickle import PickleError
- *         raise PickleError("Incompatible checksums (%s vs 0x4c55285 = (beta, dim_z, dt, dz_dt, intervals, max_iters, n_steps_per_update, n_threads, rho, sigma, tol, z_half, z_temp))" % __pyx_checksum)             # <<<<<<<<<<<<<<
- *     result = Lorenz63Integrator.__new__(__pyx_type)
+ *         raise PickleError("Incompatible checksums (%s vs 0xb76e140 = (delta, dim_z, dt, dz_dt, force, intervals, max_iters, n_steps_per_update, n_threads, tol, z_half, z_temp))" % __pyx_checksum)             # <<<<<<<<<<<<<<
+ *     result = Lorenz96Integrator.__new__(__pyx_type)
  *     if __pyx_state is not None:
  */
     __pyx_t_2 = __Pyx_PyInt_From_long(__pyx_v___pyx_checksum); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 4, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_4 = __Pyx_PyString_Format(__pyx_kp_s_Incompatible_checksums_s_vs_0x4c, __pyx_t_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 4, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyString_Format(__pyx_kp_s_Incompatible_checksums_s_vs_0xb7, __pyx_t_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 4, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_INCREF(__pyx_v_PickleError);
@@ -2957,21 +3023,21 @@ static PyObject *__pyx_pf_4dapy_6models_18lorenz63integrator___pyx_unpickle_Lore
     __PYX_ERR(1, 4, __pyx_L1_error)
 
     /* "(tree fragment)":2
- * def __pyx_unpickle_Lorenz63Integrator(__pyx_type, long __pyx_checksum, __pyx_state):
- *     if __pyx_checksum != 0x4c55285:             # <<<<<<<<<<<<<<
+ * def __pyx_unpickle_Lorenz96Integrator(__pyx_type, long __pyx_checksum, __pyx_state):
+ *     if __pyx_checksum != 0xb76e140:             # <<<<<<<<<<<<<<
  *         from pickle import PickleError
- *         raise PickleError("Incompatible checksums (%s vs 0x4c55285 = (beta, dim_z, dt, dz_dt, intervals, max_iters, n_steps_per_update, n_threads, rho, sigma, tol, z_half, z_temp))" % __pyx_checksum)
+ *         raise PickleError("Incompatible checksums (%s vs 0xb76e140 = (delta, dim_z, dt, dz_dt, force, intervals, max_iters, n_steps_per_update, n_threads, tol, z_half, z_temp))" % __pyx_checksum)
  */
   }
 
   /* "(tree fragment)":5
  *         from pickle import PickleError
- *         raise PickleError("Incompatible checksums (%s vs 0x4c55285 = (beta, dim_z, dt, dz_dt, intervals, max_iters, n_steps_per_update, n_threads, rho, sigma, tol, z_half, z_temp))" % __pyx_checksum)
- *     result = Lorenz63Integrator.__new__(__pyx_type)             # <<<<<<<<<<<<<<
+ *         raise PickleError("Incompatible checksums (%s vs 0xb76e140 = (delta, dim_z, dt, dz_dt, force, intervals, max_iters, n_steps_per_update, n_threads, tol, z_half, z_temp))" % __pyx_checksum)
+ *     result = Lorenz96Integrator.__new__(__pyx_type)             # <<<<<<<<<<<<<<
  *     if __pyx_state is not None:
- *         __pyx_unpickle_Lorenz63Integrator__set_state(<Lorenz63Integrator> result, __pyx_state)
+ *         __pyx_unpickle_Lorenz96Integrator__set_state(<Lorenz96Integrator> result, __pyx_state)
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_ptype_4dapy_6models_18lorenz63integrator_Lorenz63Integrator), __pyx_n_s_new); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 5, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_ptype_4dapy_11integrators_8lorenz96_Lorenz96Integrator), __pyx_n_s_new); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 5, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_6 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
@@ -3020,10 +3086,10 @@ static PyObject *__pyx_pf_4dapy_6models_18lorenz63integrator___pyx_unpickle_Lore
   __pyx_t_3 = 0;
 
   /* "(tree fragment)":6
- *         raise PickleError("Incompatible checksums (%s vs 0x4c55285 = (beta, dim_z, dt, dz_dt, intervals, max_iters, n_steps_per_update, n_threads, rho, sigma, tol, z_half, z_temp))" % __pyx_checksum)
- *     result = Lorenz63Integrator.__new__(__pyx_type)
+ *         raise PickleError("Incompatible checksums (%s vs 0xb76e140 = (delta, dim_z, dt, dz_dt, force, intervals, max_iters, n_steps_per_update, n_threads, tol, z_half, z_temp))" % __pyx_checksum)
+ *     result = Lorenz96Integrator.__new__(__pyx_type)
  *     if __pyx_state is not None:             # <<<<<<<<<<<<<<
- *         __pyx_unpickle_Lorenz63Integrator__set_state(<Lorenz63Integrator> result, __pyx_state)
+ *         __pyx_unpickle_Lorenz96Integrator__set_state(<Lorenz96Integrator> result, __pyx_state)
  *     return result
  */
   __pyx_t_1 = (__pyx_v___pyx_state != Py_None);
@@ -3031,32 +3097,32 @@ static PyObject *__pyx_pf_4dapy_6models_18lorenz63integrator___pyx_unpickle_Lore
   if (__pyx_t_7) {
 
     /* "(tree fragment)":7
- *     result = Lorenz63Integrator.__new__(__pyx_type)
+ *     result = Lorenz96Integrator.__new__(__pyx_type)
  *     if __pyx_state is not None:
- *         __pyx_unpickle_Lorenz63Integrator__set_state(<Lorenz63Integrator> result, __pyx_state)             # <<<<<<<<<<<<<<
+ *         __pyx_unpickle_Lorenz96Integrator__set_state(<Lorenz96Integrator> result, __pyx_state)             # <<<<<<<<<<<<<<
  *     return result
- * cdef __pyx_unpickle_Lorenz63Integrator__set_state(Lorenz63Integrator result, tuple __pyx_state):
+ * cdef __pyx_unpickle_Lorenz96Integrator__set_state(Lorenz96Integrator result, tuple __pyx_state):
  */
     if (!(likely(PyTuple_CheckExact(__pyx_v___pyx_state))||((__pyx_v___pyx_state) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "tuple", Py_TYPE(__pyx_v___pyx_state)->tp_name), 0))) __PYX_ERR(1, 7, __pyx_L1_error)
-    __pyx_t_3 = __pyx_f_4dapy_6models_18lorenz63integrator___pyx_unpickle_Lorenz63Integrator__set_state(((struct __pyx_obj_4dapy_6models_18lorenz63integrator_Lorenz63Integrator *)__pyx_v_result), ((PyObject*)__pyx_v___pyx_state)); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 7, __pyx_L1_error)
+    __pyx_t_3 = __pyx_f_4dapy_11integrators_8lorenz96___pyx_unpickle_Lorenz96Integrator__set_state(((struct __pyx_obj_4dapy_11integrators_8lorenz96_Lorenz96Integrator *)__pyx_v_result), ((PyObject*)__pyx_v___pyx_state)); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 7, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
     /* "(tree fragment)":6
- *         raise PickleError("Incompatible checksums (%s vs 0x4c55285 = (beta, dim_z, dt, dz_dt, intervals, max_iters, n_steps_per_update, n_threads, rho, sigma, tol, z_half, z_temp))" % __pyx_checksum)
- *     result = Lorenz63Integrator.__new__(__pyx_type)
+ *         raise PickleError("Incompatible checksums (%s vs 0xb76e140 = (delta, dim_z, dt, dz_dt, force, intervals, max_iters, n_steps_per_update, n_threads, tol, z_half, z_temp))" % __pyx_checksum)
+ *     result = Lorenz96Integrator.__new__(__pyx_type)
  *     if __pyx_state is not None:             # <<<<<<<<<<<<<<
- *         __pyx_unpickle_Lorenz63Integrator__set_state(<Lorenz63Integrator> result, __pyx_state)
+ *         __pyx_unpickle_Lorenz96Integrator__set_state(<Lorenz96Integrator> result, __pyx_state)
  *     return result
  */
   }
 
   /* "(tree fragment)":8
  *     if __pyx_state is not None:
- *         __pyx_unpickle_Lorenz63Integrator__set_state(<Lorenz63Integrator> result, __pyx_state)
+ *         __pyx_unpickle_Lorenz96Integrator__set_state(<Lorenz96Integrator> result, __pyx_state)
  *     return result             # <<<<<<<<<<<<<<
- * cdef __pyx_unpickle_Lorenz63Integrator__set_state(Lorenz63Integrator result, tuple __pyx_state):
- *     result.beta = __pyx_state[0]; result.dim_z = __pyx_state[1]; result.dt = __pyx_state[2]; result.dz_dt = __pyx_state[3]; result.intervals = __pyx_state[4]; result.max_iters = __pyx_state[5]; result.n_steps_per_update = __pyx_state[6]; result.n_threads = __pyx_state[7]; result.rho = __pyx_state[8]; result.sigma = __pyx_state[9]; result.tol = __pyx_state[10]; result.z_half = __pyx_state[11]; result.z_temp = __pyx_state[12]
+ * cdef __pyx_unpickle_Lorenz96Integrator__set_state(Lorenz96Integrator result, tuple __pyx_state):
+ *     result.delta = __pyx_state[0]; result.dim_z = __pyx_state[1]; result.dt = __pyx_state[2]; result.dz_dt = __pyx_state[3]; result.force = __pyx_state[4]; result.intervals = __pyx_state[5]; result.max_iters = __pyx_state[6]; result.n_steps_per_update = __pyx_state[7]; result.n_threads = __pyx_state[8]; result.tol = __pyx_state[9]; result.z_half = __pyx_state[10]; result.z_temp = __pyx_state[11]
  */
   __Pyx_XDECREF(__pyx_r);
   __Pyx_INCREF(__pyx_v_result);
@@ -3064,8 +3130,8 @@ static PyObject *__pyx_pf_4dapy_6models_18lorenz63integrator___pyx_unpickle_Lore
   goto __pyx_L0;
 
   /* "(tree fragment)":1
- * def __pyx_unpickle_Lorenz63Integrator(__pyx_type, long __pyx_checksum, __pyx_state):             # <<<<<<<<<<<<<<
- *     if __pyx_checksum != 0x4c55285:
+ * def __pyx_unpickle_Lorenz96Integrator(__pyx_type, long __pyx_checksum, __pyx_state):             # <<<<<<<<<<<<<<
+ *     if __pyx_checksum != 0xb76e140:
  *         from pickle import PickleError
  */
 
@@ -3076,7 +3142,7 @@ static PyObject *__pyx_pf_4dapy_6models_18lorenz63integrator___pyx_unpickle_Lore
   __Pyx_XDECREF(__pyx_t_4);
   __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_6);
-  __Pyx_AddTraceback("dapy.models.lorenz63integrator.__pyx_unpickle_Lorenz63Integrator", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("dapy.integrators.lorenz96.__pyx_unpickle_Lorenz96Integrator", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_PickleError);
@@ -3087,14 +3153,14 @@ static PyObject *__pyx_pf_4dapy_6models_18lorenz63integrator___pyx_unpickle_Lore
 }
 
 /* "(tree fragment)":9
- *         __pyx_unpickle_Lorenz63Integrator__set_state(<Lorenz63Integrator> result, __pyx_state)
+ *         __pyx_unpickle_Lorenz96Integrator__set_state(<Lorenz96Integrator> result, __pyx_state)
  *     return result
- * cdef __pyx_unpickle_Lorenz63Integrator__set_state(Lorenz63Integrator result, tuple __pyx_state):             # <<<<<<<<<<<<<<
- *     result.beta = __pyx_state[0]; result.dim_z = __pyx_state[1]; result.dt = __pyx_state[2]; result.dz_dt = __pyx_state[3]; result.intervals = __pyx_state[4]; result.max_iters = __pyx_state[5]; result.n_steps_per_update = __pyx_state[6]; result.n_threads = __pyx_state[7]; result.rho = __pyx_state[8]; result.sigma = __pyx_state[9]; result.tol = __pyx_state[10]; result.z_half = __pyx_state[11]; result.z_temp = __pyx_state[12]
+ * cdef __pyx_unpickle_Lorenz96Integrator__set_state(Lorenz96Integrator result, tuple __pyx_state):             # <<<<<<<<<<<<<<
+ *     result.delta = __pyx_state[0]; result.dim_z = __pyx_state[1]; result.dt = __pyx_state[2]; result.dz_dt = __pyx_state[3]; result.force = __pyx_state[4]; result.intervals = __pyx_state[5]; result.max_iters = __pyx_state[6]; result.n_steps_per_update = __pyx_state[7]; result.n_threads = __pyx_state[8]; result.tol = __pyx_state[9]; result.z_half = __pyx_state[10]; result.z_temp = __pyx_state[11]
  *     if hasattr(result, '__dict__'):
  */
 
-static PyObject *__pyx_f_4dapy_6models_18lorenz63integrator___pyx_unpickle_Lorenz63Integrator__set_state(struct __pyx_obj_4dapy_6models_18lorenz63integrator_Lorenz63Integrator *__pyx_v_result, PyObject *__pyx_v___pyx_state) {
+static PyObject *__pyx_f_4dapy_11integrators_8lorenz96___pyx_unpickle_Lorenz96Integrator__set_state(struct __pyx_obj_4dapy_11integrators_8lorenz96_Lorenz96Integrator *__pyx_v_result, PyObject *__pyx_v___pyx_state) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -3108,14 +3174,14 @@ static PyObject *__pyx_f_4dapy_6models_18lorenz63integrator___pyx_unpickle_Loren
   PyObject *__pyx_t_9 = NULL;
   PyObject *__pyx_t_10 = NULL;
   PyObject *__pyx_t_11 = NULL;
-  __Pyx_RefNannySetupContext("__pyx_unpickle_Lorenz63Integrator__set_state", 0);
+  __Pyx_RefNannySetupContext("__pyx_unpickle_Lorenz96Integrator__set_state", 0);
 
   /* "(tree fragment)":10
  *     return result
- * cdef __pyx_unpickle_Lorenz63Integrator__set_state(Lorenz63Integrator result, tuple __pyx_state):
- *     result.beta = __pyx_state[0]; result.dim_z = __pyx_state[1]; result.dt = __pyx_state[2]; result.dz_dt = __pyx_state[3]; result.intervals = __pyx_state[4]; result.max_iters = __pyx_state[5]; result.n_steps_per_update = __pyx_state[6]; result.n_threads = __pyx_state[7]; result.rho = __pyx_state[8]; result.sigma = __pyx_state[9]; result.tol = __pyx_state[10]; result.z_half = __pyx_state[11]; result.z_temp = __pyx_state[12]             # <<<<<<<<<<<<<<
+ * cdef __pyx_unpickle_Lorenz96Integrator__set_state(Lorenz96Integrator result, tuple __pyx_state):
+ *     result.delta = __pyx_state[0]; result.dim_z = __pyx_state[1]; result.dt = __pyx_state[2]; result.dz_dt = __pyx_state[3]; result.force = __pyx_state[4]; result.intervals = __pyx_state[5]; result.max_iters = __pyx_state[6]; result.n_steps_per_update = __pyx_state[7]; result.n_threads = __pyx_state[8]; result.tol = __pyx_state[9]; result.z_half = __pyx_state[10]; result.z_temp = __pyx_state[11]             # <<<<<<<<<<<<<<
  *     if hasattr(result, '__dict__'):
- *         result.__dict__.update(__pyx_state[13])
+ *         result.__dict__.update(__pyx_state[12])
  */
   if (unlikely(__pyx_v___pyx_state == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
@@ -3125,7 +3191,7 @@ static PyObject *__pyx_f_4dapy_6models_18lorenz63integrator___pyx_unpickle_Loren
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_t_2 = __pyx_PyFloat_AsDouble(__pyx_t_1); if (unlikely((__pyx_t_2 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 10, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_v_result->beta = __pyx_t_2;
+  __pyx_v_result->delta = __pyx_t_2;
   if (unlikely(__pyx_v___pyx_state == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
     __PYX_ERR(1, 10, __pyx_L1_error)
@@ -3163,6 +3229,15 @@ static PyObject *__pyx_f_4dapy_6models_18lorenz63integrator___pyx_unpickle_Loren
   }
   __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 4, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 10, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = __pyx_PyFloat_AsDouble(__pyx_t_1); if (unlikely((__pyx_t_2 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 10, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_v_result->force = __pyx_t_2;
+  if (unlikely(__pyx_v___pyx_state == Py_None)) {
+    PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
+    __PYX_ERR(1, 10, __pyx_L1_error)
+  }
+  __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 5, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 10, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
   __pyx_t_5 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_t_1);
   if (unlikely(!__pyx_t_5.memview)) __PYX_ERR(1, 10, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -3174,7 +3249,7 @@ static PyObject *__pyx_f_4dapy_6models_18lorenz63integrator___pyx_unpickle_Loren
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
     __PYX_ERR(1, 10, __pyx_L1_error)
   }
-  __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 5, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 10, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 6, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 10, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_t_3 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_3 == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 10, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -3183,7 +3258,7 @@ static PyObject *__pyx_f_4dapy_6models_18lorenz63integrator___pyx_unpickle_Loren
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
     __PYX_ERR(1, 10, __pyx_L1_error)
   }
-  __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 6, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 10, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 7, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 10, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_t_3 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_3 == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 10, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -3192,7 +3267,7 @@ static PyObject *__pyx_f_4dapy_6models_18lorenz63integrator___pyx_unpickle_Loren
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
     __PYX_ERR(1, 10, __pyx_L1_error)
   }
-  __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 7, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 10, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 8, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 10, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_t_3 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_3 == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 10, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -3201,25 +3276,7 @@ static PyObject *__pyx_f_4dapy_6models_18lorenz63integrator___pyx_unpickle_Loren
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
     __PYX_ERR(1, 10, __pyx_L1_error)
   }
-  __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 8, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 10, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __pyx_PyFloat_AsDouble(__pyx_t_1); if (unlikely((__pyx_t_2 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 10, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_v_result->rho = __pyx_t_2;
-  if (unlikely(__pyx_v___pyx_state == Py_None)) {
-    PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
-    __PYX_ERR(1, 10, __pyx_L1_error)
-  }
   __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 9, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 10, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __pyx_PyFloat_AsDouble(__pyx_t_1); if (unlikely((__pyx_t_2 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 10, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_v_result->sigma = __pyx_t_2;
-  if (unlikely(__pyx_v___pyx_state == Py_None)) {
-    PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
-    __PYX_ERR(1, 10, __pyx_L1_error)
-  }
-  __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 10, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 10, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_t_2 = __pyx_PyFloat_AsDouble(__pyx_t_1); if (unlikely((__pyx_t_2 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 10, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -3228,7 +3285,7 @@ static PyObject *__pyx_f_4dapy_6models_18lorenz63integrator___pyx_unpickle_Loren
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
     __PYX_ERR(1, 10, __pyx_L1_error)
   }
-  __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 11, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 10, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 10, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 10, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_t_4 = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(__pyx_t_1);
   if (unlikely(!__pyx_t_4.memview)) __PYX_ERR(1, 10, __pyx_L1_error)
@@ -3241,7 +3298,7 @@ static PyObject *__pyx_f_4dapy_6models_18lorenz63integrator___pyx_unpickle_Loren
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
     __PYX_ERR(1, 10, __pyx_L1_error)
   }
-  __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 12, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 10, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 11, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 10, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_t_4 = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(__pyx_t_1);
   if (unlikely(!__pyx_t_4.memview)) __PYX_ERR(1, 10, __pyx_L1_error)
@@ -3252,19 +3309,19 @@ static PyObject *__pyx_f_4dapy_6models_18lorenz63integrator___pyx_unpickle_Loren
   __pyx_t_4.data = NULL;
 
   /* "(tree fragment)":11
- * cdef __pyx_unpickle_Lorenz63Integrator__set_state(Lorenz63Integrator result, tuple __pyx_state):
- *     result.beta = __pyx_state[0]; result.dim_z = __pyx_state[1]; result.dt = __pyx_state[2]; result.dz_dt = __pyx_state[3]; result.intervals = __pyx_state[4]; result.max_iters = __pyx_state[5]; result.n_steps_per_update = __pyx_state[6]; result.n_threads = __pyx_state[7]; result.rho = __pyx_state[8]; result.sigma = __pyx_state[9]; result.tol = __pyx_state[10]; result.z_half = __pyx_state[11]; result.z_temp = __pyx_state[12]
+ * cdef __pyx_unpickle_Lorenz96Integrator__set_state(Lorenz96Integrator result, tuple __pyx_state):
+ *     result.delta = __pyx_state[0]; result.dim_z = __pyx_state[1]; result.dt = __pyx_state[2]; result.dz_dt = __pyx_state[3]; result.force = __pyx_state[4]; result.intervals = __pyx_state[5]; result.max_iters = __pyx_state[6]; result.n_steps_per_update = __pyx_state[7]; result.n_threads = __pyx_state[8]; result.tol = __pyx_state[9]; result.z_half = __pyx_state[10]; result.z_temp = __pyx_state[11]
  *     if hasattr(result, '__dict__'):             # <<<<<<<<<<<<<<
- *         result.__dict__.update(__pyx_state[13])
+ *         result.__dict__.update(__pyx_state[12])
  */
   __pyx_t_6 = __Pyx_HasAttr(((PyObject *)__pyx_v_result), __pyx_n_s_dict); if (unlikely(__pyx_t_6 == -1)) __PYX_ERR(1, 11, __pyx_L1_error)
   __pyx_t_7 = (__pyx_t_6 != 0);
   if (__pyx_t_7) {
 
     /* "(tree fragment)":12
- *     result.beta = __pyx_state[0]; result.dim_z = __pyx_state[1]; result.dt = __pyx_state[2]; result.dz_dt = __pyx_state[3]; result.intervals = __pyx_state[4]; result.max_iters = __pyx_state[5]; result.n_steps_per_update = __pyx_state[6]; result.n_threads = __pyx_state[7]; result.rho = __pyx_state[8]; result.sigma = __pyx_state[9]; result.tol = __pyx_state[10]; result.z_half = __pyx_state[11]; result.z_temp = __pyx_state[12]
+ *     result.delta = __pyx_state[0]; result.dim_z = __pyx_state[1]; result.dt = __pyx_state[2]; result.dz_dt = __pyx_state[3]; result.force = __pyx_state[4]; result.intervals = __pyx_state[5]; result.max_iters = __pyx_state[6]; result.n_steps_per_update = __pyx_state[7]; result.n_threads = __pyx_state[8]; result.tol = __pyx_state[9]; result.z_half = __pyx_state[10]; result.z_temp = __pyx_state[11]
  *     if hasattr(result, '__dict__'):
- *         result.__dict__.update(__pyx_state[13])             # <<<<<<<<<<<<<<
+ *         result.__dict__.update(__pyx_state[12])             # <<<<<<<<<<<<<<
  */
     __pyx_t_8 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_result), __pyx_n_s_dict); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 12, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_8);
@@ -3275,7 +3332,7 @@ static PyObject *__pyx_f_4dapy_6models_18lorenz63integrator___pyx_unpickle_Loren
       PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
       __PYX_ERR(1, 12, __pyx_L1_error)
     }
-    __pyx_t_8 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 13, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 12, __pyx_L1_error)
+    __pyx_t_8 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 12, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 12, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_8);
     __pyx_t_10 = NULL;
     if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_9))) {
@@ -3326,18 +3383,18 @@ static PyObject *__pyx_f_4dapy_6models_18lorenz63integrator___pyx_unpickle_Loren
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
     /* "(tree fragment)":11
- * cdef __pyx_unpickle_Lorenz63Integrator__set_state(Lorenz63Integrator result, tuple __pyx_state):
- *     result.beta = __pyx_state[0]; result.dim_z = __pyx_state[1]; result.dt = __pyx_state[2]; result.dz_dt = __pyx_state[3]; result.intervals = __pyx_state[4]; result.max_iters = __pyx_state[5]; result.n_steps_per_update = __pyx_state[6]; result.n_threads = __pyx_state[7]; result.rho = __pyx_state[8]; result.sigma = __pyx_state[9]; result.tol = __pyx_state[10]; result.z_half = __pyx_state[11]; result.z_temp = __pyx_state[12]
+ * cdef __pyx_unpickle_Lorenz96Integrator__set_state(Lorenz96Integrator result, tuple __pyx_state):
+ *     result.delta = __pyx_state[0]; result.dim_z = __pyx_state[1]; result.dt = __pyx_state[2]; result.dz_dt = __pyx_state[3]; result.force = __pyx_state[4]; result.intervals = __pyx_state[5]; result.max_iters = __pyx_state[6]; result.n_steps_per_update = __pyx_state[7]; result.n_threads = __pyx_state[8]; result.tol = __pyx_state[9]; result.z_half = __pyx_state[10]; result.z_temp = __pyx_state[11]
  *     if hasattr(result, '__dict__'):             # <<<<<<<<<<<<<<
- *         result.__dict__.update(__pyx_state[13])
+ *         result.__dict__.update(__pyx_state[12])
  */
   }
 
   /* "(tree fragment)":9
- *         __pyx_unpickle_Lorenz63Integrator__set_state(<Lorenz63Integrator> result, __pyx_state)
+ *         __pyx_unpickle_Lorenz96Integrator__set_state(<Lorenz96Integrator> result, __pyx_state)
  *     return result
- * cdef __pyx_unpickle_Lorenz63Integrator__set_state(Lorenz63Integrator result, tuple __pyx_state):             # <<<<<<<<<<<<<<
- *     result.beta = __pyx_state[0]; result.dim_z = __pyx_state[1]; result.dt = __pyx_state[2]; result.dz_dt = __pyx_state[3]; result.intervals = __pyx_state[4]; result.max_iters = __pyx_state[5]; result.n_steps_per_update = __pyx_state[6]; result.n_threads = __pyx_state[7]; result.rho = __pyx_state[8]; result.sigma = __pyx_state[9]; result.tol = __pyx_state[10]; result.z_half = __pyx_state[11]; result.z_temp = __pyx_state[12]
+ * cdef __pyx_unpickle_Lorenz96Integrator__set_state(Lorenz96Integrator result, tuple __pyx_state):             # <<<<<<<<<<<<<<
+ *     result.delta = __pyx_state[0]; result.dim_z = __pyx_state[1]; result.dt = __pyx_state[2]; result.dz_dt = __pyx_state[3]; result.force = __pyx_state[4]; result.intervals = __pyx_state[5]; result.max_iters = __pyx_state[6]; result.n_steps_per_update = __pyx_state[7]; result.n_threads = __pyx_state[8]; result.tol = __pyx_state[9]; result.z_half = __pyx_state[10]; result.z_temp = __pyx_state[11]
  *     if hasattr(result, '__dict__'):
  */
 
@@ -3352,7 +3409,7 @@ static PyObject *__pyx_f_4dapy_6models_18lorenz63integrator___pyx_unpickle_Loren
   __Pyx_XDECREF(__pyx_t_9);
   __Pyx_XDECREF(__pyx_t_10);
   __Pyx_XDECREF(__pyx_t_11);
-  __Pyx_AddTraceback("dapy.models.lorenz63integrator.__pyx_unpickle_Lorenz63Integrator__set_state", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("dapy.integrators.lorenz96.__pyx_unpickle_Lorenz96Integrator__set_state", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 0;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -16104,38 +16161,38 @@ static PyObject *__pyx_unpickle_Enum__set_state(struct __pyx_MemviewEnum_obj *__
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
-static struct __pyx_vtabstruct_4dapy_6models_18lorenz63integrator_Lorenz63Integrator __pyx_vtable_4dapy_6models_18lorenz63integrator_Lorenz63Integrator;
+static struct __pyx_vtabstruct_4dapy_11integrators_8lorenz96_Lorenz96Integrator __pyx_vtable_4dapy_11integrators_8lorenz96_Lorenz96Integrator;
 
-static PyObject *__pyx_tp_new_4dapy_6models_18lorenz63integrator_Lorenz63Integrator(PyTypeObject *t, PyObject *a, PyObject *k) {
-  struct __pyx_obj_4dapy_6models_18lorenz63integrator_Lorenz63Integrator *p;
-  PyObject *o = __pyx_ptype_4dapy_6models_11integrators_ImplicitMidpointIntegrator->tp_new(t, a, k);
+static PyObject *__pyx_tp_new_4dapy_11integrators_8lorenz96_Lorenz96Integrator(PyTypeObject *t, PyObject *a, PyObject *k) {
+  struct __pyx_obj_4dapy_11integrators_8lorenz96_Lorenz96Integrator *p;
+  PyObject *o = __pyx_ptype_4dapy_11integrators_16implicitmidpoint_ImplicitMidpointIntegrator->tp_new(t, a, k);
   if (unlikely(!o)) return 0;
-  p = ((struct __pyx_obj_4dapy_6models_18lorenz63integrator_Lorenz63Integrator *)o);
-  p->__pyx_base.__pyx_vtab = (struct __pyx_vtabstruct_4dapy_6models_11integrators_ImplicitMidpointIntegrator*)__pyx_vtabptr_4dapy_6models_18lorenz63integrator_Lorenz63Integrator;
+  p = ((struct __pyx_obj_4dapy_11integrators_8lorenz96_Lorenz96Integrator *)o);
+  p->__pyx_base.__pyx_vtab = (struct __pyx_vtabstruct_4dapy_11integrators_16implicitmidpoint_ImplicitMidpointIntegrator*)__pyx_vtabptr_4dapy_11integrators_8lorenz96_Lorenz96Integrator;
   return o;
 }
 
-static void __pyx_tp_dealloc_4dapy_6models_18lorenz63integrator_Lorenz63Integrator(PyObject *o) {
+static void __pyx_tp_dealloc_4dapy_11integrators_8lorenz96_Lorenz96Integrator(PyObject *o) {
   #if PY_VERSION_HEX >= 0x030400a1
   if (unlikely(PyType_HasFeature(Py_TYPE(o), Py_TPFLAGS_HAVE_FINALIZE) && Py_TYPE(o)->tp_finalize) && (!PyType_IS_GC(Py_TYPE(o)) || !_PyGC_FINALIZED(o))) {
     if (PyObject_CallFinalizerFromDealloc(o)) return;
   }
   #endif
-  if (likely(__pyx_ptype_4dapy_6models_11integrators_ImplicitMidpointIntegrator)) __pyx_ptype_4dapy_6models_11integrators_ImplicitMidpointIntegrator->tp_dealloc(o); else __Pyx_call_next_tp_dealloc(o, __pyx_tp_dealloc_4dapy_6models_18lorenz63integrator_Lorenz63Integrator);
+  if (likely(__pyx_ptype_4dapy_11integrators_16implicitmidpoint_ImplicitMidpointIntegrator)) __pyx_ptype_4dapy_11integrators_16implicitmidpoint_ImplicitMidpointIntegrator->tp_dealloc(o); else __Pyx_call_next_tp_dealloc(o, __pyx_tp_dealloc_4dapy_11integrators_8lorenz96_Lorenz96Integrator);
 }
 
-static PyMethodDef __pyx_methods_4dapy_6models_18lorenz63integrator_Lorenz63Integrator[] = {
-  {"__reduce_cython__", (PyCFunction)__pyx_pw_4dapy_6models_18lorenz63integrator_18Lorenz63Integrator_3__reduce_cython__, METH_NOARGS, 0},
-  {"__setstate_cython__", (PyCFunction)__pyx_pw_4dapy_6models_18lorenz63integrator_18Lorenz63Integrator_5__setstate_cython__, METH_O, 0},
+static PyMethodDef __pyx_methods_4dapy_11integrators_8lorenz96_Lorenz96Integrator[] = {
+  {"__reduce_cython__", (PyCFunction)__pyx_pw_4dapy_11integrators_8lorenz96_18Lorenz96Integrator_3__reduce_cython__, METH_NOARGS, 0},
+  {"__setstate_cython__", (PyCFunction)__pyx_pw_4dapy_11integrators_8lorenz96_18Lorenz96Integrator_5__setstate_cython__, METH_O, 0},
   {0, 0, 0, 0}
 };
 
-static PyTypeObject __pyx_type_4dapy_6models_18lorenz63integrator_Lorenz63Integrator = {
+static PyTypeObject __pyx_type_4dapy_11integrators_8lorenz96_Lorenz96Integrator = {
   PyVarObject_HEAD_INIT(0, 0)
-  "dapy.models.lorenz63integrator.Lorenz63Integrator", /*tp_name*/
-  sizeof(struct __pyx_obj_4dapy_6models_18lorenz63integrator_Lorenz63Integrator), /*tp_basicsize*/
+  "dapy.integrators.lorenz96.Lorenz96Integrator", /*tp_name*/
+  sizeof(struct __pyx_obj_4dapy_11integrators_8lorenz96_Lorenz96Integrator), /*tp_basicsize*/
   0, /*tp_itemsize*/
-  __pyx_tp_dealloc_4dapy_6models_18lorenz63integrator_Lorenz63Integrator, /*tp_dealloc*/
+  __pyx_tp_dealloc_4dapy_11integrators_8lorenz96_Lorenz96Integrator, /*tp_dealloc*/
   0, /*tp_print*/
   0, /*tp_getattr*/
   0, /*tp_setattr*/
@@ -16163,7 +16220,7 @@ static PyTypeObject __pyx_type_4dapy_6models_18lorenz63integrator_Lorenz63Integr
   0, /*tp_weaklistoffset*/
   0, /*tp_iter*/
   0, /*tp_iternext*/
-  __pyx_methods_4dapy_6models_18lorenz63integrator_Lorenz63Integrator, /*tp_methods*/
+  __pyx_methods_4dapy_11integrators_8lorenz96_Lorenz96Integrator, /*tp_methods*/
   0, /*tp_members*/
   0, /*tp_getset*/
   0, /*tp_base*/
@@ -16171,9 +16228,9 @@ static PyTypeObject __pyx_type_4dapy_6models_18lorenz63integrator_Lorenz63Integr
   0, /*tp_descr_get*/
   0, /*tp_descr_set*/
   0, /*tp_dictoffset*/
-  __pyx_pw_4dapy_6models_18lorenz63integrator_18Lorenz63Integrator_1__init__, /*tp_init*/
+  __pyx_pw_4dapy_11integrators_8lorenz96_18Lorenz96Integrator_1__init__, /*tp_init*/
   0, /*tp_alloc*/
-  __pyx_tp_new_4dapy_6models_18lorenz63integrator_Lorenz63Integrator, /*tp_new*/
+  __pyx_tp_new_4dapy_11integrators_8lorenz96_Lorenz96Integrator, /*tp_new*/
   0, /*tp_free*/
   0, /*tp_is_gc*/
   0, /*tp_bases*/
@@ -16310,7 +16367,7 @@ static PyBufferProcs __pyx_tp_as_buffer_array = {
 
 static PyTypeObject __pyx_type___pyx_array = {
   PyVarObject_HEAD_INIT(0, 0)
-  "dapy.models.lorenz63integrator.array", /*tp_name*/
+  "dapy.integrators.lorenz96.array", /*tp_name*/
   sizeof(struct __pyx_array_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc_array, /*tp_dealloc*/
@@ -16418,7 +16475,7 @@ static PyMethodDef __pyx_methods_Enum[] = {
 
 static PyTypeObject __pyx_type___pyx_MemviewEnum = {
   PyVarObject_HEAD_INIT(0, 0)
-  "dapy.models.lorenz63integrator.Enum", /*tp_name*/
+  "dapy.integrators.lorenz96.Enum", /*tp_name*/
   sizeof(struct __pyx_MemviewEnum_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc_Enum, /*tp_dealloc*/
@@ -16668,7 +16725,7 @@ static PyBufferProcs __pyx_tp_as_buffer_memoryview = {
 
 static PyTypeObject __pyx_type___pyx_memoryview = {
   PyVarObject_HEAD_INIT(0, 0)
-  "dapy.models.lorenz63integrator.memoryview", /*tp_name*/
+  "dapy.integrators.lorenz96.memoryview", /*tp_name*/
   sizeof(struct __pyx_memoryview_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc_memoryview, /*tp_dealloc*/
@@ -16795,7 +16852,7 @@ static struct PyGetSetDef __pyx_getsets__memoryviewslice[] = {
 
 static PyTypeObject __pyx_type___pyx_memoryviewslice = {
   PyVarObject_HEAD_INIT(0, 0)
-  "dapy.models.lorenz63integrator._memoryviewslice", /*tp_name*/
+  "dapy.integrators.lorenz96._memoryviewslice", /*tp_name*/
   sizeof(struct __pyx_memoryviewslice_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc__memoryviewslice, /*tp_dealloc*/
@@ -16870,7 +16927,7 @@ static struct PyModuleDef __pyx_moduledef = {
   #else
     PyModuleDef_HEAD_INIT,
   #endif
-    "lorenz63integrator",
+    "lorenz96",
     0, /* m_doc */
     -1, /* m_size */
     __pyx_methods /* m_methods */,
@@ -16888,8 +16945,8 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_Cannot_index_with_type_s, __pyx_k_Cannot_index_with_type_s, sizeof(__pyx_k_Cannot_index_with_type_s), 0, 0, 1, 0},
   {&__pyx_n_s_Ellipsis, __pyx_k_Ellipsis, sizeof(__pyx_k_Ellipsis), 0, 0, 1, 1},
   {&__pyx_kp_s_Empty_shape_tuple_for_cython_arr, __pyx_k_Empty_shape_tuple_for_cython_arr, sizeof(__pyx_k_Empty_shape_tuple_for_cython_arr), 0, 0, 1, 0},
-  {&__pyx_kp_s_Incompatible_checksums_s_vs_0x4c, __pyx_k_Incompatible_checksums_s_vs_0x4c, sizeof(__pyx_k_Incompatible_checksums_s_vs_0x4c), 0, 0, 1, 0},
   {&__pyx_kp_s_Incompatible_checksums_s_vs_0xb0, __pyx_k_Incompatible_checksums_s_vs_0xb0, sizeof(__pyx_k_Incompatible_checksums_s_vs_0xb0), 0, 0, 1, 0},
+  {&__pyx_kp_s_Incompatible_checksums_s_vs_0xb7, __pyx_k_Incompatible_checksums_s_vs_0xb7, sizeof(__pyx_k_Incompatible_checksums_s_vs_0xb7), 0, 0, 1, 0},
   {&__pyx_n_s_IndexError, __pyx_k_IndexError, sizeof(__pyx_k_IndexError), 0, 0, 1, 1},
   {&__pyx_kp_s_Indirect_dimensions_not_supporte, __pyx_k_Indirect_dimensions_not_supporte, sizeof(__pyx_k_Indirect_dimensions_not_supporte), 0, 0, 1, 0},
   {&__pyx_kp_s_Invalid_mode_expected_c_or_fortr, __pyx_k_Invalid_mode_expected_c_or_fortr, sizeof(__pyx_k_Invalid_mode_expected_c_or_fortr), 0, 0, 1, 0},
@@ -16907,30 +16964,32 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s__21, __pyx_k__21, sizeof(__pyx_k__21), 0, 0, 1, 1},
   {&__pyx_n_s_allocate_buffer, __pyx_k_allocate_buffer, sizeof(__pyx_k_allocate_buffer), 0, 0, 1, 1},
   {&__pyx_n_s_base, __pyx_k_base, sizeof(__pyx_k_base), 0, 0, 1, 1},
-  {&__pyx_n_s_beta, __pyx_k_beta, sizeof(__pyx_k_beta), 0, 0, 1, 1},
   {&__pyx_n_s_c, __pyx_k_c, sizeof(__pyx_k_c), 0, 0, 1, 1},
   {&__pyx_n_u_c, __pyx_k_c, sizeof(__pyx_k_c), 0, 1, 0, 1},
   {&__pyx_n_s_class, __pyx_k_class, sizeof(__pyx_k_class), 0, 0, 1, 1},
   {&__pyx_n_s_cline_in_traceback, __pyx_k_cline_in_traceback, sizeof(__pyx_k_cline_in_traceback), 0, 0, 1, 1},
   {&__pyx_kp_s_contiguous_and_direct, __pyx_k_contiguous_and_direct, sizeof(__pyx_k_contiguous_and_direct), 0, 0, 1, 0},
   {&__pyx_kp_s_contiguous_and_indirect, __pyx_k_contiguous_and_indirect, sizeof(__pyx_k_contiguous_and_indirect), 0, 0, 1, 0},
-  {&__pyx_n_s_dapy_models_integrators, __pyx_k_dapy_models_integrators, sizeof(__pyx_k_dapy_models_integrators), 0, 0, 1, 1},
-  {&__pyx_n_s_dapy_models_lorenz63integrator, __pyx_k_dapy_models_lorenz63integrator, sizeof(__pyx_k_dapy_models_lorenz63integrator), 0, 0, 1, 1},
+  {&__pyx_n_s_dapy_integrators_implicitmidpoin, __pyx_k_dapy_integrators_implicitmidpoin, sizeof(__pyx_k_dapy_integrators_implicitmidpoin), 0, 0, 1, 1},
+  {&__pyx_n_s_dapy_integrators_lorenz96, __pyx_k_dapy_integrators_lorenz96, sizeof(__pyx_k_dapy_integrators_lorenz96), 0, 0, 1, 1},
+  {&__pyx_n_s_delta, __pyx_k_delta, sizeof(__pyx_k_delta), 0, 0, 1, 1},
   {&__pyx_n_s_dict, __pyx_k_dict, sizeof(__pyx_k_dict), 0, 0, 1, 1},
+  {&__pyx_n_s_dim_z, __pyx_k_dim_z, sizeof(__pyx_k_dim_z), 0, 0, 1, 1},
   {&__pyx_n_s_dt, __pyx_k_dt, sizeof(__pyx_k_dt), 0, 0, 1, 1},
   {&__pyx_n_s_dtype_is_object, __pyx_k_dtype_is_object, sizeof(__pyx_k_dtype_is_object), 0, 0, 1, 1},
   {&__pyx_n_s_encode, __pyx_k_encode, sizeof(__pyx_k_encode), 0, 0, 1, 1},
   {&__pyx_n_s_enumerate, __pyx_k_enumerate, sizeof(__pyx_k_enumerate), 0, 0, 1, 1},
   {&__pyx_n_s_error, __pyx_k_error, sizeof(__pyx_k_error), 0, 0, 1, 1},
   {&__pyx_n_s_flags, __pyx_k_flags, sizeof(__pyx_k_flags), 0, 0, 1, 1},
+  {&__pyx_n_s_force, __pyx_k_force, sizeof(__pyx_k_force), 0, 0, 1, 1},
   {&__pyx_n_s_format, __pyx_k_format, sizeof(__pyx_k_format), 0, 0, 1, 1},
   {&__pyx_n_s_fortran, __pyx_k_fortran, sizeof(__pyx_k_fortran), 0, 0, 1, 1},
   {&__pyx_n_u_fortran, __pyx_k_fortran, sizeof(__pyx_k_fortran), 0, 1, 0, 1},
   {&__pyx_kp_s_got_differing_extents_in_dimensi, __pyx_k_got_differing_extents_in_dimensi, sizeof(__pyx_k_got_differing_extents_in_dimensi), 0, 0, 1, 0},
   {&__pyx_n_s_id, __pyx_k_id, sizeof(__pyx_k_id), 0, 0, 1, 1},
+  {&__pyx_n_s_impl, __pyx_k_impl, sizeof(__pyx_k_impl), 0, 0, 1, 1},
   {&__pyx_n_s_import, __pyx_k_import, sizeof(__pyx_k_import), 0, 0, 1, 1},
   {&__pyx_n_s_init, __pyx_k_init, sizeof(__pyx_k_init), 0, 0, 1, 1},
-  {&__pyx_n_s_integrators, __pyx_k_integrators, sizeof(__pyx_k_integrators), 0, 0, 1, 1},
   {&__pyx_n_s_itemsize, __pyx_k_itemsize, sizeof(__pyx_k_itemsize), 0, 0, 1, 1},
   {&__pyx_kp_s_itemsize_0_for_cython_array, __pyx_k_itemsize_0_for_cython_array, sizeof(__pyx_k_itemsize_0_for_cython_array), 0, 0, 1, 0},
   {&__pyx_n_s_main, __pyx_k_main, sizeof(__pyx_k_main), 0, 0, 1, 1},
@@ -16951,15 +17010,13 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_pyx_state, __pyx_k_pyx_state, sizeof(__pyx_k_pyx_state), 0, 0, 1, 1},
   {&__pyx_n_s_pyx_type, __pyx_k_pyx_type, sizeof(__pyx_k_pyx_type), 0, 0, 1, 1},
   {&__pyx_n_s_pyx_unpickle_Enum, __pyx_k_pyx_unpickle_Enum, sizeof(__pyx_k_pyx_unpickle_Enum), 0, 0, 1, 1},
-  {&__pyx_n_s_pyx_unpickle_Lorenz63Integrato, __pyx_k_pyx_unpickle_Lorenz63Integrato, sizeof(__pyx_k_pyx_unpickle_Lorenz63Integrato), 0, 0, 1, 1},
+  {&__pyx_n_s_pyx_unpickle_Lorenz96Integrato, __pyx_k_pyx_unpickle_Lorenz96Integrato, sizeof(__pyx_k_pyx_unpickle_Lorenz96Integrato), 0, 0, 1, 1},
   {&__pyx_n_s_pyx_vtable, __pyx_k_pyx_vtable, sizeof(__pyx_k_pyx_vtable), 0, 0, 1, 1},
   {&__pyx_n_s_range, __pyx_k_range, sizeof(__pyx_k_range), 0, 0, 1, 1},
   {&__pyx_n_s_reduce_cython, __pyx_k_reduce_cython, sizeof(__pyx_k_reduce_cython), 0, 0, 1, 1},
   {&__pyx_n_s_result, __pyx_k_result, sizeof(__pyx_k_result), 0, 0, 1, 1},
-  {&__pyx_n_s_rho, __pyx_k_rho, sizeof(__pyx_k_rho), 0, 0, 1, 1},
   {&__pyx_n_s_setstate_cython, __pyx_k_setstate_cython, sizeof(__pyx_k_setstate_cython), 0, 0, 1, 1},
   {&__pyx_n_s_shape, __pyx_k_shape, sizeof(__pyx_k_shape), 0, 0, 1, 1},
-  {&__pyx_n_s_sigma, __pyx_k_sigma, sizeof(__pyx_k_sigma), 0, 0, 1, 1},
   {&__pyx_n_s_size, __pyx_k_size, sizeof(__pyx_k_size), 0, 0, 1, 1},
   {&__pyx_n_s_start, __pyx_k_start, sizeof(__pyx_k_start), 0, 0, 1, 1},
   {&__pyx_n_s_step, __pyx_k_step, sizeof(__pyx_k_step), 0, 0, 1, 1},
@@ -16980,10 +17037,10 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
 };
 static int __Pyx_InitCachedBuiltins(void) {
   __pyx_builtin_super = __Pyx_GetBuiltinName(__pyx_n_s_super); if (!__pyx_builtin_super) __PYX_ERR(0, 14, __pyx_L1_error)
+  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 26, __pyx_L1_error)
   __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(1, 131, __pyx_L1_error)
   __pyx_builtin_MemoryError = __Pyx_GetBuiltinName(__pyx_n_s_MemoryError); if (!__pyx_builtin_MemoryError) __PYX_ERR(1, 146, __pyx_L1_error)
   __pyx_builtin_enumerate = __Pyx_GetBuiltinName(__pyx_n_s_enumerate); if (!__pyx_builtin_enumerate) __PYX_ERR(1, 149, __pyx_L1_error)
-  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(1, 178, __pyx_L1_error)
   __pyx_builtin_TypeError = __Pyx_GetBuiltinName(__pyx_n_s_TypeError); if (!__pyx_builtin_TypeError) __PYX_ERR(1, 2, __pyx_L1_error)
   __pyx_builtin_Ellipsis = __Pyx_GetBuiltinName(__pyx_n_s_Ellipsis); if (!__pyx_builtin_Ellipsis) __PYX_ERR(1, 396, __pyx_L1_error)
   __pyx_builtin_id = __Pyx_GetBuiltinName(__pyx_n_s_id); if (!__pyx_builtin_id) __PYX_ERR(1, 599, __pyx_L1_error)
@@ -17201,14 +17258,14 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__20);
 
   /* "(tree fragment)":1
- * def __pyx_unpickle_Lorenz63Integrator(__pyx_type, long __pyx_checksum, __pyx_state):             # <<<<<<<<<<<<<<
- *     if __pyx_checksum != 0x4c55285:
+ * def __pyx_unpickle_Lorenz96Integrator(__pyx_type, long __pyx_checksum, __pyx_state):             # <<<<<<<<<<<<<<
+ *     if __pyx_checksum != 0xb76e140:
  *         from pickle import PickleError
  */
   __pyx_tuple__22 = PyTuple_Pack(5, __pyx_n_s_pyx_type, __pyx_n_s_pyx_checksum, __pyx_n_s_pyx_state, __pyx_n_s_PickleError, __pyx_n_s_result); if (unlikely(!__pyx_tuple__22)) __PYX_ERR(1, 1, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__22);
   __Pyx_GIVEREF(__pyx_tuple__22);
-  __pyx_codeobj__23 = (PyObject*)__Pyx_PyCode_New(3, 0, 5, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__22, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_pyx_unpickle_Lorenz63Integrato, 1, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__23)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __pyx_codeobj__23 = (PyObject*)__Pyx_PyCode_New(3, 0, 5, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__22, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_pyx_unpickle_Lorenz96Integrato, 1, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__23)) __PYX_ERR(1, 1, __pyx_L1_error)
 
   /* "View.MemoryView":282
  *         return self.name
@@ -17285,9 +17342,9 @@ static int __Pyx_InitGlobals(void) {
   if (__Pyx_InitStrings(__pyx_string_tab) < 0) __PYX_ERR(0, 1, __pyx_L1_error);
   __pyx_int_0 = PyInt_FromLong(0); if (unlikely(!__pyx_int_0)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_1 = PyInt_FromLong(1); if (unlikely(!__pyx_int_1)) __PYX_ERR(0, 1, __pyx_L1_error)
-  __pyx_int_3 = PyInt_FromLong(3); if (unlikely(!__pyx_int_3)) __PYX_ERR(0, 1, __pyx_L1_error)
-  __pyx_int_80040581 = PyInt_FromLong(80040581L); if (unlikely(!__pyx_int_80040581)) __PYX_ERR(0, 1, __pyx_L1_error)
+  __pyx_int_40 = PyInt_FromLong(40); if (unlikely(!__pyx_int_40)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_184977713 = PyInt_FromLong(184977713L); if (unlikely(!__pyx_int_184977713)) __PYX_ERR(0, 1, __pyx_L1_error)
+  __pyx_int_192340288 = PyInt_FromLong(192340288L); if (unlikely(!__pyx_int_192340288)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_neg_1 = PyInt_FromLong(-1); if (unlikely(!__pyx_int_neg_1)) __PYX_ERR(0, 1, __pyx_L1_error)
   return 0;
   __pyx_L1_error:;
@@ -17295,11 +17352,11 @@ static int __Pyx_InitGlobals(void) {
 }
 
 #if PY_MAJOR_VERSION < 3
-PyMODINIT_FUNC initlorenz63integrator(void); /*proto*/
-PyMODINIT_FUNC initlorenz63integrator(void)
+PyMODINIT_FUNC initlorenz96(void); /*proto*/
+PyMODINIT_FUNC initlorenz96(void)
 #else
-PyMODINIT_FUNC PyInit_lorenz63integrator(void); /*proto*/
-PyMODINIT_FUNC PyInit_lorenz63integrator(void)
+PyMODINIT_FUNC PyInit_lorenz96(void); /*proto*/
+PyMODINIT_FUNC PyInit_lorenz96(void)
 #endif
 {
   PyObject *__pyx_t_1 = NULL;
@@ -17315,7 +17372,7 @@ PyMODINIT_FUNC PyInit_lorenz63integrator(void)
           Py_FatalError("failed to import 'refnanny' module");
   }
   #endif
-  __Pyx_RefNannySetupContext("PyMODINIT_FUNC PyInit_lorenz63integrator(void)", 0);
+  __Pyx_RefNannySetupContext("PyMODINIT_FUNC PyInit_lorenz96(void)", 0);
   if (__Pyx_check_binary_version() < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_empty_tuple = PyTuple_New(0); if (unlikely(!__pyx_empty_tuple)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_empty_bytes = PyBytes_FromStringAndSize("", 0); if (unlikely(!__pyx_empty_bytes)) __PYX_ERR(0, 1, __pyx_L1_error)
@@ -17344,7 +17401,7 @@ PyMODINIT_FUNC PyInit_lorenz63integrator(void)
   #endif
   /*--- Module creation code ---*/
   #if PY_MAJOR_VERSION < 3
-  __pyx_m = Py_InitModule4("lorenz63integrator", __pyx_methods, 0, 0, PYTHON_API_VERSION); Py_XINCREF(__pyx_m);
+  __pyx_m = Py_InitModule4("lorenz96", __pyx_methods, 0, 0, PYTHON_API_VERSION); Py_XINCREF(__pyx_m);
   #else
   __pyx_m = PyModule_Create(&__pyx_moduledef);
   #endif
@@ -17362,14 +17419,14 @@ PyMODINIT_FUNC PyInit_lorenz63integrator(void)
   #if PY_MAJOR_VERSION < 3 && (__PYX_DEFAULT_STRING_ENCODING_IS_ASCII || __PYX_DEFAULT_STRING_ENCODING_IS_DEFAULT)
   if (__Pyx_init_sys_getdefaultencoding_params() < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   #endif
-  if (__pyx_module_is_main_dapy__models__lorenz63integrator) {
+  if (__pyx_module_is_main_dapy__integrators__lorenz96) {
     if (PyObject_SetAttrString(__pyx_m, "__name__", __pyx_n_s_main) < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   }
   #if PY_MAJOR_VERSION >= 3
   {
     PyObject *modules = PyImport_GetModuleDict(); if (unlikely(!modules)) __PYX_ERR(0, 1, __pyx_L1_error)
-    if (!PyDict_GetItemString(modules, "dapy.models.lorenz63integrator")) {
-      if (unlikely(PyDict_SetItemString(modules, "dapy.models.lorenz63integrator", __pyx_m) < 0)) __PYX_ERR(0, 1, __pyx_L1_error)
+    if (!PyDict_GetItemString(modules, "dapy.integrators.lorenz96")) {
+      if (unlikely(PyDict_SetItemString(modules, "dapy.integrators.lorenz96", __pyx_m) < 0)) __PYX_ERR(0, 1, __pyx_L1_error)
     }
   }
   #endif
@@ -17386,18 +17443,19 @@ PyMODINIT_FUNC PyInit_lorenz63integrator(void)
   /*--- Variable export code ---*/
   /*--- Function export code ---*/
   /*--- Type init code ---*/
-  __pyx_ptype_4dapy_6models_11integrators_ImplicitMidpointIntegrator = __Pyx_ImportType("dapy.models.integrators", "ImplicitMidpointIntegrator", sizeof(struct __pyx_obj_4dapy_6models_11integrators_ImplicitMidpointIntegrator), 1); if (unlikely(!__pyx_ptype_4dapy_6models_11integrators_ImplicitMidpointIntegrator)) __PYX_ERR(0, 1, __pyx_L1_error)
-  __pyx_vtabptr_4dapy_6models_11integrators_ImplicitMidpointIntegrator = (struct __pyx_vtabstruct_4dapy_6models_11integrators_ImplicitMidpointIntegrator*)__Pyx_GetVtable(__pyx_ptype_4dapy_6models_11integrators_ImplicitMidpointIntegrator->tp_dict); if (unlikely(!__pyx_vtabptr_4dapy_6models_11integrators_ImplicitMidpointIntegrator)) __PYX_ERR(0, 1, __pyx_L1_error)
-  __pyx_vtabptr_4dapy_6models_18lorenz63integrator_Lorenz63Integrator = &__pyx_vtable_4dapy_6models_18lorenz63integrator_Lorenz63Integrator;
-  __pyx_vtable_4dapy_6models_18lorenz63integrator_Lorenz63Integrator.__pyx_base = *__pyx_vtabptr_4dapy_6models_11integrators_ImplicitMidpointIntegrator;
-  __pyx_vtable_4dapy_6models_18lorenz63integrator_Lorenz63Integrator.__pyx_base.update_dz_dt = (void (*)(struct __pyx_obj_4dapy_6models_11integrators_ImplicitMidpointIntegrator *, __Pyx_memviewslice, double, __Pyx_memviewslice))__pyx_f_4dapy_6models_18lorenz63integrator_18Lorenz63Integrator_update_dz_dt;
-  __pyx_type_4dapy_6models_18lorenz63integrator_Lorenz63Integrator.tp_base = __pyx_ptype_4dapy_6models_11integrators_ImplicitMidpointIntegrator;
-  if (PyType_Ready(&__pyx_type_4dapy_6models_18lorenz63integrator_Lorenz63Integrator) < 0) __PYX_ERR(0, 4, __pyx_L1_error)
-  __pyx_type_4dapy_6models_18lorenz63integrator_Lorenz63Integrator.tp_print = 0;
-  if (__Pyx_SetVtable(__pyx_type_4dapy_6models_18lorenz63integrator_Lorenz63Integrator.tp_dict, __pyx_vtabptr_4dapy_6models_18lorenz63integrator_Lorenz63Integrator) < 0) __PYX_ERR(0, 4, __pyx_L1_error)
-  if (PyObject_SetAttrString(__pyx_m, "Lorenz63Integrator", (PyObject *)&__pyx_type_4dapy_6models_18lorenz63integrator_Lorenz63Integrator) < 0) __PYX_ERR(0, 4, __pyx_L1_error)
-  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_4dapy_6models_18lorenz63integrator_Lorenz63Integrator) < 0) __PYX_ERR(0, 4, __pyx_L1_error)
-  __pyx_ptype_4dapy_6models_18lorenz63integrator_Lorenz63Integrator = &__pyx_type_4dapy_6models_18lorenz63integrator_Lorenz63Integrator;
+  __pyx_ptype_4dapy_11integrators_16implicitmidpoint_ImplicitMidpointIntegrator = __Pyx_ImportType("dapy.integrators.implicitmidpoint", "ImplicitMidpointIntegrator", sizeof(struct __pyx_obj_4dapy_11integrators_16implicitmidpoint_ImplicitMidpointIntegrator), 1); if (unlikely(!__pyx_ptype_4dapy_11integrators_16implicitmidpoint_ImplicitMidpointIntegrator)) __PYX_ERR(0, 1, __pyx_L1_error)
+  __pyx_vtabptr_4dapy_11integrators_16implicitmidpoint_ImplicitMidpointIntegrator = (struct __pyx_vtabstruct_4dapy_11integrators_16implicitmidpoint_ImplicitMidpointIntegrator*)__Pyx_GetVtable(__pyx_ptype_4dapy_11integrators_16implicitmidpoint_ImplicitMidpointIntegrator->tp_dict); if (unlikely(!__pyx_vtabptr_4dapy_11integrators_16implicitmidpoint_ImplicitMidpointIntegrator)) __PYX_ERR(0, 1, __pyx_L1_error)
+  __pyx_vtabptr_4dapy_11integrators_8lorenz96_Lorenz96Integrator = &__pyx_vtable_4dapy_11integrators_8lorenz96_Lorenz96Integrator;
+  __pyx_vtable_4dapy_11integrators_8lorenz96_Lorenz96Integrator.__pyx_base = *__pyx_vtabptr_4dapy_11integrators_16implicitmidpoint_ImplicitMidpointIntegrator;
+  __pyx_vtable_4dapy_11integrators_8lorenz96_Lorenz96Integrator.__pyx_base.update_dz_dt = (void (*)(struct __pyx_obj_4dapy_11integrators_16implicitmidpoint_ImplicitMidpointIntegrator *, __Pyx_memviewslice, double, __Pyx_memviewslice))__pyx_f_4dapy_11integrators_8lorenz96_18Lorenz96Integrator_update_dz_dt;
+  __pyx_vtable_4dapy_11integrators_8lorenz96_Lorenz96Integrator.circ_shift = (int (*)(struct __pyx_obj_4dapy_11integrators_8lorenz96_Lorenz96Integrator *, int, int))__pyx_f_4dapy_11integrators_8lorenz96_18Lorenz96Integrator_circ_shift;
+  __pyx_type_4dapy_11integrators_8lorenz96_Lorenz96Integrator.tp_base = __pyx_ptype_4dapy_11integrators_16implicitmidpoint_ImplicitMidpointIntegrator;
+  if (PyType_Ready(&__pyx_type_4dapy_11integrators_8lorenz96_Lorenz96Integrator) < 0) __PYX_ERR(0, 5, __pyx_L1_error)
+  __pyx_type_4dapy_11integrators_8lorenz96_Lorenz96Integrator.tp_print = 0;
+  if (__Pyx_SetVtable(__pyx_type_4dapy_11integrators_8lorenz96_Lorenz96Integrator.tp_dict, __pyx_vtabptr_4dapy_11integrators_8lorenz96_Lorenz96Integrator) < 0) __PYX_ERR(0, 5, __pyx_L1_error)
+  if (PyObject_SetAttrString(__pyx_m, "Lorenz96Integrator", (PyObject *)&__pyx_type_4dapy_11integrators_8lorenz96_Lorenz96Integrator) < 0) __PYX_ERR(0, 5, __pyx_L1_error)
+  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_4dapy_11integrators_8lorenz96_Lorenz96Integrator) < 0) __PYX_ERR(0, 5, __pyx_L1_error)
+  __pyx_ptype_4dapy_11integrators_8lorenz96_Lorenz96Integrator = &__pyx_type_4dapy_11integrators_8lorenz96_Lorenz96Integrator;
   __pyx_vtabptr_array = &__pyx_vtable_array;
   __pyx_vtable_array.get_memview = (PyObject *(*)(struct __pyx_array_obj *))__pyx_array_get_memview;
   if (PyType_Ready(&__pyx_type___pyx_array) < 0) __PYX_ERR(1, 103, __pyx_L1_error)
@@ -17440,45 +17498,45 @@ PyMODINIT_FUNC PyInit_lorenz63integrator(void)
   if (__Pyx_patch_abc() < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   #endif
 
-  /* "dapy/models/lorenz63integrator.pyx":2
- * cimport dapy.models.integrators as integrators
- * import dapy.models.integrators as integrators             # <<<<<<<<<<<<<<
+  /* "dapy/integrators/lorenz96.pyx":2
+ * cimport dapy.integrators.implicitmidpoint as impl
+ * import dapy.integrators.implicitmidpoint as impl             # <<<<<<<<<<<<<<
  * 
- * cdef class Lorenz63Integrator(integrators.ImplicitMidpointIntegrator):
+ * 
  */
   __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_n_s__21);
   __Pyx_GIVEREF(__pyx_n_s__21);
   PyList_SET_ITEM(__pyx_t_1, 0, __pyx_n_s__21);
-  __pyx_t_2 = __Pyx_Import(__pyx_n_s_dapy_models_integrators, __pyx_t_1, -1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_Import(__pyx_n_s_dapy_integrators_implicitmidpoin, __pyx_t_1, -1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_integrators, __pyx_t_2) < 0) __PYX_ERR(0, 2, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_impl, __pyx_t_2) < 0) __PYX_ERR(0, 2, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "dapy/models/lorenz63integrator.pyx":8
- *     cdef double sigma, rho, beta
+  /* "dapy/integrators/lorenz96.pyx":9
+ *     cdef double delta, force
  * 
- *     def __init__(self, double sigma=10., double rho=28., double beta=8./3.,             # <<<<<<<<<<<<<<
- *                  double dt=0.01, double tol=1e-8, int max_iters=100,
+ *     def __init__(self, dim_z=40, double delta=1./3., double force=8.,             # <<<<<<<<<<<<<<
+ *                  double dt=0.005, double tol=1e-8,  int max_iters=100,
  *                  int n_threads=4):
  */
-  __pyx_k_ = (8. / 3.);
+  __pyx_k_ = (1. / 3.);
 
   /* "(tree fragment)":1
- * def __pyx_unpickle_Lorenz63Integrator(__pyx_type, long __pyx_checksum, __pyx_state):             # <<<<<<<<<<<<<<
- *     if __pyx_checksum != 0x4c55285:
+ * def __pyx_unpickle_Lorenz96Integrator(__pyx_type, long __pyx_checksum, __pyx_state):             # <<<<<<<<<<<<<<
+ *     if __pyx_checksum != 0xb76e140:
  *         from pickle import PickleError
  */
-  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_4dapy_6models_18lorenz63integrator_1__pyx_unpickle_Lorenz63Integrator, NULL, __pyx_n_s_dapy_models_lorenz63integrator); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_4dapy_11integrators_8lorenz96_1__pyx_unpickle_Lorenz96Integrator, NULL, __pyx_n_s_dapy_integrators_lorenz96); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 1, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_pyx_unpickle_Lorenz63Integrato, __pyx_t_2) < 0) __PYX_ERR(1, 1, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_pyx_unpickle_Lorenz96Integrato, __pyx_t_2) < 0) __PYX_ERR(1, 1, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "dapy/models/lorenz63integrator.pyx":1
- * cimport dapy.models.integrators as integrators             # <<<<<<<<<<<<<<
- * import dapy.models.integrators as integrators
+  /* "dapy/integrators/lorenz96.pyx":1
+ * cimport dapy.integrators.implicitmidpoint as impl             # <<<<<<<<<<<<<<
+ * import dapy.integrators.implicitmidpoint as impl
  * 
  */
   __pyx_t_2 = PyDict_New(); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1, __pyx_L1_error)
@@ -17647,11 +17705,11 @@ PyMODINIT_FUNC PyInit_lorenz63integrator(void)
   __Pyx_XDECREF(__pyx_t_2);
   if (__pyx_m) {
     if (__pyx_d) {
-      __Pyx_AddTraceback("init dapy.models.lorenz63integrator", 0, __pyx_lineno, __pyx_filename);
+      __Pyx_AddTraceback("init dapy.integrators.lorenz96", 0, __pyx_lineno, __pyx_filename);
     }
     Py_DECREF(__pyx_m); __pyx_m = 0;
   } else if (!PyErr_Occurred()) {
-    PyErr_SetString(PyExc_ImportError, "init dapy.models.lorenz63integrator");
+    PyErr_SetString(PyExc_ImportError, "init dapy.integrators.lorenz96");
   }
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
@@ -17999,21 +18057,11 @@ static CYTHON_INLINE PyObject * __Pyx_PyCFunction_FastCall(PyObject *func_obj, P
 }
 #endif
 
-/* BufferIndexError */
-static void __Pyx_RaiseBufferIndexError(int axis) {
-  PyErr_Format(PyExc_IndexError,
-     "Out of bounds on buffer access (axis %d)", axis);
-}
-
-/* BufferIndexErrorNogil */
-static void __Pyx_RaiseBufferIndexErrorNogil(int axis) {
-    #ifdef WITH_THREAD
-    PyGILState_STATE gilstate = PyGILState_Ensure();
-    #endif
-    __Pyx_RaiseBufferIndexError(axis);
-    #ifdef WITH_THREAD
-    PyGILState_Release(gilstate);
-    #endif
+/* None */
+static CYTHON_INLINE int __Pyx_mod_int(int a, int b) {
+    int r = a % b;
+    r += ((r != 0) & ((r ^ b) < 0)) * b;
+    return r;
 }
 
 /* PyErrFetchRestore */
@@ -18080,6 +18128,23 @@ static void __Pyx_WriteUnraisable(const char *name, CYTHON_UNUSED int clineno,
     if (nogil)
         PyGILState_Release(state);
 #endif
+}
+
+/* BufferIndexError */
+static void __Pyx_RaiseBufferIndexError(int axis) {
+  PyErr_Format(PyExc_IndexError,
+     "Out of bounds on buffer access (axis %d)", axis);
+}
+
+/* BufferIndexErrorNogil */
+static void __Pyx_RaiseBufferIndexErrorNogil(int axis) {
+    #ifdef WITH_THREAD
+    PyGILState_STATE gilstate = PyGILState_Ensure();
+    #endif
+    __Pyx_RaiseBufferIndexError(axis);
+    #ifdef WITH_THREAD
+    PyGILState_Release(gilstate);
+    #endif
 }
 
 /* GetAttr */

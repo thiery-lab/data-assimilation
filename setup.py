@@ -58,22 +58,23 @@ if args.use_cython and args.use_cython_opts:
         'wraparound': False,  # assume no negative indexing
         'cdivision': True,  # don't check for zero division
         'initializedcheck': False,  # don't check memory view init
-        'embedsignature': True  # include call signature in docstrings
+        'embedsignature': True,  # include call signature in docstrings
+        'language_level': 3, # Python 3
     }
 else:
     compiler_directives = {}
 
 ext_modules = [
-    Extension('dapy.models.integrators',
-              ['dapy/models/integrators' + ext],
+    Extension('dapy.integrators.implicitmidpoint',
+              ['dapy/integrators/implicitmidpoint' + ext],
               extra_compile_args=extra_compile_args,
               extra_link_args=extra_link_args),
-    Extension('dapy.models.lorenz63integrator',
-              ['dapy/models/lorenz63integrator' + ext],
+    Extension('dapy.integrators.lorenz63',
+              ['dapy/integrators/lorenz63' + ext],
               extra_compile_args=extra_compile_args,
               extra_link_args=extra_link_args),
-    Extension('dapy.models.lorenz96integrator',
-              ['dapy/models/lorenz96integrator' + ext],
+    Extension('dapy.integrators.lorenz96',
+              ['dapy/integrators/lorenz96' + ext],
               extra_compile_args=extra_compile_args,
               extra_link_args=extra_link_args)
 ]
@@ -86,8 +87,9 @@ if args.use_cython:
 
 packages = [
     'dapy',
+    'dapy.inference',
+    'dapy.integrators',
     'dapy.models',
-    'dapy.inference'
 ]
 
 if __name__ == '__main__':

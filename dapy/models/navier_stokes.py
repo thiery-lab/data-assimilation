@@ -3,11 +3,11 @@
 import numpy as np
 from dapy.utils import inherit_docstrings
 from dapy.models.base import IntegratorModel, DiagonalGaussianObservationModel
-from dapy.models.fluidsim2dintegrators import FourierFluidSim2dIntegrator
+from dapy.integrators.navier_stokes import FourierNavierStokes2dIntegrator
 
 
 @inherit_docstrings
-class FluidSim2DModel(IntegratorModel, DiagonalGaussianObservationModel):
+class NavierStokes2dModel(IntegratorModel, DiagonalGaussianObservationModel):
     """Incompressible Navier-Stokes fluid simulation on 2D periodic grid.
 
     Simulates evolution of a fluid velocity field and density field of a
@@ -131,7 +131,7 @@ class FluidSim2DModel(IntegratorModel, DiagonalGaussianObservationModel):
             stream_noise_kernel * integrator.grad_1_kernel[None, :],
             stream_noise_kernel * -integrator.grad_0_kernel[:, None]
         ], axis=0) / integrator.cell_size[:, None, None]
-        super(FluidSim2DModel, self).__init__(
+        super(NavierStokes2dModel, self).__init__(
             integrator=integrator, n_steps_per_update=n_steps_per_update,
             obser_noise_std=obser_noise_std, dim_z=dim_z, dim_x=dim_x, rng=rng)
 

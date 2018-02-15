@@ -1,3 +1,5 @@
+"""Implicit mid-point integrator for ordinary differential equations."""
+
 cimport cython
 from cython.parallel import prange
 import numpy as np

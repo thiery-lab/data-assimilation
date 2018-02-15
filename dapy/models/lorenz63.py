@@ -10,7 +10,7 @@ Model originally proposed in:
 import numpy as np
 from dapy.utils import inherit_docstrings
 from dapy.models.base import DiagonalGaussianModel, IntegratorModel
-from dapy.models.lorenz63integrator import Lorenz63Integrator
+from dapy.integrators.lorenz63 import Lorenz63Integrator
 
 
 @inherit_docstrings
