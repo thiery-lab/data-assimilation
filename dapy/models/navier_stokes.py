@@ -107,7 +107,7 @@ class NavierStokes2dModel(IntegratorModel, DiagonalGaussianObservationModel):
         """
         dim_z = grid_shape[0] * grid_shape[1] * 3
         dim_x = grid_shape[0] * grid_shape[1] // obs_subsample**2
-        integrator = FourierFluidSim2dIntegrator(
+        integrator = FourierNavierStokes2dIntegrator(
             grid_shape=grid_shape,
             density_source=density_source, grid_size=grid_size, dt=dt,
             dens_diff_coeff=dens_diff_coeff, visc_diff_coeff=visc_diff_coeff,
