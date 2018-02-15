@@ -231,3 +231,113 @@ class LocalEnsembleTransformParticleFilter(AbstractLocalEnsembleFilter):
         z_analysis_mean = z_analysis.mean(0)
         dz_analysis = z_analysis - z_analysis_mean
         return z_analysis_mean + dz_analysis * self.inflation_factor
+
+
+class PouLocalEnsembleTransportParticleFilter(AbstractEnsembleFilter):
+    """Local ensemble transport filter using partition of unity bases."""
+
+    def __init__(self, init_state_sampler, next_state_sampler, rng,
+                 log_likelihood_per_obs_loc, localisation_kernel,
+                 pou_basis, sinkhorn_epsilon=0., sinkhorn_n_iter=None,
+                 inflation_factor=1.):
+        super(PouLocalEnsembleTransportParticleFilter, self).__init__(
+            init_state_sampler, next_state_sampler, rng)
+        self.log_likelihood_per_obs_loc = log_likelihood_per_obs_loc
+        self.localisation_kernel = localisation_kernel
+        self.pou_basis = pou_basis
+        self.sinkhorn_epsilon = sinkhorn_epsilon
+        self.sinkhorn_n_iter = sinkhorn_n_iter
+        self.inflation_factor = inflation_factor
+
+    def solve_optimal_transport_exact(self, cost_matrices, target_marginals):
+        n_particle, n_bases = target_marginals.shape
+        u = ot.unif(n_particle)
+        trans_matrices = np.empty((n_particle, n_particle, n_bases))
+        target_marginals /= target_marginals.sum(0)[None, :]
+        for r in range(n_bases):
+            trans_matrices[:, :, r] = ot.emd(
+                target_marginals[:, r].copy(), u,
+                cost_matrices[:, :, r].copy()).T
+        return trans_matrices * n_particle
+
+    def solve_optimal_transport_sinkhorn_alt(
+            self, cost_matrices, target_marginals):
+        n_particle, n_bases = target_marginals.shape
+        u = ot.unif(n_particle)
+        trans_matrices = np.empty((n_particle, n_particle, n_bases))
+        target_marginals /= target_marginals.sum(0)[None, :]
+        for r in range(n_bases):
+            trans_matrices[:, :, r] = ot.sinkhorn(
+                target_marginals[:, r].copy(), u,
+                cost_matrices[:, :, r].copy(),
+                self.sinkhorn_epsilon, 'sinkhorn_stabilized',
+                numIterMax=self.sinkhorn_n_iter).T
+        return trans_matrices * n_particle
+
+    def solve_optimal_transport_sinkhorn(
+            self, cost_matrices, target_marginals):
+        n_particle, n_bases = target_marginals.shape
+
+        def modified_cost(u, v):
+            return (-cost_matrices + u[:, None, :] + v[None, :, :]
+                    ) / self.sinkhorn_epsilon
+
+        log_mu = -np.ones((n_particle, n_bases)) * np.log(n_particle)
+        log_nu = (
+            np.log(target_marginals) - np.log(target_marginals.sum(0))[None])
+        u = 0 * log_mu
+        v = 0 * log_nu
+        for i in range(self.sinkhorn_n_iter):
+            u = self.sinkhorn_epsilon * (
+                log_mu - log_sum_exp(modified_cost(u, v), 1)) + u
+            v = self.sinkhorn_epsilon * (
+                log_nu - log_sum_exp(modified_cost(u, v), 0)) + v
+            pi = np.exp(modified_cost(u, v))
+        max_marginal_error = np.max(np.abs(pi.sum(1) - 1. / n_particle))
+        if max_marginal_error > 1e-8:
+            print('Warning: Poor Sinkhorn--Knopp convergence. '
+                  'Max absolute marginal difference: ({0:.2e})'
+                  .format(max_marginal_error))
+        return pi * n_particle
+
+    def analysis_update(self, z_forecast, x_observed, time_index):
+        # calculate localised particle weights
+        log_lik_per_obs_loc = self.log_likelihood_per_obs_loc(
+            z_forecast, x_observed, time_index)
+        loc_log_weights = np.zeros(
+            (z_forecast.shape[0], self.pou_basis.n_grid))
+        for k in range(self.localisation_kernel.n_coords_a):
+            kernel_indices, kernel_weights = self.localisation_kernel(k)
+            loc_log_weights[:, kernel_indices] += (
+                kernel_weights[None] * log_lik_per_obs_loc[:, k:k+1])
+        loc_log_weights = (
+            loc_log_weights - np.max(loc_log_weights))
+        z_forecast = z_forecast.reshape(
+            (z_forecast.shape[0], -1, self.pou_basis.n_grid))
+        # calculate localised transport cost matrices
+        z_dist_matrices = np.sum(
+            (z_forecast[:, None] - z_forecast[None, :])**2, -2)
+        cost_matrices = self.pou_basis.integrate_against_bases(z_dist_matrices)
+        # caculate localised target marginals
+        target_marginals = self.pou_basis.integrate_against_bases(
+            np.exp(loc_log_weights))
+        # solve for localised transport matrices
+        if self.sinkhorn_epsilon == 0 or self.sinkhorn_n_iter is None:
+            trans_matrices = self.solve_optimal_transport_exact(
+                cost_matrices, target_marginals)
+        else:
+            trans_matrices = self.solve_optimal_transport_sinkhorn_alt(
+                cost_matrices, target_marginals)
+        # calculate PoU basis scaled forecast field patches
+        scaled_z_forecast_patches = (
+            self.pou_basis.split_into_patches_and_scale(z_forecast))
+        # calculate analysis fields
+        z_analysis_patches = np.einsum(
+            'ijk,jlkm->ilkm', trans_matrices, scaled_z_forecast_patches)
+        z_analysis = self.pou_basis.combine_patches(
+            z_analysis_patches).reshape((z_forecast.shape[0], -1))
+        z_analysis_mean = z_analysis.mean(0)
+        if self.inflation_factor > 1.:
+            dz_analysis = z_analysis - z_analysis_mean
+            z_analysis = z_analysis_mean + dz_analysis * self.inflation_factor
+        return z_analysis, z_analysis_mean, z_analysis.std(0)
