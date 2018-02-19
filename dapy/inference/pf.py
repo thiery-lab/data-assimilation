@@ -256,8 +256,8 @@ class PouLocalEnsembleTransportParticleFilter(AbstractEnsembleFilter):
         target_marginals /= target_marginals.sum(0)[None, :]
         for r in range(n_bases):
             trans_matrices[:, :, r] = ot.emd(
-                target_marginals[:, r].copy(), u,
-                cost_matrices[:, :, r].copy()).T
+                np.ascontiguousarray(target_marginals[:, r]), u,
+                np.ascontiguousarray(cost_matrices[:, :, r])).T
         return trans_matrices * n_particle
 
     def solve_optimal_transport_sinkhorn_alt(
@@ -268,8 +268,8 @@ class PouLocalEnsembleTransportParticleFilter(AbstractEnsembleFilter):
         target_marginals /= target_marginals.sum(0)[None, :]
         for r in range(n_bases):
             trans_matrices[:, :, r] = ot.sinkhorn(
-                target_marginals[:, r].copy(), u,
-                cost_matrices[:, :, r].copy(),
+                np.ascontiguousarray(target_marginals[:, r]), u,
+                np.ascontiguousarray(cost_matrices[:, :, r]),
                 self.sinkhorn_epsilon, 'sinkhorn_stabilized',
                 numIterMax=self.sinkhorn_n_iter).T
         return trans_matrices * n_particle
