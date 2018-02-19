@@ -76,6 +76,11 @@ ext_modules = [
     Extension('dapy.integrators.lorenz96',
               ['dapy/integrators/lorenz96' + ext],
               extra_compile_args=extra_compile_args,
+              extra_link_args=extra_link_args),
+    Extension('dapy.ot.batch_solvers',
+              ['dapy/ot/batch_solvers' + ext, 'dapy/ot/emd.cpp'],
+              language='c++', include_dirs=['dapy/ot'],
+              extra_compile_args=extra_compile_args,
               extra_link_args=extra_link_args)
 ]
 
@@ -90,6 +95,7 @@ packages = [
     'dapy.inference',
     'dapy.integrators',
     'dapy.models',
+    'dapy.ot'
 ]
 
 if __name__ == '__main__':

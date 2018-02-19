@@ -2,6 +2,7 @@
 
 import numpy as np
 import ot
+from dapy.ot.batch_solvers import parallel_ot_solve, sequential_ot_solve
 from dapy.inference.base import (
         AbstractEnsembleFilter, AbstractLocalEnsembleFilter)
 from dapy.utils.doc import inherit_docstrings
@@ -238,67 +239,17 @@ class PouLocalEnsembleTransportParticleFilter(AbstractEnsembleFilter):
 
     def __init__(self, init_state_sampler, next_state_sampler, rng,
                  log_likelihood_per_obs_loc, localisation_kernel,
-                 pou_basis, sinkhorn_epsilon=0., sinkhorn_n_iter=None,
+                 pou_basis, ot_solver, ot_solver_params={},
                  inflation_factor=1.):
         super(PouLocalEnsembleTransportParticleFilter, self).__init__(
             init_state_sampler, next_state_sampler, rng)
         self.log_likelihood_per_obs_loc = log_likelihood_per_obs_loc
         self.localisation_kernel = localisation_kernel
         self.pou_basis = pou_basis
-        self.sinkhorn_epsilon = sinkhorn_epsilon
-        self.sinkhorn_n_iter = sinkhorn_n_iter
+        self.ot_solver = ot_solver
+        self.ot_solver_params = ot_solver_params
         self.inflation_factor = inflation_factor
 
-    def solve_optimal_transport_exact(self, cost_matrices, target_marginals):
-        n_particle, n_bases = target_marginals.shape
-        u = ot.unif(n_particle)
-        trans_matrices = np.empty((n_particle, n_particle, n_bases))
-        target_marginals /= target_marginals.sum(0)[None, :]
-        for r in range(n_bases):
-            trans_matrices[:, :, r] = ot.emd(
-                np.ascontiguousarray(target_marginals[:, r]), u,
-                np.ascontiguousarray(cost_matrices[:, :, r])).T
-        return trans_matrices * n_particle
-
-    def solve_optimal_transport_sinkhorn_alt(
-            self, cost_matrices, target_marginals):
-        n_particle, n_bases = target_marginals.shape
-        u = ot.unif(n_particle)
-        trans_matrices = np.empty((n_particle, n_particle, n_bases))
-        target_marginals /= target_marginals.sum(0)[None, :]
-        for r in range(n_bases):
-            trans_matrices[:, :, r] = ot.sinkhorn(
-                np.ascontiguousarray(target_marginals[:, r]), u,
-                np.ascontiguousarray(cost_matrices[:, :, r]),
-                self.sinkhorn_epsilon, 'sinkhorn_stabilized',
-                numIterMax=self.sinkhorn_n_iter).T
-        return trans_matrices * n_particle
-
-    def solve_optimal_transport_sinkhorn(
-            self, cost_matrices, target_marginals):
-        n_particle, n_bases = target_marginals.shape
-
-        def modified_cost(u, v):
-            return (-cost_matrices + u[:, None, :] + v[None, :, :]
-                    ) / self.sinkhorn_epsilon
-
-        log_mu = -np.ones((n_particle, n_bases)) * np.log(n_particle)
-        log_nu = (
-            np.log(target_marginals) - np.log(target_marginals.sum(0))[None])
-        u = 0 * log_mu
-        v = 0 * log_nu
-        for i in range(self.sinkhorn_n_iter):
-            u = self.sinkhorn_epsilon * (
-                log_mu - log_sum_exp(modified_cost(u, v), 1)) + u
-            v = self.sinkhorn_epsilon * (
-                log_nu - log_sum_exp(modified_cost(u, v), 0)) + v
-            pi = np.exp(modified_cost(u, v))
-        max_marginal_error = np.max(np.abs(pi.sum(1) - 1. / n_particle))
-        if max_marginal_error > 1e-8:
-            print('Warning: Poor Sinkhorn--Knopp convergence. '
-                  'Max absolute marginal difference: ({0:.2e})'
-                  .format(max_marginal_error))
-        return pi * n_particle
 
     def analysis_update(self, z_forecast, x_observed, time_index):
         # calculate localised particle weights
@@ -322,12 +273,8 @@ class PouLocalEnsembleTransportParticleFilter(AbstractEnsembleFilter):
         target_marginals = self.pou_basis.integrate_against_bases(
             np.exp(loc_log_weights))
         # solve for localised transport matrices
-        if self.sinkhorn_epsilon == 0 or self.sinkhorn_n_iter is None:
-            trans_matrices = self.solve_optimal_transport_exact(
-                cost_matrices, target_marginals)
-        else:
-            trans_matrices = self.solve_optimal_transport_sinkhorn_alt(
-                cost_matrices, target_marginals)
+        trans_matrices = self.ot_solver(
+            cost_matrices, target_marginals, **self.ot_solver_params)
         # calculate PoU basis scaled forecast field patches
         scaled_z_forecast_patches = (
             self.pou_basis.split_into_patches_and_scale(z_forecast))
