@@ -2,7 +2,7 @@
 
 import numpy as np
 import scipy.linalg as la
-from dapy.utils import inherit_docstrings
+from dapy.utils.doc import inherit_docstrings
 from dapy.models.base import AbstractModel
 
 

@@ -5,9 +5,8 @@ import numpy as np
 
 class PerGridPointPartitionOfUnityBasis(object):
 
-    def __init__(self, grid_shape):
-        self.grid_shape = grid_shape
-        self.n_grid = grid_shape[0] * grid_shape[1]
+    def __init__(self, n_grid):
+        self.n_grid = n_grid
 
     def integrate_against_bases(self, f):
         return f

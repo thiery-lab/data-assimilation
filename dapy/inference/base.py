@@ -1,7 +1,7 @@
 """Base classes for ensemble filters implementing common interface."""
 
 import numpy as np
-from dapy.utils import inherit_docstrings
+from dapy.utils.doc import inherit_docstrings
 
 
 class AbstractEnsembleFilter(object):

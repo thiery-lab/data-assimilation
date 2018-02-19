@@ -8,7 +8,7 @@ Model originally proposed in:
 """
 
 import numpy as np
-from dapy.utils import inherit_docstrings
+from dapy.utils.doc import inherit_docstrings
 from dapy.models.base import DiagonalGaussianModel, IntegratorModel
 from dapy.integrators.lorenz96 import Lorenz96Integrator
 

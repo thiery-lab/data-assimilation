@@ -1,4 +1,4 @@
-"""Python package for data assimilation example models."""
+"""Data assimilation example models."""
 
 from dapy.models.linear import LinearGaussianModel
 from dapy.models.netto79 import Netto79Model

@@ -4,7 +4,7 @@ import numpy as np
 import ot
 from dapy.inference.base import (
         AbstractEnsembleFilter, AbstractLocalEnsembleFilter)
-from dapy.utils import inherit_docstrings
+from dapy.utils.doc import inherit_docstrings
 
 
 def log_sum_exp(x):

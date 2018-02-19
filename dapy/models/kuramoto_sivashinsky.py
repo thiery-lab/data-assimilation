@@ -21,7 +21,7 @@ References:
 
 import numpy as np
 import pyfftw.interfaces.numpy_fft as fft
-from dapy.utils import inherit_docstrings
+from dapy.utils.doc import inherit_docstrings
 from dapy.models.base import IntegratorModel, DiagonalGaussianObservationModel
 from dapy.integrators.etdrk4 import FourierETDRK4Integrator
 

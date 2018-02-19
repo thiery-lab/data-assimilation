@@ -1,7 +1,7 @@
 """Simple Navier-Stokes fluid simulation on two-dimensional grid."""
 
 import numpy as np
-from dapy.utils import inherit_docstrings
+from dapy.utils.doc import inherit_docstrings
 from dapy.models.base import IntegratorModel, DiagonalGaussianObservationModel
 from dapy.integrators.navier_stokes import FourierNavierStokes2dIntegrator
 
