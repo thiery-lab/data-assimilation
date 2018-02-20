@@ -21,7 +21,7 @@ def log_sum_exp(x):
     return x_max + np.log(np.exp(x - x_max).sum())
 
 
-def solve_optimal_transport_batch(
+def solve_optimal_transport_exact_batch(
         cost_matrices, target_marginals, max_iter=DEFAULT_MAX_ITER,
         num_threads=1):
     n_particle, n_bases = target_marginals.shape
@@ -39,36 +39,7 @@ def solve_optimal_transport_batch(
     return np.ascontiguousarray(trans_matrices.T * n_particle)
 
 
-def solve_optimal_transport_exact_pot(
-        cost_matrices, target_marginals, max_iter=DEFAULT_MAX_ITER):
-    n_particle, n_bases = target_marginals.shape
-    u = ot.unif(n_particle)
-    trans_matrices = np.empty((n_particle, n_particle, n_bases))
-    target_marginals /= target_marginals.sum(0)[None, :]
-    for r in range(n_bases):
-        trans_matrices[:, :, r] = ot.emd(
-            np.ascontiguousarray(target_marginals[:, r]), u,
-            np.ascontiguousarray(cost_matrices[:, :, r]),
-            numIterMax=max_iter).T
-    return trans_matrices * n_particle
-
-
-def solve_optimal_transport_sinkhorn_pot(
-        cost_matrices, target_marginals, epsilon, max_iter=DEFAULT_MAX_ITER):
-    n_particle, n_bases = target_marginals.shape
-    u = ot.unif(n_particle)
-    trans_matrices = np.empty((n_particle, n_particle, n_bases))
-    target_marginals /= target_marginals.sum(0)[None, :]
-    for r in range(n_bases):
-        trans_matrices[:, :, r] = ot.sinkhorn(
-            np.ascontiguousarray(target_marginals[:, r]), u,
-            np.ascontiguousarray(cost_matrices[:, :, r]),
-            epsilon, 'sinkhorn_stabilized',
-            numIterMax=max_iter).T
-    return trans_matrices * n_particle
-
-
-def solve_optimal_transport_sinkhorn(
+def solve_optimal_transport_sinkhorn_batch(
         cost_matrices, target_marginals, epsilon, n_iter):
     n_particle, n_bases = target_marginals.shape
 
@@ -90,3 +61,32 @@ def solve_optimal_transport_sinkhorn(
                       'Max absolute marginal difference: ({0:.2e})'
                       .format(max_marginal_error))
     return pi * n_particle
+
+
+def solve_optimal_transport_exact_pot(
+        cost_matrices, target_marginals, max_iter=DEFAULT_MAX_ITER):
+    n_particle, n_bases = target_marginals.shape
+    u = ot.unif(n_particle)
+    trans_matrices = np.empty((n_particle, n_particle, n_bases))
+    target_marginals /= target_marginals.sum(0)[None, :]
+    for r in range(n_bases):
+        trans_matrices[:, :, r] = ot.emd(
+            np.ascontiguousarray(target_marginals[:, r]), u,
+            np.ascontiguousarray(cost_matrices[:, :, r]),
+            numItermax=max_iter).T
+    return trans_matrices * n_particle
+
+
+def solve_optimal_transport_sinkhorn_pot(
+        cost_matrices, target_marginals, epsilon, max_iter=DEFAULT_MAX_ITER):
+    n_particle, n_bases = target_marginals.shape
+    u = ot.unif(n_particle)
+    trans_matrices = np.empty((n_particle, n_particle, n_bases))
+    target_marginals /= target_marginals.sum(0)[None, :]
+    for r in range(n_bases):
+        trans_matrices[:, :, r] = ot.sinkhorn(
+            np.ascontiguousarray(target_marginals[:, r]), u,
+            np.ascontiguousarray(cost_matrices[:, :, r]),
+            epsilon, 'sinkhorn_stabilized',
+            numItermax=max_iter).T
+    return trans_matrices * n_particle
