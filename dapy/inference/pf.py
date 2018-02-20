@@ -2,6 +2,7 @@
 
 import numpy as np
 import ot
+from dapy.ot import log_sum_exp
 from dapy.inference.base import (
         AbstractEnsembleFilter, AbstractLocalEnsembleFilter)
 from dapy.utils.doc import inherit_docstrings
