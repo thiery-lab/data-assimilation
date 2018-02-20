@@ -8,6 +8,19 @@ from dapy.ot.batch_solvers import sequential_ot_solve, parallel_ot_solve
 DEFAULT_MAX_ITER = 100000
 
 
+def log_sum_exp(x):
+    """Compute logarithm of sum of exponents with improved numerical stability.
+
+    Args:
+        x (array): One-dimension arrray of values to calculate log-sum-exp of.
+
+    Returns:
+        Scalar corresponding to logarith of sum of exponents of x values.
+    """
+    x_max = x.max()
+    return x_max + np.log(np.exp(x - x_max).sum())
+
+
 def solve_optimal_transport_batch(
         cost_matrices, target_marginals, max_iter=DEFAULT_MAX_ITER,
         num_threads=1):
@@ -73,7 +86,7 @@ def solve_optimal_transport_sinkhorn(
         pi = np.exp(modified_cost(u, v))
     max_marginal_error = np.max(np.abs(pi.sum(1) - 1. / n_particle))
     if max_marginal_error > 1e-8:
-        warning.warn('Poor Sinkhorn--Knopp convergence. '
-                     'Max absolute marginal difference: ({0:.2e})'
-                     .format(max_marginal_error))
+        warnings.warn('Poor Sinkhorn--Knopp convergence. '
+                      'Max absolute marginal difference: ({0:.2e})'
+                      .format(max_marginal_error))
     return pi * n_particle

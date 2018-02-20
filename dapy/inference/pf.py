@@ -2,23 +2,9 @@
 
 import numpy as np
 import ot
-from dapy.ot.batch_solvers import parallel_ot_solve, sequential_ot_solve
 from dapy.inference.base import (
         AbstractEnsembleFilter, AbstractLocalEnsembleFilter)
 from dapy.utils.doc import inherit_docstrings
-
-
-def log_sum_exp(x):
-    """Compute logarithm of sum of exponents with improved numerical stability.
-
-    Args:
-        x (array): One-dimension arrray of values to calculate log-sum-exp of.
-
-    Returns:
-        Scalar corresponding to logarith of sum of exponents of x values.
-    """
-    x_max = x.max()
-    return x_max + np.log(np.exp(x - x_max).sum())
 
 
 @inherit_docstrings
