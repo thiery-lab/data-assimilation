@@ -36,6 +36,9 @@ def solve_optimal_transport_exact_batch(
         trans_matrices, costs, results_codes = parallel_ot_solve(
             np.ascontiguousarray(mu), nu, np.ascontiguousarray(cost_matrices),
             max_iter=max_iter, num_threads=num_threads)
+    if not np.all(results_codes == 1):
+        warnings.warn('{0}/{1} of OT solutions did not converge'
+                     .format(np.sum(results_codes != 1), n_bases))
     return np.ascontiguousarray(trans_matrices.T * n_particle)
 
 
