@@ -1,5 +1,6 @@
 """Ensemble Kalman filters for inference in state space models."""
 
+import warnings
 import numpy as np
 import numpy.linalg as la
 from dapy.utils.doc import inherit_docstrings
@@ -262,8 +263,8 @@ class WoodburyEnsembleSquareRootFilter(AbstractEnsembleFilter):
         m_matrix = (c_matrix - c_matrix.dot(e_matrix)) / (n_particles - 1)
         eigval_m, eigvec_m = la.eigh(m_matrix)
         if self.warn and np.any(eigval_m > 1.):
-            print('Warning: eigenvalue(s) outside unit circle, max: {0}'
-                  .format(eigval_m.max()))
+            warnings.warn('Eigenvalue(s) outside unit circle, max: {0}'
+                          .format(eigval_m.max()))
         sqrt_matrix = (
             eigvec_m * (1 - np.clip(eigval_m, -np.inf, 1.))**0.5
         ).dot(eigvec_m.T)
