@@ -109,7 +109,7 @@ class AbstractModel(object):
         """
         raise NotImplementedError()
 
-    def log_prob_den_obs_gvn_state(self, x, z, t):
+    def log_prob_dens_obs_gvn_state(self, x, z, t):
         """Calculate log probability density of observation(s) given state(s).
 
         Args:
