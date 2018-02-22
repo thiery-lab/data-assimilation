@@ -6,8 +6,8 @@ from dapy.utils.doc import inherit_docstrings
 from dapy.models.base import AbstractModel
 
 
-def generate_random_parameters(dim_z, dim_x, rng):
-    """Generate random parameters for linear-Gaussian model.
+def generate_random_dense_parameters(dim_z, dim_x, rng):
+    """Generate random parameters for dense linear Gaussian model.
 
     Args:
         dim_z (integer): State dimension.
@@ -33,7 +33,7 @@ def generate_random_parameters(dim_z, dim_x, rng):
 
 
 @inherit_docstrings
-class LinearGaussianModel(AbstractModel):
+class DenseLinearGaussianModel(AbstractModel):
     """Model with linear dynamics and observations and additive Gaussian noise.
 
     The model system dynamics are of the form
@@ -131,7 +131,7 @@ class LinearGaussianModel(AbstractModel):
         assert obser_noise_matrix.shape == (dim_x, dim_x)
         self.obser_noise_matrix = obser_noise_matrix
         self.obser_noise_covar = obser_noise_covar
-        super(LinearGaussianModel, self).__init__(dim_z, dim_x, rng)
+        super(DenseLinearGaussianModel, self).__init__(dim_z, dim_x, rng)
 
     def init_state_sampler(self, n=None):
         if n is None:
