@@ -186,7 +186,7 @@ class AbstractModel(object):
         x_seq[0] = self.observation_sampler(z_seq[0], 0)
         for t in range(1, n_step):
             z_seq[t] = self.next_state_sampler(z_seq[t-1], t-1)
-            x_seq[t] = self.observation_sampler(z_seq[t-1], t)
+            x_seq[t] = self.observation_sampler(z_seq[t], t)
         return z_seq, x_seq
 
 
