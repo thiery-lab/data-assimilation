@@ -229,7 +229,11 @@ class WoodburyEnsembleSquareRootFilter(AbstractEnsembleFilter):
                 observations given current state(s). Takes array of current
                 state(s) and current time index as arguments.
             obser_noise_preci (array): Matrix defining precision of additive
-                Gaussian observation noise (inverse of covariance matrix).
+                Gaussian observation noise (inverse of covariance matrix). If
+                a scalar an isotropic precision matrix (identity scaled by
+                specified scalar) is assumed and if a one-dimensional array
+                the precision matrix is assumed to be diagonal with the array
+                specifying the diagonal elements.
             rng (RandomState): Numpy RandomState random number generator.
             warn (boolean, default True): Warn if eigenvalues of matrix used
                 to compute matrix square root for analysis perturbation
@@ -241,6 +245,8 @@ class WoodburyEnsembleSquareRootFilter(AbstractEnsembleFilter):
                 next_state_sampler=next_state_sampler, rng=rng
         )
         self.observation_func = observation_func
+        self.obser_noise_preci_is_dense = (
+            isinstance(obser_noise_preci, np.ndarray) and obser_noise_preci.ndim == 2)
         self.obser_noise_preci = obser_noise_preci
         self.warn = warn
 
@@ -252,7 +258,10 @@ class WoodburyEnsembleSquareRootFilter(AbstractEnsembleFilter):
         x_mean_forecast = x_forecast.mean(0)
         dx_forecast = x_forecast - x_mean_forecast
         dx_error = x_observed - x_mean_forecast
-        a_matrix = self.obser_noise_preci.dot(dx_forecast.T)
+        if self.obser_noise_preci_is_dense:
+            a_matrix = self.obser_noise_preci.dot(dx_forecast.T)
+        else:
+            a_matrix = (self.obser_noise_preci * dx_forecast).T
         b_vector = dx_error.dot(a_matrix)
         c_matrix = dx_forecast.dot(a_matrix)
         d_matrix = (n_particles - 1) * np.eye(n_particles) + c_matrix
