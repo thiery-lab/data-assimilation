@@ -4,6 +4,7 @@ import numpy as np
 
 
 class PerGridPointPartitionOfUnityBasis(object):
+    """PoU on spatial grid with constant basis at each grid point."""
 
     def __init__(self, n_grid):
         self.n_grid = n_grid
@@ -12,12 +13,10 @@ class PerGridPointPartitionOfUnityBasis(object):
         return f
 
     def split_into_patches_and_scale(self, f):
-        n_particle, dim_field, n_grid = f.shape
-        return f.reshape((n_particle, dim_field, n_grid, 1))
+        return f.reshape(f.shape + (1,))
 
     def combine_patches(self, f_patches):
-        n_particle, dim_field, n_grid, _ = f_patches.shape
-        return f_patches.reshape((n_particle, dim_field, n_grid))
+        return f_patches.reshape(f_patches.shape[:-1])
 
 
 class SquaredCosine1dPartitionOfUnityBasis(object):
