@@ -1,11 +1,13 @@
-/* This file is a c++ wrapper function for computing the transportation cost
+/* This file is a C++ wrapper function for computing the transportation cost
  * between two vectors given a cost matrix.
  *
  * It was written by Antoine Rolet (2014) and mainly consists of a wrapper
  * of the code written by Nicolas Bonneel available on this page
  *          http://people.seas.harvard.edu/~nbonneel/FastTransport/
  *
- * It was then modified to make it more amenable to python inline calling
+ * It was then modified to make it more amenable to Python inline calling.
+ *
+ * Further small modifications and cleanup by Matt Graham.
  *
  * Please give relevant credit to the original author (Nicolas Bonneel) if
  * you use this code for a publication.
