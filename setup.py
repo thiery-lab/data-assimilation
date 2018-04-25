@@ -56,10 +56,11 @@ if args.use_cython and args.use_cython_opts:
     compiler_directives = {
         'boundscheck': False,  # don't check for invalid indexing
         'wraparound': False,  # assume no negative indexing
+        'nonecheck': False,  # don't check for field access on None variables
         'cdivision': True,  # don't check for zero division
         'initializedcheck': False,  # don't check memory view init
         'embedsignature': True,  # include call signature in docstrings
-        'language_level': 3, # Python 3
+        'language_level': 3,  # Python 3
     }
 else:
     compiler_directives = {}
@@ -77,11 +78,20 @@ ext_modules = [
               ['dapy/integrators/lorenz96' + ext],
               extra_compile_args=extra_compile_args,
               extra_link_args=extra_link_args),
+    Extension('dapy.integrators.interpolate',
+              ['dapy/integrators/interpolate' + ext],
+              extra_compile_args=extra_compile_args,
+              extra_link_args=extra_link_args),
     Extension('dapy.ot.batch_solvers',
               ['dapy/ot/batch_solvers' + ext, 'dapy/ot/emd.cpp'],
               language='c++', include_dirs=['dapy/ot'],
               extra_compile_args=extra_compile_args,
-              extra_link_args=extra_link_args)
+              extra_link_args=extra_link_args),
+    Extension('dapy.ot.solvers',
+              ['dapy/ot/solvers' + ext],
+              language='c++', include_dirs=['dapy/ot'],
+              extra_compile_args=extra_compile_args,
+              extra_link_args=extra_link_args),
 ]
 
 if args.use_cython:
@@ -95,7 +105,8 @@ packages = [
     'dapy.inference',
     'dapy.integrators',
     'dapy.models',
-    'dapy.ot'
+    'dapy.ot',
+    'dapy.utils'
 ]
 
 if __name__ == '__main__':
