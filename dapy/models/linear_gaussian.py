@@ -206,3 +206,199 @@ class DenseLinearGaussianModel(AbstractModel):
             0.5 * self.dim_x * np.log(2 * np.pi) +
             np.log(self.obser_noise_covar_chol.diagonal()).sum()
         )
+
+
+class StochasticTurbulenceModel(DenseLinearGaussianModel):
+
+    def __init__(self, dim_z, rng, obs_subsample, dt, grid_size,
+                 damp_coeff, adv_coeff, diff_coeff, state_noise_std,
+                 obs_noise_std, init_state_std):
+        self.obs_subsample = obs_subsample
+        self.dt = dt
+        self.grid_size = grid_size
+        self.damp_coeff = damp_coeff
+        self.adv_coeff = adv_coeff
+        self.diff_coeff = diff_coeff
+        self.state_noise_std = state_noise_std * dt**0.5
+        self.obs_noise_std = obs_noise_std
+        self.init_state_std = init_state_std
+        first_col = np.zeros(dim_z)
+        alpha = diff_coeff * dt / grid_size**2
+        beta = adv_coeff * dt / (2 * grid_size)
+        first_col[0] = 1. - 2. * alpha - dt * self.damp_coeff
+        first_col[1] = alpha + beta
+        first_col[-1] = alpha - beta
+        state_trans_matrix = la.circulant(first_col)
+        dim_x = dim_z // obs_subsample
+        observation_matrix = np.zeros((dim_x, dim_z))
+        for i in range(dim_x):
+            observation_matrix[i, i * obs_subsample] = 1.
+        super(StochasticTurbulenceModel, self).__init__(
+            init_state_mean=np.zeros(dim_z),
+            init_state_covar=np.eye(dim_z) * init_state_std**2,
+            state_trans_matrix=state_trans_matrix,
+            observation_matrix=observation_matrix,
+            state_noise_matrix=np.eye(dim_z) * state_noise_std * dt**0.5,
+            state_noise_covar=None,
+            obser_noise_matrix=np.eye(dim_x) * obs_noise_std,
+            obser_noise_covar=None,
+            rng=rng
+        )
+
+
+class OperatorStochasticTurbulenceModel(AbstractModel):
+
+    def __init__(self, dim_z, rng, obs_subsample, dt, grid_size,
+                 damp_coeff, adv_coeff, diff_coeff, state_noise_std,
+                 obs_noise_std, init_state_std):
+        self.obs_subsample = obs_subsample
+        self.dt = dt
+        self.grid_size = grid_size
+        self.damp_coeff = damp_coeff
+        self.adv_coeff = adv_coeff
+        self.diff_coeff = diff_coeff
+        self.state_noise_std = state_noise_std * dt**0.5
+        self.obs_noise_std = obs_noise_std
+        self.init_state_std = init_state_std
+        alpha = diff_coeff * dt / grid_size**2
+        beta = adv_coeff * dt / (2 * grid_size)
+        self.coeff_0 = 1. - 2. * alpha - dt * self.damp_coeff
+        self.coeff_p1 = alpha + beta
+        self.coeff_m1 = alpha - beta
+        dim_x = dim_z // obs_subsample
+        self.init_state_mean = np.zeros(dim_z)
+        self.init_state_covar = np.eye(dim_z) * init_state_std**2
+        self.state_noise_matrix = np.eye(dim_z) * state_noise_std * dt**0.5
+        self.obser_noise_matrix = np.eye(dim_x) * obs_noise_std
+        super(OperatorStochasticTurbulenceModel, self).__init__(
+            dim_z, dim_x, rng)
+
+    def init_state_sampler(self, n=None):
+        if n is None:
+            return self.init_state_std * self.rng.normal(size=self.dim_z)
+        else:
+            return self.init_state_std * self.rng.normal(size=(n, self.dim_z))
+
+    def next_state_func(self, z, t):
+        return (
+            z * self.coeff_0 +
+            np.roll(z, shift=+1, axis=-1) * self.coeff_p1 +
+            np.roll(z, shift=-1, axis=-1) * self.coeff_m1)
+
+    def next_state_sampler(self, z, t):
+        return (
+            self.next_state_func(z, t) +
+            self.state_noise_std * self.rng.normal(size=z.shape))
+
+    def observation_func(self, z, t):
+        return z.T[::self.obs_subsample].T
+
+    def observation_sampler(self, z, t):
+        x_mean = self.observation_func(z, t)
+        return x_mean + self.obs_noise_std * self.rng.normal(size=x_mean.shape)
+
+    def log_prob_dens_init_state(self, z):
+        return -0.5 * (
+            (((z - self.init_state_mean) / self.init_state_std)**2).sum(-1) +
+            self.dim_z * np.log(2 * np.pi * self.init_state_std**2))
+
+    def log_prob_dens_state_transition(self, z_n, z_c, t):
+        z_n_mean = self.next_state_func(z_c)
+        return -0.5 * (
+            (((z_n - z_n_mean) / self.state_noise_std)**2).sum(-1) +
+            self.dim_z * np.log(2 * np.pi * self.state_noise_std**2))
+
+    def log_prob_dens_obs_gvn_state(self, x, z, t):
+        x_mean = self.observation_func(z, t)
+        return -0.5 * (
+            (((x - x_mean) / self.obs_noise_std)**2).sum(-1) +
+            self.dim_x * np.log(2 * np.pi * self.obs_noise_std**2))
+
+
+class SpectralStochasticTurbulenceModel(AbstractModel):
+
+    def __init__(self, dim_z, rng, obs_subsample, dt, grid_size,
+                 damp_coeff, adv_coeff, diff_coeff, state_noise_ampl,
+                 state_noise_length_scale, obs_noise_std):
+        self.obs_subsample = obs_subsample
+        self.dt = dt
+        self.grid_size = grid_size
+        self.damp_coeff = damp_coeff
+        self.adv_coeff = adv_coeff
+        self.diff_coeff = diff_coeff
+        self.state_noise_ampl = state_noise_ampl
+        self.state_noise_length_scale = state_noise_length_scale
+        self.obs_noise_std = obs_noise_std
+        freqs = np.fft.rfftfreq(
+            dim_z, grid_size / dim_z) * 2 * np.pi
+        freqs_sq = freqs**2
+        if dim_z % 2 == 0:
+            freqs[dim_z // 2] = 0
+        state_noise_scale = state_noise_ampl * dim_z**0.5 * np.exp(
+            -freqs_sq * state_noise_length_scale**2)
+        gamma = diff_coeff * freqs_sq + damp_coeff
+        self.state_update_fourier_kernel = np.exp(
+            (-gamma + 1j * adv_coeff * freqs) * dt)
+        self.state_noise_fourier_kernel = state_noise_scale * (
+            1. - np.exp(-2 * gamma * dt))**0.5 / (2 * gamma)**0.5
+        self.state_noise_std_fourier = self.real_std_from_fourier_kernel(
+            self.state_noise_fourier_kernel)
+        self.init_state_fourier_kernel = state_noise_scale / (2 * gamma)**0.5
+        self.init_state_std_fourier = self.real_std_from_fourier_kernel(
+            self.init_state_fourier_kernel)
+        dim_x = dim_z // obs_subsample
+        self.init_state_mean = np.zeros(dim_z)
+        fft_trans_mtx = np.fft.irfft(self.to_complex(np.eye(dim_z))).T
+        self.init_state_covar = (
+            fft_trans_mtx * self.init_state_std_fourier**2).dot(
+                fft_trans_mtx.T)
+        self.state_noise_matrix = fft_trans_mtx * self.state_noise_std_fourier
+        self.obser_noise_matrix = np.eye(dim_x) * obs_noise_std
+        super(SpectralStochasticTurbulenceModel, self).__init__(
+            dim_z, dim_x, rng)
+
+    def to_real(self, c):
+        return np.concatenate([c.real, c[..., 1:-1].imag], axis=-1)
+
+    def to_complex(self, r):
+        c = r[..., :r.shape[-1] // 2 + 1] * (1 + 0j)
+        c[..., 1:-1] += r[..., r.shape[-1] // 2 + 1:] * 1j
+        return c
+
+    def real_std_from_fourier_kernel(self, kernel):
+        dim_z = (kernel.shape[0] - 1) * 2
+        s = np.ones(dim_z) * dim_z**0.5 / 2**0.5
+        s[0] *= 2**0.5
+        s[dim_z // 2] *= 2**0.5
+        s[:dim_z // 2 + 1] *= kernel
+        s[dim_z // 2 + 1:] *= kernel[1:-1]
+        return s
+
+    def init_state_sampler(self, n=None):
+        if n is None:
+            u = self.rng.normal(size=self.dim_z)
+        else:
+            u = self.rng.normal(size=(n, self.dim_z))
+        return np.fft.irfft(self.to_complex(self.init_state_std_fourier * u))
+
+    def next_state_func(self, z, t):
+        return np.fft.irfft(self.state_update_fourier_kernel * np.fft.rfft(z))
+
+    def next_state_sampler(self, z, t):
+        n = self.rng.normal(size=z.shape)
+        return (
+            self.next_state_func(z, t) +
+            np.fft.irfft(self.to_complex(self.state_noise_std_fourier * n)))
+
+    def observation_func(self, z, t):
+        return z.T[::self.obs_subsample].T
+
+    def observation_sampler(self, z, t):
+        x_mean = self.observation_func(z, t)
+        return x_mean + self.obs_noise_std * self.rng.normal(size=x_mean.shape)
+
+    def log_prob_dens_obs_gvn_state(self, x, z, t):
+        x_mean = self.observation_func(z, t)
+        return -0.5 * (
+            (((x - x_mean) / self.obs_noise_std)**2).sum(-1) +
+            self.dim_x * np.log(2 * np.pi * self.obs_noise_std**2))
