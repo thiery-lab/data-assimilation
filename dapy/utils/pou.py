@@ -19,6 +19,20 @@ class PerGridPointPartitionOfUnityBasis(object):
         return f_patches.reshape(f_patches.shape[:-1])
 
 
+class ConstantPartitionOfUnityBasis(object):
+    """Trivial single constant basis partition of unity."""
+
+    def __init__(self, n_grid):
+        self.n_grid = n_grid
+
+    def split_into_patches_and_scale(self, f):
+        return f.reshape(f.shape[:-1] + (1, -1))
+
+    def integrate_against_bases(self, f):
+        return self.split_into_patches_and_scale(f).sum(-1)
+
+    def combine_patches(self, f_patches):
+        return f_patches.reshape(f_patches.shape[:-2] + (-1,))
 class SquaredCosine1dPartitionOfUnityBasis(object):
 
     def __init__(self, n_grid, n_bases):
