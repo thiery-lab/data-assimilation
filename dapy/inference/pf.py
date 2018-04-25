@@ -2,7 +2,7 @@
 
 import numpy as np
 import ot
-from dapy.ot import log_sum_exp
+from scipy.special import logsumexp
 from dapy.inference.base import (
         AbstractEnsembleFilter, AbstractLocalEnsembleFilter)
 from dapy.utils.doc import inherit_docstrings
@@ -72,7 +72,7 @@ class BootstrapParticleFilter(AbstractEnsembleFilter):
     def calculate_weights(self, z, x, t):
         """Calculate importance weights for particles given observations."""
         log_w = self.log_prob_dens_obs_gvn_state(x, z, t)
-        log_sum_w = log_sum_exp(log_w)
+        log_sum_w = logsumexp(log_w)
         return np.exp(log_w - log_sum_w)
 
     def resample(self, z, w):
