@@ -33,6 +33,57 @@ class ConstantPartitionOfUnityBasis(object):
 
     def combine_patches(self, f_patches):
         return f_patches.reshape(f_patches.shape[:-2] + (-1,))
+
+
+class Blocked1dPartitionOfUnityBasis(object):
+    """PoU on 1D grid using constant bases on non-overlapping blocks."""
+
+    def __init__(self, n_grid, n_bases):
+        assert n_grid % n_bases == 0, 'n_bases should be factor of n_grid'
+        self.n_grid = n_grid
+        self.n_bases = n_bases
+
+    def split_into_patches_and_scale(self, f):
+        return f.reshape(f.shape[:-1] + (self.n_bases, -1))
+
+    def integrate_against_bases(self, f):
+        return self.split_into_patches_and_scale(f).sum(-1)
+
+    def combine_patches(self, f_patches):
+        return f_patches.reshape(f_patches.shape[:-2] + (self.n_grid,))
+
+
+class Blocked2dPartitionOfUnityBasis(object):
+    """PoU on 2D grid using constant bases on non-overlapping blocks."""
+
+    def __init__(self, grid_shape, bases_grid_shape):
+        assert (grid_shape[0] % bases_grid_shape[0] == 0 and
+                grid_shape[1] % bases_grid_shape[1] == 0), (
+                    'bases_grid_shape should be factors of grid_shape')
+        self.grid_shape = grid_shape
+        self.bases_grid_shape = bases_grid_shape
+        self.n_grid = grid_shape[0] * grid_shape[1]
+        self.n_bases = bases_grid_shape[0] * bases_grid_shape[1]
+        self.n_block = self.n_grid // self.n_bases
+        self.block_shape = (grid_shape[0] // bases_grid_shape[0],
+                            grid_shape[1] // bases_grid_shape[1])
+
+    def split_into_patches_and_scale(self, f):
+        return f.reshape(
+            f.shape[:-1] +
+            (self.bases_grid_shape[0], self.block_shape[0],
+             self.bases_grid_shape[1], self.block_shape[1])
+        ).swapaxes(-3, -2).reshape(f.shape[:-1] + (self.n_bases, self.n_block))
+
+    def integrate_against_bases(self, f):
+        return self.split_into_patches_and_scale(f).sum(-1)
+
+    def combine_patches(self, f_patches):
+        return f_patches.reshape(
+            f_patches.shape[:-2] + self.bases_grid_shape + self.block_shape
+        ).swapaxes(-3, -2).reshape(f_patches.shape[:-2] + (self.n_grid,))
+
+
 class SquaredCosine1dPartitionOfUnityBasis(object):
 
     def __init__(self, n_grid, n_bases):
