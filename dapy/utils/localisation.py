@@ -133,13 +133,13 @@ class LocalisationFunction(object):
         if use_cache:
             self._cache = [None] * self.n_coords_a
 
-    def observation_distances(self, point_a):
+    def distances(self, point_a):
         return ((point_a - self.coords_b)**2).sum(-1)**0.5
 
     def __call__(self, index):
         if self.use_cache and self._cache[index] is not None:
             return self._cache[index]
-        dists = self.observation_distances(self.coords_a[index])
+        dists = self.distances(self.coords_a[index])
         weights = self.weighting_function(dists, self.localisation_radius)
         nz_weights = weights > 0.
         indices = np.nonzero(nz_weights)[0]
@@ -193,7 +193,7 @@ class PeriodicLocalisationFunction(LocalisationFunction):
         )
         self.extents = extents
 
-    def observation_distances(self, point_a):
+    def distances(self, point_a):
         deltas = np.abs(point_a - self.coords_b)
         return (np.minimum(deltas,
                            self.extents - deltas)**2).sum(-1)**0.5
