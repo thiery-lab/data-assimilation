@@ -190,6 +190,7 @@ class LocalEnsembleTransformParticleFilter(AbstractLocalEnsembleFilter):
                 distribution on next state given current state(s). Takes array
                 of current state(s) and current time index as
                 arguments.
+            rng (RandomState): Numpy RandomState random number generator.
             observation_func (function): Function returning pre-noise
                 observations given current state(s). Takes array of current
                 state(s) and current time index as arguments.
@@ -215,16 +216,21 @@ class LocalEnsembleTransformParticleFilter(AbstractLocalEnsembleFilter):
                 entries 'local' to state grid point described by the index and
                 there corresponding weights (with closer observations
                 potentially given larger weights).
+            ot_solver (function): Optimal transport solver function with
+                call signature
+                    ot_solver(source_dist, target_dist, cost_matrix,
+                              **ot_solver_params)
+                where source_dist and target_dist are the source and target
+                distribution weights respectively as 1D arrays, cost_matrix is
+                a 2D array of the distances between particles and
+                ot_solver_params is any additional keyword parameter values
+                for the solver.
+            ot_solver_params (dict): Any additional keyword parameters values
+                for the optimal transport solver.
             inflation_factor (float): A value greater than or equal to one used
                 to inflate the analysis ensemble on each update as a heuristic
                 to overcome the underestimation of the uncertainty in the
-                system state by ensemble Kalman filter methods.
-            rng (RandomState): Numpy RandomState random number generator.
-            use_sinkhorn (bool): Flag indicating whether to use entropic
-                regularised optimal transport solution using Sinkhorn-Knopp
-                algorithm rather than non-regularised earth mover distance.
-            sinkhorn_reg (float): Positive entropic regularisation coefficient
-                if using Sinkhorn optimal transport solver.
+                system state by ensemble methods.
         """
         super(LocalEnsembleTransformParticleFilter, self).__init__(
                 init_state_sampler=init_state_sampler,
@@ -234,8 +240,8 @@ class LocalEnsembleTransformParticleFilter(AbstractLocalEnsembleFilter):
                 n_grid=n_grid, localisation_func=localisation_func, rng=rng
         )
         self.inflation_factor = inflation_factor
-        self.use_sinkhorn = use_sinkhorn
-        self.sinkhorn_reg = sinkhorn_reg
+        self.ot_solver = ot_solver
+        self.ot_solver_params = ot_solver_params
 
     def local_analysis_update(self, z_forecast, x_forecast, x_observed,
                               obs_noise_std, localisation_weights):
@@ -244,20 +250,20 @@ class LocalEnsembleTransformParticleFilter(AbstractLocalEnsembleFilter):
         log_particle_weights = -0.5 * (
             dx_error * (localisation_weights / obs_noise_std**2) * dx_error
         ).sum(-1)
-        log_particle_weights_sum = log_sum_exp(log_particle_weights)
-        particle_weights = np.exp(
-            log_particle_weights - log_particle_weights_sum)
-        u = ot.unif(n_particles)
-        cost_mtx = ot.dist(z_forecast, z_forecast)
-        if self.use_sinkhorn:
-            trans_mtx = ot.sinkhorn(
-                particle_weights, u, cost_mtx, self.sinkhorn_reg) * n_particles
+        target_dist = np.exp(
+            log_particle_weights - logsumexp(log_particle_weights))
+        source_dist = np.ones(n_particles) / n_particles
+        cost_matrix = np.sum(
+            (z_forecast[:, None] - z_forecast[None, :])**2, -1)
+        trans_matrix = n_particles * self.ot_solver(
+            source_dist, target_dist, cost_matrix, **self.ot_solver_params)
+        z_analysis = trans_matrix.dot(z_forecast)
+        if self.inflation_factor > 1.:
+            z_analysis_mean = z_analysis.mean(0)
+            dz_analysis = z_analysis - z_analysis_mean
+            return z_analysis_mean + dz_analysis * self.inflation_factor
         else:
-            trans_mtx = ot.emd(particle_weights, u, cost_mtx) * n_particles
-        z_analysis = trans_mtx.T.dot(z_forecast)
-        z_analysis_mean = z_analysis.mean(0)
-        dz_analysis = z_analysis - z_analysis_mean
-        return z_analysis_mean + dz_analysis * self.inflation_factor
+            return z_analysis
 
 
 class PouLocalEnsembleTransportParticleFilter(AbstractEnsembleFilter):
