@@ -144,16 +144,19 @@ class DenseLinearGaussianModel(AbstractModel):
                     self.init_state_covar_chol.T)
             )
 
+    def next_state_func(self, z, t):
+        return z.dot(self.state_trans_matrix.T)
+
     def next_state_sampler(self, z, t):
         if z.ndim == 1:
             return (
-                self.state_trans_matrix.dot(z) +
+                self.next_state_func(z, t) +
                 self.state_noise_matrix.dot(
                     self.rng.normal(size=self.state_noise_matrix.shape[1]))
             )
         else:
             return (
-                z.dot(self.state_trans_matrix.T) +
+                self.next_state_func(z, t) +
                 self.rng.normal(
                     size=(z.shape[0], self.state_noise_matrix.shape[1])).dot(
                         self.state_noise_matrix.T
