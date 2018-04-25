@@ -171,19 +171,27 @@ class AbstractModel(object):
             log_dens += self.log_prob_dens_obs_gvn_state(x_seq[t], z_seq[t], t)
         return log_dens
 
-    def generate(self, n_step):
+    def generate(self, n_step, n_sample=None):
         """Generate state and observation sequences from model.
 
         Args:
             n_step: Number of time steps to generate sequences over.
+            n_sample: Number of independent trajectories to sample. If equal
+                to None (default) a single sample is generated.
 
         Returns:
-            z_seq (array): Generated state sequence of shape `(n_step, dim_z)`.
-            x_seq (array): Generated obs. sequence of shape `(n_step, dim_x)`.
+            z_seq (array): Generated state sequence of shape (n_step, dim_z)
+                if n_sample is None or (n_step, n_sample, dim_z) otherwise.
+            x_seq (array): Generated obs. sequence of shape (n_step, dim_x)
+                if n_sample is None or (n_step, n_sample, dim_x) otherwise.
         """
-        z_seq = np.full((n_step, self.dim_z), np.nan)
-        x_seq = np.full((n_step, self.dim_x), np.nan)
-        z_seq[0] = self.init_state_sampler()
+        if n_sample is None:
+            z_seq = np.full((n_step, self.dim_z), np.nan)
+            x_seq = np.full((n_step, self.dim_x), np.nan)
+        else:
+            z_seq = np.full((n_step, n_sample, self.dim_z), np.nan)
+            x_seq = np.full((n_step, n_sample, self.dim_x), np.nan)
+        z_seq[0] = self.init_state_sampler(n_sample)
         x_seq[0] = self.observation_sampler(z_seq[0], 0)
         for t in tqdm.trange(n_step, desc='Generating', unit='observation'):
             z_seq[t] = self.next_state_sampler(z_seq[t-1], t-1)
