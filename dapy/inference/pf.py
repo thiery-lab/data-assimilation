@@ -272,7 +272,7 @@ class PouLocalEnsembleTransportParticleFilter(AbstractEnsembleFilter):
     def __init__(self, init_state_sampler, next_state_sampler, rng,
                  log_likelihood_per_obs_loc, localisation_kernel,
                  pou_basis, ot_solver, ot_solver_params={},
-                 inflation_factor=1.):
+                 inflation_factor=1., integrate_weights_in_log_space=True):
         super(PouLocalEnsembleTransportParticleFilter, self).__init__(
             init_state_sampler, next_state_sampler, rng)
         self.log_likelihood_per_obs_loc = log_likelihood_per_obs_loc
@@ -281,9 +281,12 @@ class PouLocalEnsembleTransportParticleFilter(AbstractEnsembleFilter):
         self.ot_solver = ot_solver
         self.ot_solver_params = ot_solver_params
         self.inflation_factor = inflation_factor
-
+        self.integrate_weights_in_log_space = integrate_weights_in_log_space
+        self.pou_norms = pou_basis.integrate_against_bases(
+            np.ones((1, pou_basis.n_grid)))
 
     def analysis_update(self, z_forecast, x_observed, time_index):
+        n_particle = z_forecast.shape[0]
         # calculate localised particle weights
         log_lik_per_obs_loc = self.log_likelihood_per_obs_loc(
             z_forecast, x_observed, time_index)
@@ -293,26 +296,37 @@ class PouLocalEnsembleTransportParticleFilter(AbstractEnsembleFilter):
             kernel_indices, kernel_weights = self.localisation_kernel(k)
             loc_log_weights[:, kernel_indices] += (
                 kernel_weights[None] * log_lik_per_obs_loc[:, k:k+1])
-        loc_log_weights = (
-            loc_log_weights - np.max(loc_log_weights))
         z_forecast = z_forecast.reshape(
             (z_forecast.shape[0], -1, self.pou_basis.n_grid))
         # calculate localised transport cost matrices
         z_dist_matrices = np.sum(
             (z_forecast[:, None] - z_forecast[None, :])**2, -2)
         cost_matrices = self.pou_basis.integrate_against_bases(z_dist_matrices)
-        # caculate localised target marginals
-        target_marginals = self.pou_basis.integrate_against_bases(
-            np.exp(loc_log_weights))
+        cost_matrices = np.moveaxis(cost_matrices, 2, 0)
+        # caculate localised transport target distributions
+        if self.integrate_weights_in_log_space:
+            log_target_dists = self.pou_basis.integrate_against_bases(
+                loc_log_weights)
+            log_target_dists /= self.pou_norms
+            log_target_dists -= logsumexp(log_target_dists, axis=0)
+            target_dists = np.exp(log_target_dists)
+        else:
+            target_dists = self.pou_basis.integrate_against_bases(
+                np.exp(loc_log_weights))
+            target_dists /= target_dists.sum(0)
+        target_dists = target_dists.T
+        # localised transport source distributions uniform
+        source_dists = np.ones_like(target_dists) / n_particle
         # solve for localised transport matrices
         trans_matrices = self.ot_solver(
-            cost_matrices, target_marginals, **self.ot_solver_params)
+            source_dists, target_dists, cost_matrices,
+            **self.ot_solver_params) * n_particle
         # calculate PoU basis scaled forecast field patches
         scaled_z_forecast_patches = (
             self.pou_basis.split_into_patches_and_scale(z_forecast))
         # calculate analysis fields
         z_analysis_patches = np.einsum(
-            'ijk,jlkm->ilkm', trans_matrices, scaled_z_forecast_patches)
+            'kij,jlkm->ilkm', trans_matrices, scaled_z_forecast_patches)
         z_analysis = self.pou_basis.combine_patches(
             z_analysis_patches).reshape((z_forecast.shape[0], -1))
         z_analysis_mean = z_analysis.mean(0)
