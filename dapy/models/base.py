@@ -1,6 +1,7 @@
 """Base model class for data assimilation example models."""
 
 import numpy as np
+import tqdm
 from dapy.utils.doc import inherit_docstrings
 
 
@@ -184,7 +185,7 @@ class AbstractModel(object):
         x_seq = np.full((n_step, self.dim_x), np.nan)
         z_seq[0] = self.init_state_sampler()
         x_seq[0] = self.observation_sampler(z_seq[0], 0)
-        for t in range(1, n_step):
+        for t in tqdm.trange(n_step, desc='Generating', unit='observation'):
             z_seq[t] = self.next_state_sampler(z_seq[t-1], t-1)
             x_seq[t] = self.observation_sampler(z_seq[t], t)
         return z_seq, x_seq

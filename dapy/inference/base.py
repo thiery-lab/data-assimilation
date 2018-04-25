@@ -2,6 +2,7 @@
 
 import numpy as np
 from dapy.utils.doc import inherit_docstrings
+import tqdm
 
 
 class AbstractEnsembleFilter(object):
@@ -70,17 +71,14 @@ class AbstractEnsembleFilter(object):
                     distribution at each time step (if return_particles==True).
         """
         n_steps, dim_x = x_observed_seq.shape
-        for t in range(n_steps):
+        z_forecast = self.init_state_sampler(n_particles)
+        dim_z = z_forecast.shape[1]
+        z_mean_seq, z_std_seq = np.full((2, n_steps, dim_z), np.nan)
+        if return_particles:
+            z_particles_seq = np.full((n_steps, n_particles, dim_z), np.nan)
+        for t in tqdm.trange(n_steps, desc='Filtering', unit='observation'):
             # Forecast update.
-            if t == 0:
-                z_forecast = self.init_state_sampler(n_particles)
-                dim_z = z_forecast.shape[1]
-                z_mean_seq = np.full((n_steps, dim_z), np.nan)
-                z_std_seq = np.full((n_steps, dim_z), np.nan)
-                if return_particles:
-                    z_particles_seq = np.full(
-                        (n_steps, n_particles, dim_z), np.nan)
-            else:
+            if t > 0:
                 z_forecast = self.next_state_sampler(z_analysis, t-1)
             # Analysis update.
             z_analysis, z_analysis_mean, z_analysis_std = self.analysis_update(
