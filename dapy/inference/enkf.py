@@ -165,8 +165,8 @@ class EnsembleSquareRootFilter(AbstractEnsembleFilter):
             eigvec_c / eigval_c).dot(eigvec_c.T).dot(dx_forecast.T)
         eigval_m, eigvec_m = la.eigh(m_matrix)
         if self.warn and np.any(eigval_m > 1.):
-            print('Warning: eigenvalue(s) outside unit circle, max: {0}'
-                  .format(eigval_m.max()))
+            warnings.warn('Eigenvalue(s) outside unit circle, max: {0}'
+                          .format(eigval_m.max()))
         sqrt_matrix = (
             eigvec_m * abs(1 - np.clip(eigval_m, -np.inf, 1.))**0.5
         ).dot(eigvec_m.T)
