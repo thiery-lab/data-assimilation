@@ -352,12 +352,15 @@ class LocalEnsembleTransformKalmanFilter(AbstractLocalEnsembleFilter):
         dz_forecast = z_forecast - z_mean_forecast
         x_mean_forecast = x_forecast.mean(0)
         dx_forecast = x_forecast - x_mean_forecast
-        c_matrix = ((dx_forecast / obs_noise_std**2) * localisation_weights)
-        p_inv_matrix = (
-            (n_particles - 1) * np.eye(n_particles) / self.inflation_factor +
-            c_matrix.dot(dx_forecast.T))
-        eigval_p_inv, eigvec_p_inv = la.eigh(p_inv_matrix)
-        d_vector = c_matrix.dot(x_observed - x_mean_forecast)
+        eff_inv_obs_noise_std = localisation_weights**0.5 / obs_noise_std
+        eigvec_p_inv, s, _ = la.svd(dx_forecast * eff_inv_obs_noise_std)
+        eigval_p_inv = np.ones(n_particles) * (n_particles - 1)
+        eigval_p_inv[:dx_forecast.shape[1]] += s**2
+        if eigval_p_inv.min() <= 0:
+            warnings.warn('Localisation P matrix non positive-definite '
+                          '(min eigval {0:.2e}).'.format(eigval_p_inv.min()))
+        d_vector = (dx_forecast * eff_inv_obs_noise_std**2).dot(
+            x_observed - x_mean_forecast)
         dw_matrix = (n_particles - 1)**0.5 * eigvec_p_inv / eigval_p_inv**0.5
         w_mean = (eigvec_p_inv / eigval_p_inv).dot(
             eigvec_p_inv.T.dot(d_vector))
