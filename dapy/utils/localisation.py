@@ -56,6 +56,40 @@ def triangular_weighting(d, radius):
     return w
 
 
+@nb.njit(nb.double[:](nb.double[:], nb.double), parallel=True)
+def uniform_weighting(d, radius):
+    """Compactly supported uniform (rectangular) kernel function.
+
+    Args:
+        d (array): One-dimensional array of distances.
+        radius (float): Positive scaling parameter.
+
+    Returns:
+        One-dimensional array of weight values in [0, 1].
+    """
+    w = np.empty(d.shape[0])
+    for i in nb.prange(d.shape[0]):
+        u = abs(d[i]) / radius
+        if u <= 1.:
+            w[i] = 1.
+        else:
+            w[i] = 0.
+    return w
+
+
+class DummyLocalisationFunction(object):
+    """Dummy function which uniformly weights all grid points for testing."""
+
+    def __init__(self, coords_a, coords_b):
+        self.coords_a = coords_a
+        self.coords_b = coords_b
+        self.n_coords_a = coords_a.shape[0]
+        self.n_coords_b = coords_b.shape[0]
+
+    def __call__(self, index):
+        return slice(None), np.ones(self.n_coords_b)
+
+
 class LocalisationFunction(object):
     """Callable object for localisation of models on compact spatial domains.
 
