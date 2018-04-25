@@ -1,7 +1,6 @@
 """Particle filters for inference in state space models."""
 
 import numpy as np
-import ot
 from scipy.special import logsumexp
 from dapy.inference.base import (
         AbstractEnsembleFilter, AbstractLocalEnsembleFilter)
@@ -75,18 +74,18 @@ class BootstrapParticleFilter(AbstractEnsembleFilter):
         log_sum_w = logsumexp(log_w)
         return np.exp(log_w - log_sum_w)
 
-    def resample(self, z, w):
+    def analysis_transform(self, z_forecast, weights):
         """Perform multinomial particle resampling given computed weights."""
-        n_particles = z.shape[0]
-        idx = self.rng.choice(n_particles, n_particles, True, w)
-        return z[idx]
+        n_particles = z_forecast.shape[0]
+        idx = self.rng.choice(n_particles, n_particles, True, weights)
+        return z_forecast[idx]
 
     def analysis_update(self, z_forecast, x_observed, time_index):
         w = self.calculate_weights(z_forecast, x_observed, time_index)
         z_analysis_mean = (w[:, None] * z_forecast).sum(0)
         z_analysis_std = (
                 w[:, None] * (z_forecast - z_analysis_mean)**2).sum(0)**0.5
-        z_analysis = self.resample(z_forecast, w)
+        z_analysis = self.analysis_transform(z_forecast, w)
         return z_analysis, z_analysis_mean, z_analysis_std
 
 
@@ -127,21 +126,61 @@ class EnsembleTransformParticleFilter(BootstrapParticleFilter):
         A2013-A2024.
     """
 
-    def resample(self, z, w):
+    def __init__(self, init_state_sampler, next_state_sampler,
+                 log_prob_dens_obs_gvn_state, rng, ot_solver,
+                 ot_solver_params={}):
+        """
+        Args:
+            init_state_sampler (function): Function returning sample(s) from
+                initial state distribution. Takes number of particles to sample
+                as argument.
+            next_state_sampler (function): Function returning sample(s) from
+                distribution on next state given current state(s). Takes array
+                of current state(s) and current time index as
+                arguments.
+            log_prob_dens_obs_gvn_state (function): Function returning log
+                probability density (up to an additive constant) of
+                observation vector given state vector at the corresponding
+                time index.
+            rng (RandomState): Numpy RandomState random number generator.
+            ot_solver (function): Optimal transport solver function with
+                call signature
+                    ot_solver(source_dist, target_dist, cost_matrix,
+                              **ot_solver_params)
+                where source_dist and target_dist are the source and target
+                distribution weights respectively as 1D arrays, cost_matrix is
+                a 2D array of the distances between particles and
+                ot_solver_params is any additional keyword parameter values
+                for the solver.
+            ot_solver_params (dict): Any additional keyword parameters values
+                for the optimal transport solver.
+        """
+        super(EnsembleTransformParticleFilter, self).__init__(
+                init_state_sampler=init_state_sampler,
+                next_state_sampler=next_state_sampler,
+                log_prob_dens_obs_gvn_state=log_prob_dens_obs_gvn_state,
+                rng=rng)
+        self.ot_solver = ot_solver
+        self.ot_solver_params = ot_solver_params
+
+    def analysis_transform(self, z_forecast, weights):
         """Solve optimal transport problem and transform ensemble."""
-        n_particles = z.shape[0]
-        u = np.ones(n_particles) / n_particles
+        n_particles = z_forecast.shape[0]
+        source_dist = np.ones(n_particles) / n_particles
+        target_dist = weights
         # Cost matrix entries Euclidean distance between particles
-        cost_mtx = ot.dist(z, z)
-        trans_mtx = ot.emd(w, u, cost_mtx) * n_particles
-        return trans_mtx.T.dot(z)
+        cost_matrix = np.sum(
+            (z_forecast[:, None] - z_forecast[None, :])**2, -1)
+        trans_matrix = n_particles * self.ot_solver(
+            source_dist, target_dist, cost_matrix, **ot_solver_params)
+        return trans_mtx.dot(z_forecast)
 
 
 class LocalEnsembleTransformParticleFilter(AbstractLocalEnsembleFilter):
 
-    def __init__(self, init_state_sampler, next_state_sampler,
+    def __init__(self, init_state_sampler, next_state_sampler, rng,
                  observation_func, obser_noise_std, n_grid, localisation_func,
-                 inflation_factor, rng, use_sinkhorn=False, sinkhorn_reg=1e-3):
+                 ot_solver, ot_solver_params={}, inflation_factor=1.):
         """
         Args:
             init_state_sampler (function): Function returning sample(s) from
