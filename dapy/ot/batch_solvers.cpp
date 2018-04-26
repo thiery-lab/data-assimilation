@@ -2005,7 +2005,6 @@ static const char __pyx_k_ASCII[] = "ASCII";
 static const char __pyx_k_class[] = "__class__";
 static const char __pyx_k_costs[] = "costs";
 static const char __pyx_k_dtype[] = "dtype";
-static const char __pyx_k_empty[] = "empty";
 static const char __pyx_k_error[] = "error";
 static const char __pyx_k_flags[] = "flags";
 static const char __pyx_k_int32[] = "int32";
@@ -2014,6 +2013,7 @@ static const char __pyx_k_order[] = "order";
 static const char __pyx_k_range[] = "range";
 static const char __pyx_k_shape[] = "shape";
 static const char __pyx_k_start[] = "start";
+static const char __pyx_k_zeros[] = "zeros";
 static const char __pyx_k_double[] = "double";
 static const char __pyx_k_encode[] = "encode";
 static const char __pyx_k_format[] = "format";
@@ -2039,6 +2039,7 @@ static const char __pyx_k_n_problem[] = "n_problem";
 static const char __pyx_k_pyx_state[] = "__pyx_state";
 static const char __pyx_k_IndexError[] = "IndexError";
 static const char __pyx_k_ValueError[] = "ValueError";
+static const char __pyx_k_loop_range[] = "loop_range";
 static const char __pyx_k_mu_vectors[] = "mu_vectors";
 static const char __pyx_k_nu_vectors[] = "nu_vectors";
 static const char __pyx_k_pyx_vtable[] = "__pyx_vtable__";
@@ -2086,7 +2087,7 @@ static const char __pyx_k_numpy_core_multiarray_failed_to[] = "numpy.core.multia
 static const char __pyx_k_unknown_dtype_code_in_numpy_pxd[] = "unknown dtype code in numpy.pxd (%d)";
 static const char __pyx_k_Buffer_view_does_not_expose_stri[] = "Buffer view does not expose strides";
 static const char __pyx_k_Can_only_create_a_buffer_that_is[] = "Can only create a buffer that is contiguous in memory.";
-static const char __pyx_k_Cython_wrapper_for_basic_batched[] = "Cython wrapper for basic batched exact optimal transport problem solvers.";
+static const char __pyx_k_Cython_wrapper_for_basic_batched[] = "Cython wrapper for basic batched exact optimal transport problem solvers.\n\nBased on `emd_wrapper.pyx` + `emd.cpp` by Remi Flamary <remi.flamary@unice.fr>\n\nAdapted by Matt Graham\n\nLicense: MIT License\n";
 static const char __pyx_k_Empty_shape_tuple_for_cython_arr[] = "Empty shape tuple for cython.array";
 static const char __pyx_k_Format_string_allocated_too_shor[] = "Format string allocated too short, see comment in numpy.pxd";
 static const char __pyx_k_Incompatible_checksums_s_vs_0xb0[] = "Incompatible checksums (%s vs 0xb068931 = (name))";
@@ -2149,7 +2150,6 @@ static PyObject *__pyx_n_s_dict;
 static PyObject *__pyx_n_u_double;
 static PyObject *__pyx_n_s_dtype;
 static PyObject *__pyx_n_s_dtype_is_object;
-static PyObject *__pyx_n_s_empty;
 static PyObject *__pyx_n_s_encode;
 static PyObject *__pyx_n_s_enumerate;
 static PyObject *__pyx_n_s_error;
@@ -2163,6 +2163,7 @@ static PyObject *__pyx_n_s_import;
 static PyObject *__pyx_n_u_int32;
 static PyObject *__pyx_n_s_itemsize;
 static PyObject *__pyx_kp_s_itemsize_0_for_cython_array;
+static PyObject *__pyx_n_s_loop_range;
 static PyObject *__pyx_n_s_main;
 static PyObject *__pyx_n_s_max_iter;
 static PyObject *__pyx_n_s_memview;
@@ -2221,6 +2222,7 @@ static PyObject *__pyx_kp_s_unable_to_allocate_shape_and_str;
 static PyObject *__pyx_kp_u_unknown_dtype_code_in_numpy_pxd;
 static PyObject *__pyx_n_s_unpack;
 static PyObject *__pyx_n_s_update;
+static PyObject *__pyx_n_s_zeros;
 static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_parallel_ot_solve(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_mu_vectors, __Pyx_memviewslice __pyx_v_nu_vectors, __Pyx_memviewslice __pyx_v_cost_matrices, int __pyx_v_max_iter, CYTHON_UNUSED int __pyx_v_num_threads); /* proto */
 static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_2sequential_ot_solve(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_mu_vectors, __Pyx_memviewslice __pyx_v_nu_vectors, __Pyx_memviewslice __pyx_v_cost_matrices, int __pyx_v_max_iter); /* proto */
 static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
@@ -2314,7 +2316,7 @@ static PyObject *__pyx_codeobj__30;
 static PyObject *__pyx_codeobj__32;
 static PyObject *__pyx_codeobj__39;
 
-/* "dapy/ot/batch_solvers.pyx":21
+/* "dapy/ot/batch_solvers.pyx":23
  * 
  * 
  * def parallel_ot_solve(double[:, ::1] mu_vectors, double[:, ::1] nu_vectors,             # <<<<<<<<<<<<<<
@@ -2364,13 +2366,13 @@ static PyObject *__pyx_pw_4dapy_2ot_13batch_solvers_1parallel_ot_solve(PyObject 
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_nu_vectors)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("parallel_ot_solve", 0, 3, 5, 1); __PYX_ERR(0, 21, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("parallel_ot_solve", 0, 3, 5, 1); __PYX_ERR(0, 23, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_cost_matrices)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("parallel_ot_solve", 0, 3, 5, 2); __PYX_ERR(0, 21, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("parallel_ot_solve", 0, 3, 5, 2); __PYX_ERR(0, 23, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
@@ -2386,7 +2388,7 @@ static PyObject *__pyx_pw_4dapy_2ot_13batch_solvers_1parallel_ot_solve(PyObject 
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "parallel_ot_solve") < 0)) __PYX_ERR(0, 21, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "parallel_ot_solve") < 0)) __PYX_ERR(0, 23, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -2401,23 +2403,23 @@ static PyObject *__pyx_pw_4dapy_2ot_13batch_solvers_1parallel_ot_solve(PyObject 
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_mu_vectors = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[0]); if (unlikely(!__pyx_v_mu_vectors.memview)) __PYX_ERR(0, 21, __pyx_L3_error)
-    __pyx_v_nu_vectors = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[1]); if (unlikely(!__pyx_v_nu_vectors.memview)) __PYX_ERR(0, 21, __pyx_L3_error)
-    __pyx_v_cost_matrices = __Pyx_PyObject_to_MemoryviewSlice_d_d_dc_double(values[2]); if (unlikely(!__pyx_v_cost_matrices.memview)) __PYX_ERR(0, 22, __pyx_L3_error)
+    __pyx_v_mu_vectors = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[0]); if (unlikely(!__pyx_v_mu_vectors.memview)) __PYX_ERR(0, 23, __pyx_L3_error)
+    __pyx_v_nu_vectors = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[1]); if (unlikely(!__pyx_v_nu_vectors.memview)) __PYX_ERR(0, 23, __pyx_L3_error)
+    __pyx_v_cost_matrices = __Pyx_PyObject_to_MemoryviewSlice_d_d_dc_double(values[2]); if (unlikely(!__pyx_v_cost_matrices.memview)) __PYX_ERR(0, 24, __pyx_L3_error)
     if (values[3]) {
-      __pyx_v_max_iter = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_max_iter == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 22, __pyx_L3_error)
+      __pyx_v_max_iter = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_max_iter == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 24, __pyx_L3_error)
     } else {
       __pyx_v_max_iter = ((int)0x186A0);
     }
     if (values[4]) {
-      __pyx_v_num_threads = __Pyx_PyInt_As_int(values[4]); if (unlikely((__pyx_v_num_threads == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 23, __pyx_L3_error)
+      __pyx_v_num_threads = __Pyx_PyInt_As_int(values[4]); if (unlikely((__pyx_v_num_threads == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 25, __pyx_L3_error)
     } else {
       __pyx_v_num_threads = ((int)4);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("parallel_ot_solve", 0, 3, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 21, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("parallel_ot_solve", 0, 3, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 23, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("dapy.ot.batch_solvers.parallel_ot_solve", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -2445,6 +2447,7 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_parallel_ot_solve(CYTHON_UNU
   __Pyx_memviewslice __pyx_v_transport_matrices_mv = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_alpha_vectors_mv = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_beta_vectors_mv = { 0, 0, { 0 }, { 0 }, { 0 } };
+  CYTHON_UNUSED PyObject *__pyx_v_loop_range = NULL;
   __Pyx_LocalBuf_ND __pyx_pybuffernd_alpha_vectors;
   __Pyx_Buffer __pyx_pybuffer_alpha_vectors;
   __Pyx_LocalBuf_ND __pyx_pybuffernd_beta_vectors;
@@ -2512,7 +2515,7 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_parallel_ot_solve(CYTHON_UNU
   __pyx_pybuffernd_beta_vectors.data = NULL;
   __pyx_pybuffernd_beta_vectors.rcbuffer = &__pyx_pybuffer_beta_vectors;
 
-  /* "dapy/ot/batch_solvers.pyx":24
+  /* "dapy/ot/batch_solvers.pyx":26
  *                       double[:, :, ::1] cost_matrices, int max_iter=100000,
  *                       int num_threads=4):
  *     cdef int n_problem = cost_matrices.shape[0]             # <<<<<<<<<<<<<<
@@ -2521,7 +2524,7 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_parallel_ot_solve(CYTHON_UNU
  */
   __pyx_v_n_problem = (__pyx_v_cost_matrices.shape[0]);
 
-  /* "dapy/ot/batch_solvers.pyx":25
+  /* "dapy/ot/batch_solvers.pyx":27
  *                       int num_threads=4):
  *     cdef int n_problem = cost_matrices.shape[0]
  *     cdef int mu_dim = cost_matrices.shape[1]             # <<<<<<<<<<<<<<
@@ -2530,7 +2533,7 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_parallel_ot_solve(CYTHON_UNU
  */
   __pyx_v_mu_dim = (__pyx_v_cost_matrices.shape[1]);
 
-  /* "dapy/ot/batch_solvers.pyx":26
+  /* "dapy/ot/batch_solvers.pyx":28
  *     cdef int n_problem = cost_matrices.shape[0]
  *     cdef int mu_dim = cost_matrices.shape[1]
  *     cdef int nu_dim = cost_matrices.shape[2]             # <<<<<<<<<<<<<<
@@ -2539,81 +2542,81 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_parallel_ot_solve(CYTHON_UNU
  */
   __pyx_v_nu_dim = (__pyx_v_cost_matrices.shape[2]);
 
-  /* "dapy/ot/batch_solvers.pyx":27
+  /* "dapy/ot/batch_solvers.pyx":29
  *     cdef int mu_dim = cost_matrices.shape[1]
  *     cdef int nu_dim = cost_matrices.shape[2]
  *     cdef int p = 0             # <<<<<<<<<<<<<<
  * 
- *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.empty(
+ *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.zeros(
  */
   __pyx_v_p = 0;
 
-  /* "dapy/ot/batch_solvers.pyx":29
+  /* "dapy/ot/batch_solvers.pyx":31
  *     cdef int p = 0
  * 
- *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.empty(             # <<<<<<<<<<<<<<
+ *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.zeros(             # <<<<<<<<<<<<<<
  *         n_problem, dtype='int32')
- *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.empty(
+ *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.zeros(
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 29, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 31, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_empty); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 29, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_zeros); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 31, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "dapy/ot/batch_solvers.pyx":30
+  /* "dapy/ot/batch_solvers.pyx":32
  * 
- *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.empty(
+ *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.zeros(
  *         n_problem, dtype='int32')             # <<<<<<<<<<<<<<
- *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.empty(
+ *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.zeros(
  *         n_problem, dtype='double')
  */
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_n_problem); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 30, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_n_problem); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 32, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
 
-  /* "dapy/ot/batch_solvers.pyx":29
+  /* "dapy/ot/batch_solvers.pyx":31
  *     cdef int p = 0
  * 
- *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.empty(             # <<<<<<<<<<<<<<
+ *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.zeros(             # <<<<<<<<<<<<<<
  *         n_problem, dtype='int32')
- *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.empty(
+ *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.zeros(
  */
-  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 29, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 31, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "dapy/ot/batch_solvers.pyx":30
+  /* "dapy/ot/batch_solvers.pyx":32
  * 
- *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.empty(
+ *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.zeros(
  *         n_problem, dtype='int32')             # <<<<<<<<<<<<<<
- *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.empty(
+ *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.zeros(
  *         n_problem, dtype='double')
  */
-  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 30, __pyx_L1_error)
+  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 32, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_dtype, __pyx_n_u_int32) < 0) __PYX_ERR(0, 30, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_dtype, __pyx_n_u_int32) < 0) __PYX_ERR(0, 32, __pyx_L1_error)
 
-  /* "dapy/ot/batch_solvers.pyx":29
+  /* "dapy/ot/batch_solvers.pyx":31
  *     cdef int p = 0
  * 
- *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.empty(             # <<<<<<<<<<<<<<
+ *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.zeros(             # <<<<<<<<<<<<<<
  *         n_problem, dtype='int32')
- *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.empty(
+ *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.zeros(
  */
-  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_3, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 29, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_3, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 31, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (!(likely(((__pyx_t_4) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_4, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 29, __pyx_L1_error)
+  if (!(likely(((__pyx_t_4) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_4, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 31, __pyx_L1_error)
   __pyx_t_5 = ((PyArrayObject *)__pyx_t_4);
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
     if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_result_codes.rcbuffer->pybuffer, (PyObject*)__pyx_t_5, &__Pyx_TypeInfo_int, PyBUF_FORMAT| PyBUF_C_CONTIGUOUS, 1, 0, __pyx_stack) == -1)) {
       __pyx_v_result_codes = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_result_codes.rcbuffer->pybuffer.buf = NULL;
-      __PYX_ERR(0, 29, __pyx_L1_error)
+      __PYX_ERR(0, 31, __pyx_L1_error)
     } else {__pyx_pybuffernd_result_codes.diminfo[0].strides = __pyx_pybuffernd_result_codes.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_result_codes.diminfo[0].shape = __pyx_pybuffernd_result_codes.rcbuffer->pybuffer.shape[0];
     }
   }
@@ -2621,72 +2624,72 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_parallel_ot_solve(CYTHON_UNU
   __pyx_v_result_codes = ((PyArrayObject *)__pyx_t_4);
   __pyx_t_4 = 0;
 
-  /* "dapy/ot/batch_solvers.pyx":31
- *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.empty(
+  /* "dapy/ot/batch_solvers.pyx":33
+ *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.zeros(
  *         n_problem, dtype='int32')
- *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.empty(             # <<<<<<<<<<<<<<
+ *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.zeros(             # <<<<<<<<<<<<<<
  *         n_problem, dtype='double')
- *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.empty(
+ *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.zeros(
  */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 31, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 33, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_empty); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 31, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_zeros); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 33, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "dapy/ot/batch_solvers.pyx":32
+  /* "dapy/ot/batch_solvers.pyx":34
  *         n_problem, dtype='int32')
- *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.empty(
+ *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.zeros(
  *         n_problem, dtype='double')             # <<<<<<<<<<<<<<
- *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.empty(
+ *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.zeros(
  *         (n_problem, mu_dim, nu_dim), dtype='double', order='C')
  */
-  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_n_problem); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 32, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_n_problem); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 34, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
 
-  /* "dapy/ot/batch_solvers.pyx":31
- *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.empty(
+  /* "dapy/ot/batch_solvers.pyx":33
+ *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.zeros(
  *         n_problem, dtype='int32')
- *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.empty(             # <<<<<<<<<<<<<<
+ *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.zeros(             # <<<<<<<<<<<<<<
  *         n_problem, dtype='double')
- *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.empty(
+ *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.zeros(
  */
-  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 31, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 33, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_4);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_4);
   __pyx_t_4 = 0;
 
-  /* "dapy/ot/batch_solvers.pyx":32
+  /* "dapy/ot/batch_solvers.pyx":34
  *         n_problem, dtype='int32')
- *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.empty(
+ *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.zeros(
  *         n_problem, dtype='double')             # <<<<<<<<<<<<<<
- *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.empty(
+ *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.zeros(
  *         (n_problem, mu_dim, nu_dim), dtype='double', order='C')
  */
-  __pyx_t_4 = PyDict_New(); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 32, __pyx_L1_error)
+  __pyx_t_4 = PyDict_New(); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 34, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_dtype, __pyx_n_u_double) < 0) __PYX_ERR(0, 32, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_dtype, __pyx_n_u_double) < 0) __PYX_ERR(0, 34, __pyx_L1_error)
 
-  /* "dapy/ot/batch_solvers.pyx":31
- *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.empty(
+  /* "dapy/ot/batch_solvers.pyx":33
+ *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.zeros(
  *         n_problem, dtype='int32')
- *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.empty(             # <<<<<<<<<<<<<<
+ *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.zeros(             # <<<<<<<<<<<<<<
  *         n_problem, dtype='double')
- *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.empty(
+ *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.zeros(
  */
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 31, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 33, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 31, __pyx_L1_error)
+  if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 33, __pyx_L1_error)
   __pyx_t_6 = ((PyArrayObject *)__pyx_t_2);
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
     if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_costs.rcbuffer->pybuffer, (PyObject*)__pyx_t_6, &__Pyx_TypeInfo_double, PyBUF_FORMAT| PyBUF_C_CONTIGUOUS, 1, 0, __pyx_stack) == -1)) {
       __pyx_v_costs = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_costs.rcbuffer->pybuffer.buf = NULL;
-      __PYX_ERR(0, 31, __pyx_L1_error)
+      __PYX_ERR(0, 33, __pyx_L1_error)
     } else {__pyx_pybuffernd_costs.diminfo[0].strides = __pyx_pybuffernd_costs.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_costs.diminfo[0].shape = __pyx_pybuffernd_costs.rcbuffer->pybuffer.shape[0];
     }
   }
@@ -2694,33 +2697,33 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_parallel_ot_solve(CYTHON_UNU
   __pyx_v_costs = ((PyArrayObject *)__pyx_t_2);
   __pyx_t_2 = 0;
 
-  /* "dapy/ot/batch_solvers.pyx":33
- *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.empty(
+  /* "dapy/ot/batch_solvers.pyx":35
+ *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.zeros(
  *         n_problem, dtype='double')
- *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.empty(             # <<<<<<<<<<<<<<
+ *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.zeros(             # <<<<<<<<<<<<<<
  *         (n_problem, mu_dim, nu_dim), dtype='double', order='C')
- *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.empty(
+ *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.zeros(
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 33, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 35, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_empty); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 33, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_zeros); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 35, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "dapy/ot/batch_solvers.pyx":34
+  /* "dapy/ot/batch_solvers.pyx":36
  *         n_problem, dtype='double')
- *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.empty(
+ *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.zeros(
  *         (n_problem, mu_dim, nu_dim), dtype='double', order='C')             # <<<<<<<<<<<<<<
- *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.empty(
+ *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.zeros(
  *         (n_problem, mu_dim), dtype='double', order='C')
  */
-  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_n_problem); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 34, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_n_problem); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 36, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_mu_dim); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 34, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_mu_dim); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 36, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_nu_dim); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 34, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_nu_dim); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 36, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_7 = PyTuple_New(3); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 34, __pyx_L1_error)
+  __pyx_t_7 = PyTuple_New(3); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 36, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_GIVEREF(__pyx_t_2);
   PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_2);
@@ -2732,50 +2735,50 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_parallel_ot_solve(CYTHON_UNU
   __pyx_t_3 = 0;
   __pyx_t_1 = 0;
 
-  /* "dapy/ot/batch_solvers.pyx":33
- *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.empty(
+  /* "dapy/ot/batch_solvers.pyx":35
+ *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.zeros(
  *         n_problem, dtype='double')
- *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.empty(             # <<<<<<<<<<<<<<
+ *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.zeros(             # <<<<<<<<<<<<<<
  *         (n_problem, mu_dim, nu_dim), dtype='double', order='C')
- *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.empty(
+ *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.zeros(
  */
-  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 33, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 35, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_7);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_7);
   __pyx_t_7 = 0;
 
-  /* "dapy/ot/batch_solvers.pyx":34
+  /* "dapy/ot/batch_solvers.pyx":36
  *         n_problem, dtype='double')
- *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.empty(
+ *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.zeros(
  *         (n_problem, mu_dim, nu_dim), dtype='double', order='C')             # <<<<<<<<<<<<<<
- *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.empty(
+ *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.zeros(
  *         (n_problem, mu_dim), dtype='double', order='C')
  */
-  __pyx_t_7 = PyDict_New(); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 34, __pyx_L1_error)
+  __pyx_t_7 = PyDict_New(); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 36, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
-  if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_dtype, __pyx_n_u_double) < 0) __PYX_ERR(0, 34, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_order, __pyx_n_u_C) < 0) __PYX_ERR(0, 34, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_dtype, __pyx_n_u_double) < 0) __PYX_ERR(0, 36, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_order, __pyx_n_u_C) < 0) __PYX_ERR(0, 36, __pyx_L1_error)
 
-  /* "dapy/ot/batch_solvers.pyx":33
- *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.empty(
+  /* "dapy/ot/batch_solvers.pyx":35
+ *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.zeros(
  *         n_problem, dtype='double')
- *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.empty(             # <<<<<<<<<<<<<<
+ *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.zeros(             # <<<<<<<<<<<<<<
  *         (n_problem, mu_dim, nu_dim), dtype='double', order='C')
- *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.empty(
+ *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.zeros(
  */
-  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_1, __pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 33, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_1, __pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 35, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-  if (!(likely(((__pyx_t_3) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_3, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 33, __pyx_L1_error)
+  if (!(likely(((__pyx_t_3) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_3, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 35, __pyx_L1_error)
   __pyx_t_8 = ((PyArrayObject *)__pyx_t_3);
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
     if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_transport_matrices.rcbuffer->pybuffer, (PyObject*)__pyx_t_8, &__Pyx_TypeInfo_double, PyBUF_FORMAT| PyBUF_C_CONTIGUOUS, 3, 0, __pyx_stack) == -1)) {
       __pyx_v_transport_matrices = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_transport_matrices.rcbuffer->pybuffer.buf = NULL;
-      __PYX_ERR(0, 33, __pyx_L1_error)
+      __PYX_ERR(0, 35, __pyx_L1_error)
     } else {__pyx_pybuffernd_transport_matrices.diminfo[0].strides = __pyx_pybuffernd_transport_matrices.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_transport_matrices.diminfo[0].shape = __pyx_pybuffernd_transport_matrices.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_transport_matrices.diminfo[1].strides = __pyx_pybuffernd_transport_matrices.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_transport_matrices.diminfo[1].shape = __pyx_pybuffernd_transport_matrices.rcbuffer->pybuffer.shape[1]; __pyx_pybuffernd_transport_matrices.diminfo[2].strides = __pyx_pybuffernd_transport_matrices.rcbuffer->pybuffer.strides[2]; __pyx_pybuffernd_transport_matrices.diminfo[2].shape = __pyx_pybuffernd_transport_matrices.rcbuffer->pybuffer.shape[2];
     }
   }
@@ -2783,31 +2786,31 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_parallel_ot_solve(CYTHON_UNU
   __pyx_v_transport_matrices = ((PyArrayObject *)__pyx_t_3);
   __pyx_t_3 = 0;
 
-  /* "dapy/ot/batch_solvers.pyx":35
- *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.empty(
+  /* "dapy/ot/batch_solvers.pyx":37
+ *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.zeros(
  *         (n_problem, mu_dim, nu_dim), dtype='double', order='C')
- *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.empty(             # <<<<<<<<<<<<<<
+ *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.zeros(             # <<<<<<<<<<<<<<
  *         (n_problem, mu_dim), dtype='double', order='C')
- *     cdef np.ndarray[double, ndim=2, mode='c'] beta_vectors = np.empty(
+ *     cdef np.ndarray[double, ndim=2, mode='c'] beta_vectors = np.zeros(
  */
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 35, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 37, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_empty); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 35, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_zeros); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 37, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "dapy/ot/batch_solvers.pyx":36
+  /* "dapy/ot/batch_solvers.pyx":38
  *         (n_problem, mu_dim, nu_dim), dtype='double', order='C')
- *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.empty(
+ *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.zeros(
  *         (n_problem, mu_dim), dtype='double', order='C')             # <<<<<<<<<<<<<<
- *     cdef np.ndarray[double, ndim=2, mode='c'] beta_vectors = np.empty(
+ *     cdef np.ndarray[double, ndim=2, mode='c'] beta_vectors = np.zeros(
  *         (n_problem, nu_dim), dtype='double', order='C')
  */
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_n_problem); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 36, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_n_problem); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 38, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_mu_dim); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 36, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_mu_dim); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 38, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 36, __pyx_L1_error)
+  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 38, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_GIVEREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_3);
@@ -2816,50 +2819,50 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_parallel_ot_solve(CYTHON_UNU
   __pyx_t_3 = 0;
   __pyx_t_1 = 0;
 
-  /* "dapy/ot/batch_solvers.pyx":35
- *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.empty(
+  /* "dapy/ot/batch_solvers.pyx":37
+ *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.zeros(
  *         (n_problem, mu_dim, nu_dim), dtype='double', order='C')
- *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.empty(             # <<<<<<<<<<<<<<
+ *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.zeros(             # <<<<<<<<<<<<<<
  *         (n_problem, mu_dim), dtype='double', order='C')
- *     cdef np.ndarray[double, ndim=2, mode='c'] beta_vectors = np.empty(
+ *     cdef np.ndarray[double, ndim=2, mode='c'] beta_vectors = np.zeros(
  */
-  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 35, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 37, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_4);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_4);
   __pyx_t_4 = 0;
 
-  /* "dapy/ot/batch_solvers.pyx":36
+  /* "dapy/ot/batch_solvers.pyx":38
  *         (n_problem, mu_dim, nu_dim), dtype='double', order='C')
- *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.empty(
+ *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.zeros(
  *         (n_problem, mu_dim), dtype='double', order='C')             # <<<<<<<<<<<<<<
- *     cdef np.ndarray[double, ndim=2, mode='c'] beta_vectors = np.empty(
+ *     cdef np.ndarray[double, ndim=2, mode='c'] beta_vectors = np.zeros(
  *         (n_problem, nu_dim), dtype='double', order='C')
  */
-  __pyx_t_4 = PyDict_New(); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 36, __pyx_L1_error)
+  __pyx_t_4 = PyDict_New(); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 38, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_dtype, __pyx_n_u_double) < 0) __PYX_ERR(0, 36, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_order, __pyx_n_u_C) < 0) __PYX_ERR(0, 36, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_dtype, __pyx_n_u_double) < 0) __PYX_ERR(0, 38, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_order, __pyx_n_u_C) < 0) __PYX_ERR(0, 38, __pyx_L1_error)
 
-  /* "dapy/ot/batch_solvers.pyx":35
- *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.empty(
+  /* "dapy/ot/batch_solvers.pyx":37
+ *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.zeros(
  *         (n_problem, mu_dim, nu_dim), dtype='double', order='C')
- *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.empty(             # <<<<<<<<<<<<<<
+ *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.zeros(             # <<<<<<<<<<<<<<
  *         (n_problem, mu_dim), dtype='double', order='C')
- *     cdef np.ndarray[double, ndim=2, mode='c'] beta_vectors = np.empty(
+ *     cdef np.ndarray[double, ndim=2, mode='c'] beta_vectors = np.zeros(
  */
-  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_7, __pyx_t_1, __pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 35, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_7, __pyx_t_1, __pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 37, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (!(likely(((__pyx_t_3) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_3, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 35, __pyx_L1_error)
+  if (!(likely(((__pyx_t_3) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_3, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 37, __pyx_L1_error)
   __pyx_t_9 = ((PyArrayObject *)__pyx_t_3);
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
     if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_alpha_vectors.rcbuffer->pybuffer, (PyObject*)__pyx_t_9, &__Pyx_TypeInfo_double, PyBUF_FORMAT| PyBUF_C_CONTIGUOUS, 2, 0, __pyx_stack) == -1)) {
       __pyx_v_alpha_vectors = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_alpha_vectors.rcbuffer->pybuffer.buf = NULL;
-      __PYX_ERR(0, 35, __pyx_L1_error)
+      __PYX_ERR(0, 37, __pyx_L1_error)
     } else {__pyx_pybuffernd_alpha_vectors.diminfo[0].strides = __pyx_pybuffernd_alpha_vectors.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_alpha_vectors.diminfo[0].shape = __pyx_pybuffernd_alpha_vectors.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_alpha_vectors.diminfo[1].strides = __pyx_pybuffernd_alpha_vectors.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_alpha_vectors.diminfo[1].shape = __pyx_pybuffernd_alpha_vectors.rcbuffer->pybuffer.shape[1];
     }
   }
@@ -2867,31 +2870,31 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_parallel_ot_solve(CYTHON_UNU
   __pyx_v_alpha_vectors = ((PyArrayObject *)__pyx_t_3);
   __pyx_t_3 = 0;
 
-  /* "dapy/ot/batch_solvers.pyx":37
- *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.empty(
+  /* "dapy/ot/batch_solvers.pyx":39
+ *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.zeros(
  *         (n_problem, mu_dim), dtype='double', order='C')
- *     cdef np.ndarray[double, ndim=2, mode='c'] beta_vectors = np.empty(             # <<<<<<<<<<<<<<
+ *     cdef np.ndarray[double, ndim=2, mode='c'] beta_vectors = np.zeros(             # <<<<<<<<<<<<<<
  *         (n_problem, nu_dim), dtype='double', order='C')
  * 
  */
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 37, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 39, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_empty); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 37, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_zeros); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 39, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "dapy/ot/batch_solvers.pyx":38
+  /* "dapy/ot/batch_solvers.pyx":40
  *         (n_problem, mu_dim), dtype='double', order='C')
- *     cdef np.ndarray[double, ndim=2, mode='c'] beta_vectors = np.empty(
+ *     cdef np.ndarray[double, ndim=2, mode='c'] beta_vectors = np.zeros(
  *         (n_problem, nu_dim), dtype='double', order='C')             # <<<<<<<<<<<<<<
  * 
  *     cdef int[::1] result_codes_mv = result_codes
  */
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_n_problem); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 38, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_n_problem); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 40, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_nu_dim); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 38, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_nu_dim); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 40, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_7 = PyTuple_New(2); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 38, __pyx_L1_error)
+  __pyx_t_7 = PyTuple_New(2); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 40, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_GIVEREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_3);
@@ -2900,50 +2903,50 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_parallel_ot_solve(CYTHON_UNU
   __pyx_t_3 = 0;
   __pyx_t_1 = 0;
 
-  /* "dapy/ot/batch_solvers.pyx":37
- *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.empty(
+  /* "dapy/ot/batch_solvers.pyx":39
+ *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.zeros(
  *         (n_problem, mu_dim), dtype='double', order='C')
- *     cdef np.ndarray[double, ndim=2, mode='c'] beta_vectors = np.empty(             # <<<<<<<<<<<<<<
+ *     cdef np.ndarray[double, ndim=2, mode='c'] beta_vectors = np.zeros(             # <<<<<<<<<<<<<<
  *         (n_problem, nu_dim), dtype='double', order='C')
  * 
  */
-  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 37, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 39, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_7);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_7);
   __pyx_t_7 = 0;
 
-  /* "dapy/ot/batch_solvers.pyx":38
+  /* "dapy/ot/batch_solvers.pyx":40
  *         (n_problem, mu_dim), dtype='double', order='C')
- *     cdef np.ndarray[double, ndim=2, mode='c'] beta_vectors = np.empty(
+ *     cdef np.ndarray[double, ndim=2, mode='c'] beta_vectors = np.zeros(
  *         (n_problem, nu_dim), dtype='double', order='C')             # <<<<<<<<<<<<<<
  * 
  *     cdef int[::1] result_codes_mv = result_codes
  */
-  __pyx_t_7 = PyDict_New(); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 38, __pyx_L1_error)
+  __pyx_t_7 = PyDict_New(); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 40, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
-  if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_dtype, __pyx_n_u_double) < 0) __PYX_ERR(0, 38, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_order, __pyx_n_u_C) < 0) __PYX_ERR(0, 38, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_dtype, __pyx_n_u_double) < 0) __PYX_ERR(0, 40, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_order, __pyx_n_u_C) < 0) __PYX_ERR(0, 40, __pyx_L1_error)
 
-  /* "dapy/ot/batch_solvers.pyx":37
- *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.empty(
+  /* "dapy/ot/batch_solvers.pyx":39
+ *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.zeros(
  *         (n_problem, mu_dim), dtype='double', order='C')
- *     cdef np.ndarray[double, ndim=2, mode='c'] beta_vectors = np.empty(             # <<<<<<<<<<<<<<
+ *     cdef np.ndarray[double, ndim=2, mode='c'] beta_vectors = np.zeros(             # <<<<<<<<<<<<<<
  *         (n_problem, nu_dim), dtype='double', order='C')
  * 
  */
-  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_1, __pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 37, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_1, __pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 39, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-  if (!(likely(((__pyx_t_3) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_3, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 37, __pyx_L1_error)
+  if (!(likely(((__pyx_t_3) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_3, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 39, __pyx_L1_error)
   __pyx_t_10 = ((PyArrayObject *)__pyx_t_3);
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
     if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_beta_vectors.rcbuffer->pybuffer, (PyObject*)__pyx_t_10, &__Pyx_TypeInfo_double, PyBUF_FORMAT| PyBUF_C_CONTIGUOUS, 2, 0, __pyx_stack) == -1)) {
       __pyx_v_beta_vectors = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_beta_vectors.rcbuffer->pybuffer.buf = NULL;
-      __PYX_ERR(0, 37, __pyx_L1_error)
+      __PYX_ERR(0, 39, __pyx_L1_error)
     } else {__pyx_pybuffernd_beta_vectors.diminfo[0].strides = __pyx_pybuffernd_beta_vectors.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_beta_vectors.diminfo[0].shape = __pyx_pybuffernd_beta_vectors.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_beta_vectors.diminfo[1].strides = __pyx_pybuffernd_beta_vectors.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_beta_vectors.diminfo[1].shape = __pyx_pybuffernd_beta_vectors.rcbuffer->pybuffer.shape[1];
     }
   }
@@ -2951,7 +2954,7 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_parallel_ot_solve(CYTHON_UNU
   __pyx_v_beta_vectors = ((PyArrayObject *)__pyx_t_3);
   __pyx_t_3 = 0;
 
-  /* "dapy/ot/batch_solvers.pyx":40
+  /* "dapy/ot/batch_solvers.pyx":42
  *         (n_problem, nu_dim), dtype='double', order='C')
  * 
  *     cdef int[::1] result_codes_mv = result_codes             # <<<<<<<<<<<<<<
@@ -2959,12 +2962,12 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_parallel_ot_solve(CYTHON_UNU
  *     cdef double[:, :, ::1] transport_matrices_mv = transport_matrices
  */
   __pyx_t_11 = __Pyx_PyObject_to_MemoryviewSlice_dc_int(((PyObject *)__pyx_v_result_codes));
-  if (unlikely(!__pyx_t_11.memview)) __PYX_ERR(0, 40, __pyx_L1_error)
+  if (unlikely(!__pyx_t_11.memview)) __PYX_ERR(0, 42, __pyx_L1_error)
   __pyx_v_result_codes_mv = __pyx_t_11;
   __pyx_t_11.memview = NULL;
   __pyx_t_11.data = NULL;
 
-  /* "dapy/ot/batch_solvers.pyx":41
+  /* "dapy/ot/batch_solvers.pyx":43
  * 
  *     cdef int[::1] result_codes_mv = result_codes
  *     cdef double[::1] costs_mv = costs             # <<<<<<<<<<<<<<
@@ -2972,12 +2975,12 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_parallel_ot_solve(CYTHON_UNU
  *     cdef double[:, ::1] alpha_vectors_mv = alpha_vectors
  */
   __pyx_t_12 = __Pyx_PyObject_to_MemoryviewSlice_dc_double(((PyObject *)__pyx_v_costs));
-  if (unlikely(!__pyx_t_12.memview)) __PYX_ERR(0, 41, __pyx_L1_error)
+  if (unlikely(!__pyx_t_12.memview)) __PYX_ERR(0, 43, __pyx_L1_error)
   __pyx_v_costs_mv = __pyx_t_12;
   __pyx_t_12.memview = NULL;
   __pyx_t_12.data = NULL;
 
-  /* "dapy/ot/batch_solvers.pyx":42
+  /* "dapy/ot/batch_solvers.pyx":44
  *     cdef int[::1] result_codes_mv = result_codes
  *     cdef double[::1] costs_mv = costs
  *     cdef double[:, :, ::1] transport_matrices_mv = transport_matrices             # <<<<<<<<<<<<<<
@@ -2985,12 +2988,12 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_parallel_ot_solve(CYTHON_UNU
  *     cdef double[:, ::1] beta_vectors_mv = beta_vectors
  */
   __pyx_t_13 = __Pyx_PyObject_to_MemoryviewSlice_d_d_dc_double(((PyObject *)__pyx_v_transport_matrices));
-  if (unlikely(!__pyx_t_13.memview)) __PYX_ERR(0, 42, __pyx_L1_error)
+  if (unlikely(!__pyx_t_13.memview)) __PYX_ERR(0, 44, __pyx_L1_error)
   __pyx_v_transport_matrices_mv = __pyx_t_13;
   __pyx_t_13.memview = NULL;
   __pyx_t_13.data = NULL;
 
-  /* "dapy/ot/batch_solvers.pyx":43
+  /* "dapy/ot/batch_solvers.pyx":45
  *     cdef double[::1] costs_mv = costs
  *     cdef double[:, :, ::1] transport_matrices_mv = transport_matrices
  *     cdef double[:, ::1] alpha_vectors_mv = alpha_vectors             # <<<<<<<<<<<<<<
@@ -2998,26 +3001,46 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_parallel_ot_solve(CYTHON_UNU
  * 
  */
   __pyx_t_14 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(((PyObject *)__pyx_v_alpha_vectors));
-  if (unlikely(!__pyx_t_14.memview)) __PYX_ERR(0, 43, __pyx_L1_error)
+  if (unlikely(!__pyx_t_14.memview)) __PYX_ERR(0, 45, __pyx_L1_error)
   __pyx_v_alpha_vectors_mv = __pyx_t_14;
   __pyx_t_14.memview = NULL;
   __pyx_t_14.data = NULL;
 
-  /* "dapy/ot/batch_solvers.pyx":44
+  /* "dapy/ot/batch_solvers.pyx":46
  *     cdef double[:, :, ::1] transport_matrices_mv = transport_matrices
  *     cdef double[:, ::1] alpha_vectors_mv = alpha_vectors
  *     cdef double[:, ::1] beta_vectors_mv = beta_vectors             # <<<<<<<<<<<<<<
  * 
- *     for p in prange(n_problem, num_threads=num_threads, schedule='static',
+ *     loop_range = range(n_problem)
  */
   __pyx_t_14 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(((PyObject *)__pyx_v_beta_vectors));
-  if (unlikely(!__pyx_t_14.memview)) __PYX_ERR(0, 44, __pyx_L1_error)
+  if (unlikely(!__pyx_t_14.memview)) __PYX_ERR(0, 46, __pyx_L1_error)
   __pyx_v_beta_vectors_mv = __pyx_t_14;
   __pyx_t_14.memview = NULL;
   __pyx_t_14.data = NULL;
 
-  /* "dapy/ot/batch_solvers.pyx":46
+  /* "dapy/ot/batch_solvers.pyx":48
  *     cdef double[:, ::1] beta_vectors_mv = beta_vectors
+ * 
+ *     loop_range = range(n_problem)             # <<<<<<<<<<<<<<
+ * 
+ *     for p in prange(n_problem, num_threads=num_threads, schedule='static',
+ */
+  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_n_problem); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 48, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_7 = PyTuple_New(1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 48, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_7);
+  __Pyx_GIVEREF(__pyx_t_3);
+  PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_3);
+  __pyx_t_3 = 0;
+  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_range, __pyx_t_7, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 48, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+  __pyx_v_loop_range = __pyx_t_3;
+  __pyx_t_3 = 0;
+
+  /* "dapy/ot/batch_solvers.pyx":50
+ *     loop_range = range(n_problem)
  * 
  *     for p in prange(n_problem, num_threads=num_threads, schedule='static',             # <<<<<<<<<<<<<<
  *                     nogil=True):
@@ -3053,7 +3076,7 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_parallel_ot_solve(CYTHON_UNU
                         {
                             __pyx_v_p = (int)(0 + 1 * __pyx_t_16);
 
-                            /* "dapy/ot/batch_solvers.pyx":49
+                            /* "dapy/ot/batch_solvers.pyx":53
  *                     nogil=True):
  *         result_codes_mv[p] = emd(
  *             mu_dim, nu_dim, &mu_vectors[p, 0], &nu_vectors[p, 0],             # <<<<<<<<<<<<<<
@@ -3065,7 +3088,7 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_parallel_ot_solve(CYTHON_UNU
                             __pyx_t_20 = __pyx_v_p;
                             __pyx_t_21 = 0;
 
-                            /* "dapy/ot/batch_solvers.pyx":50
+                            /* "dapy/ot/batch_solvers.pyx":54
  *         result_codes_mv[p] = emd(
  *             mu_dim, nu_dim, &mu_vectors[p, 0], &nu_vectors[p, 0],
  *             &cost_matrices[p, 0, 0], &transport_matrices_mv[p, 0, 0],             # <<<<<<<<<<<<<<
@@ -3079,7 +3102,7 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_parallel_ot_solve(CYTHON_UNU
                             __pyx_t_26 = 0;
                             __pyx_t_27 = 0;
 
-                            /* "dapy/ot/batch_solvers.pyx":51
+                            /* "dapy/ot/batch_solvers.pyx":55
  *             mu_dim, nu_dim, &mu_vectors[p, 0], &nu_vectors[p, 0],
  *             &cost_matrices[p, 0, 0], &transport_matrices_mv[p, 0, 0],
  *             &alpha_vectors_mv[p, 0], &beta_vectors_mv[p, 0], &costs_mv[p],             # <<<<<<<<<<<<<<
@@ -3092,7 +3115,7 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_parallel_ot_solve(CYTHON_UNU
                             __pyx_t_31 = 0;
                             __pyx_t_32 = __pyx_v_p;
 
-                            /* "dapy/ot/batch_solvers.pyx":48
+                            /* "dapy/ot/batch_solvers.pyx":52
  *     for p in prange(n_problem, num_threads=num_threads, schedule='static',
  *                     nogil=True):
  *         result_codes_mv[p] = emd(             # <<<<<<<<<<<<<<
@@ -3114,8 +3137,8 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_parallel_ot_solve(CYTHON_UNU
         #endif
       }
 
-      /* "dapy/ot/batch_solvers.pyx":46
- *     cdef double[:, ::1] beta_vectors_mv = beta_vectors
+      /* "dapy/ot/batch_solvers.pyx":50
+ *     loop_range = range(n_problem)
  * 
  *     for p in prange(n_problem, num_threads=num_threads, schedule='static',             # <<<<<<<<<<<<<<
  *                     nogil=True):
@@ -3133,7 +3156,7 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_parallel_ot_solve(CYTHON_UNU
       }
   }
 
-  /* "dapy/ot/batch_solvers.pyx":54
+  /* "dapy/ot/batch_solvers.pyx":58
  *             max_iter)
  * 
  *     return transport_matrices, costs, result_codes             # <<<<<<<<<<<<<<
@@ -3141,7 +3164,7 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_parallel_ot_solve(CYTHON_UNU
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_3 = PyTuple_New(3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 54, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 58, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_INCREF(((PyObject *)__pyx_v_transport_matrices));
   __Pyx_GIVEREF(((PyObject *)__pyx_v_transport_matrices));
@@ -3156,7 +3179,7 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_parallel_ot_solve(CYTHON_UNU
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "dapy/ot/batch_solvers.pyx":21
+  /* "dapy/ot/batch_solvers.pyx":23
  * 
  * 
  * def parallel_ot_solve(double[:, ::1] mu_vectors, double[:, ::1] nu_vectors,             # <<<<<<<<<<<<<<
@@ -3205,6 +3228,7 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_parallel_ot_solve(CYTHON_UNU
   __PYX_XDEC_MEMVIEW(&__pyx_v_transport_matrices_mv, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_v_alpha_vectors_mv, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_v_beta_vectors_mv, 1);
+  __Pyx_XDECREF(__pyx_v_loop_range);
   __PYX_XDEC_MEMVIEW(&__pyx_v_mu_vectors, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_v_nu_vectors, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_v_cost_matrices, 1);
@@ -3213,7 +3237,7 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_parallel_ot_solve(CYTHON_UNU
   return __pyx_r;
 }
 
-/* "dapy/ot/batch_solvers.pyx":57
+/* "dapy/ot/batch_solvers.pyx":61
  * 
  * 
  * def sequential_ot_solve(double[:, ::1] mu_vectors, double[:, ::1] nu_vectors,             # <<<<<<<<<<<<<<
@@ -3260,13 +3284,13 @@ static PyObject *__pyx_pw_4dapy_2ot_13batch_solvers_3sequential_ot_solve(PyObjec
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_nu_vectors)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("sequential_ot_solve", 0, 3, 4, 1); __PYX_ERR(0, 57, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("sequential_ot_solve", 0, 3, 4, 1); __PYX_ERR(0, 61, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_cost_matrices)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("sequential_ot_solve", 0, 3, 4, 2); __PYX_ERR(0, 57, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("sequential_ot_solve", 0, 3, 4, 2); __PYX_ERR(0, 61, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
@@ -3276,7 +3300,7 @@ static PyObject *__pyx_pw_4dapy_2ot_13batch_solvers_3sequential_ot_solve(PyObjec
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "sequential_ot_solve") < 0)) __PYX_ERR(0, 57, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "sequential_ot_solve") < 0)) __PYX_ERR(0, 61, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -3289,18 +3313,18 @@ static PyObject *__pyx_pw_4dapy_2ot_13batch_solvers_3sequential_ot_solve(PyObjec
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_mu_vectors = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[0]); if (unlikely(!__pyx_v_mu_vectors.memview)) __PYX_ERR(0, 57, __pyx_L3_error)
-    __pyx_v_nu_vectors = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[1]); if (unlikely(!__pyx_v_nu_vectors.memview)) __PYX_ERR(0, 57, __pyx_L3_error)
-    __pyx_v_cost_matrices = __Pyx_PyObject_to_MemoryviewSlice_d_d_dc_double(values[2]); if (unlikely(!__pyx_v_cost_matrices.memview)) __PYX_ERR(0, 58, __pyx_L3_error)
+    __pyx_v_mu_vectors = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[0]); if (unlikely(!__pyx_v_mu_vectors.memview)) __PYX_ERR(0, 61, __pyx_L3_error)
+    __pyx_v_nu_vectors = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[1]); if (unlikely(!__pyx_v_nu_vectors.memview)) __PYX_ERR(0, 61, __pyx_L3_error)
+    __pyx_v_cost_matrices = __Pyx_PyObject_to_MemoryviewSlice_d_d_dc_double(values[2]); if (unlikely(!__pyx_v_cost_matrices.memview)) __PYX_ERR(0, 62, __pyx_L3_error)
     if (values[3]) {
-      __pyx_v_max_iter = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_max_iter == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 58, __pyx_L3_error)
+      __pyx_v_max_iter = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_max_iter == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 62, __pyx_L3_error)
     } else {
       __pyx_v_max_iter = ((int)0x186A0);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("sequential_ot_solve", 0, 3, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 57, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("sequential_ot_solve", 0, 3, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 61, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("dapy.ot.batch_solvers.sequential_ot_solve", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -3394,7 +3418,7 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_2sequential_ot_solve(CYTHON_
   __pyx_pybuffernd_beta_vectors.data = NULL;
   __pyx_pybuffernd_beta_vectors.rcbuffer = &__pyx_pybuffer_beta_vectors;
 
-  /* "dapy/ot/batch_solvers.pyx":59
+  /* "dapy/ot/batch_solvers.pyx":63
  * def sequential_ot_solve(double[:, ::1] mu_vectors, double[:, ::1] nu_vectors,
  *                         double[:, :, ::1] cost_matrices, int max_iter=100000):
  *     cdef int n_problem = cost_matrices.shape[0]             # <<<<<<<<<<<<<<
@@ -3403,7 +3427,7 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_2sequential_ot_solve(CYTHON_
  */
   __pyx_v_n_problem = (__pyx_v_cost_matrices.shape[0]);
 
-  /* "dapy/ot/batch_solvers.pyx":60
+  /* "dapy/ot/batch_solvers.pyx":64
  *                         double[:, :, ::1] cost_matrices, int max_iter=100000):
  *     cdef int n_problem = cost_matrices.shape[0]
  *     cdef int mu_dim = cost_matrices.shape[1]             # <<<<<<<<<<<<<<
@@ -3412,7 +3436,7 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_2sequential_ot_solve(CYTHON_
  */
   __pyx_v_mu_dim = (__pyx_v_cost_matrices.shape[1]);
 
-  /* "dapy/ot/batch_solvers.pyx":61
+  /* "dapy/ot/batch_solvers.pyx":65
  *     cdef int n_problem = cost_matrices.shape[0]
  *     cdef int mu_dim = cost_matrices.shape[1]
  *     cdef int nu_dim = cost_matrices.shape[2]             # <<<<<<<<<<<<<<
@@ -3421,81 +3445,81 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_2sequential_ot_solve(CYTHON_
  */
   __pyx_v_nu_dim = (__pyx_v_cost_matrices.shape[2]);
 
-  /* "dapy/ot/batch_solvers.pyx":62
+  /* "dapy/ot/batch_solvers.pyx":66
  *     cdef int mu_dim = cost_matrices.shape[1]
  *     cdef int nu_dim = cost_matrices.shape[2]
  *     cdef int p = 0             # <<<<<<<<<<<<<<
  * 
- *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.empty(
+ *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.zeros(
  */
   __pyx_v_p = 0;
 
-  /* "dapy/ot/batch_solvers.pyx":64
+  /* "dapy/ot/batch_solvers.pyx":68
  *     cdef int p = 0
  * 
- *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.empty(             # <<<<<<<<<<<<<<
+ *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.zeros(             # <<<<<<<<<<<<<<
  *         n_problem, dtype='int32')
- *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.empty(
+ *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.zeros(
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 64, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 68, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_empty); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 64, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_zeros); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 68, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "dapy/ot/batch_solvers.pyx":65
+  /* "dapy/ot/batch_solvers.pyx":69
  * 
- *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.empty(
+ *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.zeros(
  *         n_problem, dtype='int32')             # <<<<<<<<<<<<<<
- *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.empty(
+ *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.zeros(
  *         n_problem, dtype='double')
  */
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_n_problem); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 65, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_n_problem); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 69, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
 
-  /* "dapy/ot/batch_solvers.pyx":64
+  /* "dapy/ot/batch_solvers.pyx":68
  *     cdef int p = 0
  * 
- *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.empty(             # <<<<<<<<<<<<<<
+ *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.zeros(             # <<<<<<<<<<<<<<
  *         n_problem, dtype='int32')
- *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.empty(
+ *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.zeros(
  */
-  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 64, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 68, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "dapy/ot/batch_solvers.pyx":65
+  /* "dapy/ot/batch_solvers.pyx":69
  * 
- *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.empty(
+ *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.zeros(
  *         n_problem, dtype='int32')             # <<<<<<<<<<<<<<
- *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.empty(
+ *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.zeros(
  *         n_problem, dtype='double')
  */
-  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 65, __pyx_L1_error)
+  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 69, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_dtype, __pyx_n_u_int32) < 0) __PYX_ERR(0, 65, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_dtype, __pyx_n_u_int32) < 0) __PYX_ERR(0, 69, __pyx_L1_error)
 
-  /* "dapy/ot/batch_solvers.pyx":64
+  /* "dapy/ot/batch_solvers.pyx":68
  *     cdef int p = 0
  * 
- *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.empty(             # <<<<<<<<<<<<<<
+ *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.zeros(             # <<<<<<<<<<<<<<
  *         n_problem, dtype='int32')
- *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.empty(
+ *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.zeros(
  */
-  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_3, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 64, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_3, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 68, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (!(likely(((__pyx_t_4) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_4, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 64, __pyx_L1_error)
+  if (!(likely(((__pyx_t_4) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_4, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 68, __pyx_L1_error)
   __pyx_t_5 = ((PyArrayObject *)__pyx_t_4);
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
     if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_result_codes.rcbuffer->pybuffer, (PyObject*)__pyx_t_5, &__Pyx_TypeInfo_int, PyBUF_FORMAT| PyBUF_C_CONTIGUOUS, 1, 0, __pyx_stack) == -1)) {
       __pyx_v_result_codes = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_result_codes.rcbuffer->pybuffer.buf = NULL;
-      __PYX_ERR(0, 64, __pyx_L1_error)
+      __PYX_ERR(0, 68, __pyx_L1_error)
     } else {__pyx_pybuffernd_result_codes.diminfo[0].strides = __pyx_pybuffernd_result_codes.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_result_codes.diminfo[0].shape = __pyx_pybuffernd_result_codes.rcbuffer->pybuffer.shape[0];
     }
   }
@@ -3503,72 +3527,72 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_2sequential_ot_solve(CYTHON_
   __pyx_v_result_codes = ((PyArrayObject *)__pyx_t_4);
   __pyx_t_4 = 0;
 
-  /* "dapy/ot/batch_solvers.pyx":66
- *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.empty(
+  /* "dapy/ot/batch_solvers.pyx":70
+ *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.zeros(
  *         n_problem, dtype='int32')
- *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.empty(             # <<<<<<<<<<<<<<
+ *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.zeros(             # <<<<<<<<<<<<<<
  *         n_problem, dtype='double')
- *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.empty(
+ *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.zeros(
  */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 66, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 70, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_empty); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 66, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_zeros); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 70, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "dapy/ot/batch_solvers.pyx":67
+  /* "dapy/ot/batch_solvers.pyx":71
  *         n_problem, dtype='int32')
- *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.empty(
+ *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.zeros(
  *         n_problem, dtype='double')             # <<<<<<<<<<<<<<
- *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.empty(
+ *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.zeros(
  *         (n_problem, mu_dim, nu_dim), dtype='double', order='C')
  */
-  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_n_problem); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 67, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_n_problem); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
 
-  /* "dapy/ot/batch_solvers.pyx":66
- *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.empty(
+  /* "dapy/ot/batch_solvers.pyx":70
+ *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.zeros(
  *         n_problem, dtype='int32')
- *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.empty(             # <<<<<<<<<<<<<<
+ *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.zeros(             # <<<<<<<<<<<<<<
  *         n_problem, dtype='double')
- *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.empty(
+ *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.zeros(
  */
-  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 66, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 70, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_4);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_4);
   __pyx_t_4 = 0;
 
-  /* "dapy/ot/batch_solvers.pyx":67
+  /* "dapy/ot/batch_solvers.pyx":71
  *         n_problem, dtype='int32')
- *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.empty(
+ *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.zeros(
  *         n_problem, dtype='double')             # <<<<<<<<<<<<<<
- *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.empty(
+ *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.zeros(
  *         (n_problem, mu_dim, nu_dim), dtype='double', order='C')
  */
-  __pyx_t_4 = PyDict_New(); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 67, __pyx_L1_error)
+  __pyx_t_4 = PyDict_New(); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_dtype, __pyx_n_u_double) < 0) __PYX_ERR(0, 67, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_dtype, __pyx_n_u_double) < 0) __PYX_ERR(0, 71, __pyx_L1_error)
 
-  /* "dapy/ot/batch_solvers.pyx":66
- *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.empty(
+  /* "dapy/ot/batch_solvers.pyx":70
+ *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.zeros(
  *         n_problem, dtype='int32')
- *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.empty(             # <<<<<<<<<<<<<<
+ *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.zeros(             # <<<<<<<<<<<<<<
  *         n_problem, dtype='double')
- *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.empty(
+ *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.zeros(
  */
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 66, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 70, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 66, __pyx_L1_error)
+  if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 70, __pyx_L1_error)
   __pyx_t_6 = ((PyArrayObject *)__pyx_t_2);
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
     if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_costs.rcbuffer->pybuffer, (PyObject*)__pyx_t_6, &__Pyx_TypeInfo_double, PyBUF_FORMAT| PyBUF_C_CONTIGUOUS, 1, 0, __pyx_stack) == -1)) {
       __pyx_v_costs = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_costs.rcbuffer->pybuffer.buf = NULL;
-      __PYX_ERR(0, 66, __pyx_L1_error)
+      __PYX_ERR(0, 70, __pyx_L1_error)
     } else {__pyx_pybuffernd_costs.diminfo[0].strides = __pyx_pybuffernd_costs.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_costs.diminfo[0].shape = __pyx_pybuffernd_costs.rcbuffer->pybuffer.shape[0];
     }
   }
@@ -3576,33 +3600,33 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_2sequential_ot_solve(CYTHON_
   __pyx_v_costs = ((PyArrayObject *)__pyx_t_2);
   __pyx_t_2 = 0;
 
-  /* "dapy/ot/batch_solvers.pyx":68
- *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.empty(
+  /* "dapy/ot/batch_solvers.pyx":72
+ *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.zeros(
  *         n_problem, dtype='double')
- *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.empty(             # <<<<<<<<<<<<<<
+ *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.zeros(             # <<<<<<<<<<<<<<
  *         (n_problem, mu_dim, nu_dim), dtype='double', order='C')
- *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.empty(
+ *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.zeros(
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 68, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 72, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_empty); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 68, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_zeros); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 72, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "dapy/ot/batch_solvers.pyx":69
+  /* "dapy/ot/batch_solvers.pyx":73
  *         n_problem, dtype='double')
- *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.empty(
+ *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.zeros(
  *         (n_problem, mu_dim, nu_dim), dtype='double', order='C')             # <<<<<<<<<<<<<<
- *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.empty(
+ *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.zeros(
  *         (n_problem, mu_dim), dtype='double', order='C')
  */
-  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_n_problem); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 69, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_n_problem); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 73, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_mu_dim); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 69, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_mu_dim); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 73, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_nu_dim); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 69, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_nu_dim); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 73, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_7 = PyTuple_New(3); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 69, __pyx_L1_error)
+  __pyx_t_7 = PyTuple_New(3); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 73, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_GIVEREF(__pyx_t_2);
   PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_2);
@@ -3614,180 +3638,12 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_2sequential_ot_solve(CYTHON_
   __pyx_t_3 = 0;
   __pyx_t_1 = 0;
 
-  /* "dapy/ot/batch_solvers.pyx":68
- *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.empty(
- *         n_problem, dtype='double')
- *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.empty(             # <<<<<<<<<<<<<<
- *         (n_problem, mu_dim, nu_dim), dtype='double', order='C')
- *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.empty(
- */
-  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 68, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_GIVEREF(__pyx_t_7);
-  PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_7);
-  __pyx_t_7 = 0;
-
-  /* "dapy/ot/batch_solvers.pyx":69
- *         n_problem, dtype='double')
- *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.empty(
- *         (n_problem, mu_dim, nu_dim), dtype='double', order='C')             # <<<<<<<<<<<<<<
- *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.empty(
- *         (n_problem, mu_dim), dtype='double', order='C')
- */
-  __pyx_t_7 = PyDict_New(); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 69, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_7);
-  if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_dtype, __pyx_n_u_double) < 0) __PYX_ERR(0, 69, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_order, __pyx_n_u_C) < 0) __PYX_ERR(0, 69, __pyx_L1_error)
-
-  /* "dapy/ot/batch_solvers.pyx":68
- *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.empty(
- *         n_problem, dtype='double')
- *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.empty(             # <<<<<<<<<<<<<<
- *         (n_problem, mu_dim, nu_dim), dtype='double', order='C')
- *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.empty(
- */
-  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_1, __pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 68, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-  if (!(likely(((__pyx_t_3) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_3, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 68, __pyx_L1_error)
-  __pyx_t_8 = ((PyArrayObject *)__pyx_t_3);
-  {
-    __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_transport_matrices.rcbuffer->pybuffer, (PyObject*)__pyx_t_8, &__Pyx_TypeInfo_double, PyBUF_FORMAT| PyBUF_C_CONTIGUOUS, 3, 0, __pyx_stack) == -1)) {
-      __pyx_v_transport_matrices = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_transport_matrices.rcbuffer->pybuffer.buf = NULL;
-      __PYX_ERR(0, 68, __pyx_L1_error)
-    } else {__pyx_pybuffernd_transport_matrices.diminfo[0].strides = __pyx_pybuffernd_transport_matrices.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_transport_matrices.diminfo[0].shape = __pyx_pybuffernd_transport_matrices.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_transport_matrices.diminfo[1].strides = __pyx_pybuffernd_transport_matrices.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_transport_matrices.diminfo[1].shape = __pyx_pybuffernd_transport_matrices.rcbuffer->pybuffer.shape[1]; __pyx_pybuffernd_transport_matrices.diminfo[2].strides = __pyx_pybuffernd_transport_matrices.rcbuffer->pybuffer.strides[2]; __pyx_pybuffernd_transport_matrices.diminfo[2].shape = __pyx_pybuffernd_transport_matrices.rcbuffer->pybuffer.shape[2];
-    }
-  }
-  __pyx_t_8 = 0;
-  __pyx_v_transport_matrices = ((PyArrayObject *)__pyx_t_3);
-  __pyx_t_3 = 0;
-
-  /* "dapy/ot/batch_solvers.pyx":70
- *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.empty(
- *         (n_problem, mu_dim, nu_dim), dtype='double', order='C')
- *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.empty(             # <<<<<<<<<<<<<<
- *         (n_problem, mu_dim), dtype='double', order='C')
- *     cdef np.ndarray[double, ndim=2, mode='c'] beta_vectors = np.empty(
- */
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 70, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_empty); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 70, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_7);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-
-  /* "dapy/ot/batch_solvers.pyx":71
- *         (n_problem, mu_dim, nu_dim), dtype='double', order='C')
- *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.empty(
- *         (n_problem, mu_dim), dtype='double', order='C')             # <<<<<<<<<<<<<<
- *     cdef np.ndarray[double, ndim=2, mode='c'] beta_vectors = np.empty(
- *         (n_problem, nu_dim), dtype='double', order='C')
- */
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_n_problem); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 71, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_mu_dim); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 71, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 71, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_GIVEREF(__pyx_t_3);
-  PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_3);
-  __Pyx_GIVEREF(__pyx_t_1);
-  PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_t_1);
-  __pyx_t_3 = 0;
-  __pyx_t_1 = 0;
-
-  /* "dapy/ot/batch_solvers.pyx":70
- *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.empty(
- *         (n_problem, mu_dim, nu_dim), dtype='double', order='C')
- *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.empty(             # <<<<<<<<<<<<<<
- *         (n_problem, mu_dim), dtype='double', order='C')
- *     cdef np.ndarray[double, ndim=2, mode='c'] beta_vectors = np.empty(
- */
-  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 70, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_GIVEREF(__pyx_t_4);
-  PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_4);
-  __pyx_t_4 = 0;
-
-  /* "dapy/ot/batch_solvers.pyx":71
- *         (n_problem, mu_dim, nu_dim), dtype='double', order='C')
- *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.empty(
- *         (n_problem, mu_dim), dtype='double', order='C')             # <<<<<<<<<<<<<<
- *     cdef np.ndarray[double, ndim=2, mode='c'] beta_vectors = np.empty(
- *         (n_problem, nu_dim), dtype='double', order='C')
- */
-  __pyx_t_4 = PyDict_New(); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 71, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_dtype, __pyx_n_u_double) < 0) __PYX_ERR(0, 71, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_order, __pyx_n_u_C) < 0) __PYX_ERR(0, 71, __pyx_L1_error)
-
-  /* "dapy/ot/batch_solvers.pyx":70
- *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.empty(
- *         (n_problem, mu_dim, nu_dim), dtype='double', order='C')
- *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.empty(             # <<<<<<<<<<<<<<
- *         (n_problem, mu_dim), dtype='double', order='C')
- *     cdef np.ndarray[double, ndim=2, mode='c'] beta_vectors = np.empty(
- */
-  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_7, __pyx_t_1, __pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 70, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (!(likely(((__pyx_t_3) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_3, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 70, __pyx_L1_error)
-  __pyx_t_9 = ((PyArrayObject *)__pyx_t_3);
-  {
-    __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_alpha_vectors.rcbuffer->pybuffer, (PyObject*)__pyx_t_9, &__Pyx_TypeInfo_double, PyBUF_FORMAT| PyBUF_C_CONTIGUOUS, 2, 0, __pyx_stack) == -1)) {
-      __pyx_v_alpha_vectors = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_alpha_vectors.rcbuffer->pybuffer.buf = NULL;
-      __PYX_ERR(0, 70, __pyx_L1_error)
-    } else {__pyx_pybuffernd_alpha_vectors.diminfo[0].strides = __pyx_pybuffernd_alpha_vectors.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_alpha_vectors.diminfo[0].shape = __pyx_pybuffernd_alpha_vectors.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_alpha_vectors.diminfo[1].strides = __pyx_pybuffernd_alpha_vectors.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_alpha_vectors.diminfo[1].shape = __pyx_pybuffernd_alpha_vectors.rcbuffer->pybuffer.shape[1];
-    }
-  }
-  __pyx_t_9 = 0;
-  __pyx_v_alpha_vectors = ((PyArrayObject *)__pyx_t_3);
-  __pyx_t_3 = 0;
-
   /* "dapy/ot/batch_solvers.pyx":72
- *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.empty(
- *         (n_problem, mu_dim), dtype='double', order='C')
- *     cdef np.ndarray[double, ndim=2, mode='c'] beta_vectors = np.empty(             # <<<<<<<<<<<<<<
- *         (n_problem, nu_dim), dtype='double', order='C')
- * 
- */
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 72, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_empty); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 72, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-
-  /* "dapy/ot/batch_solvers.pyx":73
- *         (n_problem, mu_dim), dtype='double', order='C')
- *     cdef np.ndarray[double, ndim=2, mode='c'] beta_vectors = np.empty(
- *         (n_problem, nu_dim), dtype='double', order='C')             # <<<<<<<<<<<<<<
- * 
- *     cdef int[::1] result_codes_mv = result_codes
- */
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_n_problem); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 73, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_nu_dim); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 73, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_7 = PyTuple_New(2); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 73, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_7);
-  __Pyx_GIVEREF(__pyx_t_3);
-  PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_3);
-  __Pyx_GIVEREF(__pyx_t_1);
-  PyTuple_SET_ITEM(__pyx_t_7, 1, __pyx_t_1);
-  __pyx_t_3 = 0;
-  __pyx_t_1 = 0;
-
-  /* "dapy/ot/batch_solvers.pyx":72
- *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.empty(
- *         (n_problem, mu_dim), dtype='double', order='C')
- *     cdef np.ndarray[double, ndim=2, mode='c'] beta_vectors = np.empty(             # <<<<<<<<<<<<<<
- *         (n_problem, nu_dim), dtype='double', order='C')
- * 
+ *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.zeros(
+ *         n_problem, dtype='double')
+ *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.zeros(             # <<<<<<<<<<<<<<
+ *         (n_problem, mu_dim, nu_dim), dtype='double', order='C')
+ *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.zeros(
  */
   __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 72, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -3796,11 +3652,11 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_2sequential_ot_solve(CYTHON_
   __pyx_t_7 = 0;
 
   /* "dapy/ot/batch_solvers.pyx":73
+ *         n_problem, dtype='double')
+ *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.zeros(
+ *         (n_problem, mu_dim, nu_dim), dtype='double', order='C')             # <<<<<<<<<<<<<<
+ *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.zeros(
  *         (n_problem, mu_dim), dtype='double', order='C')
- *     cdef np.ndarray[double, ndim=2, mode='c'] beta_vectors = np.empty(
- *         (n_problem, nu_dim), dtype='double', order='C')             # <<<<<<<<<<<<<<
- * 
- *     cdef int[::1] result_codes_mv = result_codes
  */
   __pyx_t_7 = PyDict_New(); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 73, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
@@ -3808,11 +3664,11 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_2sequential_ot_solve(CYTHON_
   if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_order, __pyx_n_u_C) < 0) __PYX_ERR(0, 73, __pyx_L1_error)
 
   /* "dapy/ot/batch_solvers.pyx":72
- *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.empty(
- *         (n_problem, mu_dim), dtype='double', order='C')
- *     cdef np.ndarray[double, ndim=2, mode='c'] beta_vectors = np.empty(             # <<<<<<<<<<<<<<
- *         (n_problem, nu_dim), dtype='double', order='C')
- * 
+ *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.zeros(
+ *         n_problem, dtype='double')
+ *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.zeros(             # <<<<<<<<<<<<<<
+ *         (n_problem, mu_dim, nu_dim), dtype='double', order='C')
+ *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.zeros(
  */
   __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_1, __pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 72, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
@@ -3820,12 +3676,180 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_2sequential_ot_solve(CYTHON_
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   if (!(likely(((__pyx_t_3) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_3, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 72, __pyx_L1_error)
+  __pyx_t_8 = ((PyArrayObject *)__pyx_t_3);
+  {
+    __Pyx_BufFmt_StackElem __pyx_stack[1];
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_transport_matrices.rcbuffer->pybuffer, (PyObject*)__pyx_t_8, &__Pyx_TypeInfo_double, PyBUF_FORMAT| PyBUF_C_CONTIGUOUS, 3, 0, __pyx_stack) == -1)) {
+      __pyx_v_transport_matrices = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_transport_matrices.rcbuffer->pybuffer.buf = NULL;
+      __PYX_ERR(0, 72, __pyx_L1_error)
+    } else {__pyx_pybuffernd_transport_matrices.diminfo[0].strides = __pyx_pybuffernd_transport_matrices.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_transport_matrices.diminfo[0].shape = __pyx_pybuffernd_transport_matrices.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_transport_matrices.diminfo[1].strides = __pyx_pybuffernd_transport_matrices.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_transport_matrices.diminfo[1].shape = __pyx_pybuffernd_transport_matrices.rcbuffer->pybuffer.shape[1]; __pyx_pybuffernd_transport_matrices.diminfo[2].strides = __pyx_pybuffernd_transport_matrices.rcbuffer->pybuffer.strides[2]; __pyx_pybuffernd_transport_matrices.diminfo[2].shape = __pyx_pybuffernd_transport_matrices.rcbuffer->pybuffer.shape[2];
+    }
+  }
+  __pyx_t_8 = 0;
+  __pyx_v_transport_matrices = ((PyArrayObject *)__pyx_t_3);
+  __pyx_t_3 = 0;
+
+  /* "dapy/ot/batch_solvers.pyx":74
+ *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.zeros(
+ *         (n_problem, mu_dim, nu_dim), dtype='double', order='C')
+ *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.zeros(             # <<<<<<<<<<<<<<
+ *         (n_problem, mu_dim), dtype='double', order='C')
+ *     cdef np.ndarray[double, ndim=2, mode='c'] beta_vectors = np.zeros(
+ */
+  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 74, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_zeros); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 74, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_7);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+  /* "dapy/ot/batch_solvers.pyx":75
+ *         (n_problem, mu_dim, nu_dim), dtype='double', order='C')
+ *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.zeros(
+ *         (n_problem, mu_dim), dtype='double', order='C')             # <<<<<<<<<<<<<<
+ *     cdef np.ndarray[double, ndim=2, mode='c'] beta_vectors = np.zeros(
+ *         (n_problem, nu_dim), dtype='double', order='C')
+ */
+  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_n_problem); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 75, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_mu_dim); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 75, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 75, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_GIVEREF(__pyx_t_3);
+  PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_3);
+  __Pyx_GIVEREF(__pyx_t_1);
+  PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_t_1);
+  __pyx_t_3 = 0;
+  __pyx_t_1 = 0;
+
+  /* "dapy/ot/batch_solvers.pyx":74
+ *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.zeros(
+ *         (n_problem, mu_dim, nu_dim), dtype='double', order='C')
+ *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.zeros(             # <<<<<<<<<<<<<<
+ *         (n_problem, mu_dim), dtype='double', order='C')
+ *     cdef np.ndarray[double, ndim=2, mode='c'] beta_vectors = np.zeros(
+ */
+  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 74, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_GIVEREF(__pyx_t_4);
+  PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_4);
+  __pyx_t_4 = 0;
+
+  /* "dapy/ot/batch_solvers.pyx":75
+ *         (n_problem, mu_dim, nu_dim), dtype='double', order='C')
+ *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.zeros(
+ *         (n_problem, mu_dim), dtype='double', order='C')             # <<<<<<<<<<<<<<
+ *     cdef np.ndarray[double, ndim=2, mode='c'] beta_vectors = np.zeros(
+ *         (n_problem, nu_dim), dtype='double', order='C')
+ */
+  __pyx_t_4 = PyDict_New(); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 75, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_dtype, __pyx_n_u_double) < 0) __PYX_ERR(0, 75, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_order, __pyx_n_u_C) < 0) __PYX_ERR(0, 75, __pyx_L1_error)
+
+  /* "dapy/ot/batch_solvers.pyx":74
+ *     cdef np.ndarray[double, ndim=3, mode='c'] transport_matrices = np.zeros(
+ *         (n_problem, mu_dim, nu_dim), dtype='double', order='C')
+ *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.zeros(             # <<<<<<<<<<<<<<
+ *         (n_problem, mu_dim), dtype='double', order='C')
+ *     cdef np.ndarray[double, ndim=2, mode='c'] beta_vectors = np.zeros(
+ */
+  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_7, __pyx_t_1, __pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 74, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  if (!(likely(((__pyx_t_3) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_3, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 74, __pyx_L1_error)
+  __pyx_t_9 = ((PyArrayObject *)__pyx_t_3);
+  {
+    __Pyx_BufFmt_StackElem __pyx_stack[1];
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_alpha_vectors.rcbuffer->pybuffer, (PyObject*)__pyx_t_9, &__Pyx_TypeInfo_double, PyBUF_FORMAT| PyBUF_C_CONTIGUOUS, 2, 0, __pyx_stack) == -1)) {
+      __pyx_v_alpha_vectors = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_alpha_vectors.rcbuffer->pybuffer.buf = NULL;
+      __PYX_ERR(0, 74, __pyx_L1_error)
+    } else {__pyx_pybuffernd_alpha_vectors.diminfo[0].strides = __pyx_pybuffernd_alpha_vectors.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_alpha_vectors.diminfo[0].shape = __pyx_pybuffernd_alpha_vectors.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_alpha_vectors.diminfo[1].strides = __pyx_pybuffernd_alpha_vectors.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_alpha_vectors.diminfo[1].shape = __pyx_pybuffernd_alpha_vectors.rcbuffer->pybuffer.shape[1];
+    }
+  }
+  __pyx_t_9 = 0;
+  __pyx_v_alpha_vectors = ((PyArrayObject *)__pyx_t_3);
+  __pyx_t_3 = 0;
+
+  /* "dapy/ot/batch_solvers.pyx":76
+ *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.zeros(
+ *         (n_problem, mu_dim), dtype='double', order='C')
+ *     cdef np.ndarray[double, ndim=2, mode='c'] beta_vectors = np.zeros(             # <<<<<<<<<<<<<<
+ *         (n_problem, nu_dim), dtype='double', order='C')
+ * 
+ */
+  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 76, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_zeros); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 76, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+  /* "dapy/ot/batch_solvers.pyx":77
+ *         (n_problem, mu_dim), dtype='double', order='C')
+ *     cdef np.ndarray[double, ndim=2, mode='c'] beta_vectors = np.zeros(
+ *         (n_problem, nu_dim), dtype='double', order='C')             # <<<<<<<<<<<<<<
+ * 
+ *     cdef int[::1] result_codes_mv = result_codes
+ */
+  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_n_problem); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 77, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_nu_dim); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 77, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_7 = PyTuple_New(2); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 77, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_7);
+  __Pyx_GIVEREF(__pyx_t_3);
+  PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_3);
+  __Pyx_GIVEREF(__pyx_t_1);
+  PyTuple_SET_ITEM(__pyx_t_7, 1, __pyx_t_1);
+  __pyx_t_3 = 0;
+  __pyx_t_1 = 0;
+
+  /* "dapy/ot/batch_solvers.pyx":76
+ *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.zeros(
+ *         (n_problem, mu_dim), dtype='double', order='C')
+ *     cdef np.ndarray[double, ndim=2, mode='c'] beta_vectors = np.zeros(             # <<<<<<<<<<<<<<
+ *         (n_problem, nu_dim), dtype='double', order='C')
+ * 
+ */
+  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 76, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_GIVEREF(__pyx_t_7);
+  PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_7);
+  __pyx_t_7 = 0;
+
+  /* "dapy/ot/batch_solvers.pyx":77
+ *         (n_problem, mu_dim), dtype='double', order='C')
+ *     cdef np.ndarray[double, ndim=2, mode='c'] beta_vectors = np.zeros(
+ *         (n_problem, nu_dim), dtype='double', order='C')             # <<<<<<<<<<<<<<
+ * 
+ *     cdef int[::1] result_codes_mv = result_codes
+ */
+  __pyx_t_7 = PyDict_New(); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 77, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_7);
+  if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_dtype, __pyx_n_u_double) < 0) __PYX_ERR(0, 77, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_order, __pyx_n_u_C) < 0) __PYX_ERR(0, 77, __pyx_L1_error)
+
+  /* "dapy/ot/batch_solvers.pyx":76
+ *     cdef np.ndarray[double, ndim=2, mode='c'] alpha_vectors = np.zeros(
+ *         (n_problem, mu_dim), dtype='double', order='C')
+ *     cdef np.ndarray[double, ndim=2, mode='c'] beta_vectors = np.zeros(             # <<<<<<<<<<<<<<
+ *         (n_problem, nu_dim), dtype='double', order='C')
+ * 
+ */
+  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_1, __pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 76, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+  if (!(likely(((__pyx_t_3) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_3, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 76, __pyx_L1_error)
   __pyx_t_10 = ((PyArrayObject *)__pyx_t_3);
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
     if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_beta_vectors.rcbuffer->pybuffer, (PyObject*)__pyx_t_10, &__Pyx_TypeInfo_double, PyBUF_FORMAT| PyBUF_C_CONTIGUOUS, 2, 0, __pyx_stack) == -1)) {
       __pyx_v_beta_vectors = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_beta_vectors.rcbuffer->pybuffer.buf = NULL;
-      __PYX_ERR(0, 72, __pyx_L1_error)
+      __PYX_ERR(0, 76, __pyx_L1_error)
     } else {__pyx_pybuffernd_beta_vectors.diminfo[0].strides = __pyx_pybuffernd_beta_vectors.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_beta_vectors.diminfo[0].shape = __pyx_pybuffernd_beta_vectors.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_beta_vectors.diminfo[1].strides = __pyx_pybuffernd_beta_vectors.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_beta_vectors.diminfo[1].shape = __pyx_pybuffernd_beta_vectors.rcbuffer->pybuffer.shape[1];
     }
   }
@@ -3833,7 +3857,7 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_2sequential_ot_solve(CYTHON_
   __pyx_v_beta_vectors = ((PyArrayObject *)__pyx_t_3);
   __pyx_t_3 = 0;
 
-  /* "dapy/ot/batch_solvers.pyx":75
+  /* "dapy/ot/batch_solvers.pyx":79
  *         (n_problem, nu_dim), dtype='double', order='C')
  * 
  *     cdef int[::1] result_codes_mv = result_codes             # <<<<<<<<<<<<<<
@@ -3841,12 +3865,12 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_2sequential_ot_solve(CYTHON_
  *     cdef double[:, :, ::1] transport_matrices_mv = transport_matrices
  */
   __pyx_t_11 = __Pyx_PyObject_to_MemoryviewSlice_dc_int(((PyObject *)__pyx_v_result_codes));
-  if (unlikely(!__pyx_t_11.memview)) __PYX_ERR(0, 75, __pyx_L1_error)
+  if (unlikely(!__pyx_t_11.memview)) __PYX_ERR(0, 79, __pyx_L1_error)
   __pyx_v_result_codes_mv = __pyx_t_11;
   __pyx_t_11.memview = NULL;
   __pyx_t_11.data = NULL;
 
-  /* "dapy/ot/batch_solvers.pyx":76
+  /* "dapy/ot/batch_solvers.pyx":80
  * 
  *     cdef int[::1] result_codes_mv = result_codes
  *     cdef double[::1] costs_mv = costs             # <<<<<<<<<<<<<<
@@ -3854,12 +3878,12 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_2sequential_ot_solve(CYTHON_
  *     cdef double[:, ::1] alpha_vectors_mv = alpha_vectors
  */
   __pyx_t_12 = __Pyx_PyObject_to_MemoryviewSlice_dc_double(((PyObject *)__pyx_v_costs));
-  if (unlikely(!__pyx_t_12.memview)) __PYX_ERR(0, 76, __pyx_L1_error)
+  if (unlikely(!__pyx_t_12.memview)) __PYX_ERR(0, 80, __pyx_L1_error)
   __pyx_v_costs_mv = __pyx_t_12;
   __pyx_t_12.memview = NULL;
   __pyx_t_12.data = NULL;
 
-  /* "dapy/ot/batch_solvers.pyx":77
+  /* "dapy/ot/batch_solvers.pyx":81
  *     cdef int[::1] result_codes_mv = result_codes
  *     cdef double[::1] costs_mv = costs
  *     cdef double[:, :, ::1] transport_matrices_mv = transport_matrices             # <<<<<<<<<<<<<<
@@ -3867,12 +3891,12 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_2sequential_ot_solve(CYTHON_
  *     cdef double[:, ::1] beta_vectors_mv = beta_vectors
  */
   __pyx_t_13 = __Pyx_PyObject_to_MemoryviewSlice_d_d_dc_double(((PyObject *)__pyx_v_transport_matrices));
-  if (unlikely(!__pyx_t_13.memview)) __PYX_ERR(0, 77, __pyx_L1_error)
+  if (unlikely(!__pyx_t_13.memview)) __PYX_ERR(0, 81, __pyx_L1_error)
   __pyx_v_transport_matrices_mv = __pyx_t_13;
   __pyx_t_13.memview = NULL;
   __pyx_t_13.data = NULL;
 
-  /* "dapy/ot/batch_solvers.pyx":78
+  /* "dapy/ot/batch_solvers.pyx":82
  *     cdef double[::1] costs_mv = costs
  *     cdef double[:, :, ::1] transport_matrices_mv = transport_matrices
  *     cdef double[:, ::1] alpha_vectors_mv = alpha_vectors             # <<<<<<<<<<<<<<
@@ -3880,12 +3904,12 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_2sequential_ot_solve(CYTHON_
  * 
  */
   __pyx_t_14 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(((PyObject *)__pyx_v_alpha_vectors));
-  if (unlikely(!__pyx_t_14.memview)) __PYX_ERR(0, 78, __pyx_L1_error)
+  if (unlikely(!__pyx_t_14.memview)) __PYX_ERR(0, 82, __pyx_L1_error)
   __pyx_v_alpha_vectors_mv = __pyx_t_14;
   __pyx_t_14.memview = NULL;
   __pyx_t_14.data = NULL;
 
-  /* "dapy/ot/batch_solvers.pyx":79
+  /* "dapy/ot/batch_solvers.pyx":83
  *     cdef double[:, :, ::1] transport_matrices_mv = transport_matrices
  *     cdef double[:, ::1] alpha_vectors_mv = alpha_vectors
  *     cdef double[:, ::1] beta_vectors_mv = beta_vectors             # <<<<<<<<<<<<<<
@@ -3893,12 +3917,12 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_2sequential_ot_solve(CYTHON_
  *     for p in range(n_problem):
  */
   __pyx_t_14 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(((PyObject *)__pyx_v_beta_vectors));
-  if (unlikely(!__pyx_t_14.memview)) __PYX_ERR(0, 79, __pyx_L1_error)
+  if (unlikely(!__pyx_t_14.memview)) __PYX_ERR(0, 83, __pyx_L1_error)
   __pyx_v_beta_vectors_mv = __pyx_t_14;
   __pyx_t_14.memview = NULL;
   __pyx_t_14.data = NULL;
 
-  /* "dapy/ot/batch_solvers.pyx":81
+  /* "dapy/ot/batch_solvers.pyx":85
  *     cdef double[:, ::1] beta_vectors_mv = beta_vectors
  * 
  *     for p in range(n_problem):             # <<<<<<<<<<<<<<
@@ -3909,7 +3933,7 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_2sequential_ot_solve(CYTHON_
   for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
     __pyx_v_p = __pyx_t_16;
 
-    /* "dapy/ot/batch_solvers.pyx":83
+    /* "dapy/ot/batch_solvers.pyx":87
  *     for p in range(n_problem):
  *         result_codes_mv[p] = emd(
  *             mu_dim, nu_dim, &mu_vectors[p, 0], &nu_vectors[p, 0],             # <<<<<<<<<<<<<<
@@ -3921,7 +3945,7 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_2sequential_ot_solve(CYTHON_
     __pyx_t_19 = __pyx_v_p;
     __pyx_t_20 = 0;
 
-    /* "dapy/ot/batch_solvers.pyx":84
+    /* "dapy/ot/batch_solvers.pyx":88
  *         result_codes_mv[p] = emd(
  *             mu_dim, nu_dim, &mu_vectors[p, 0], &nu_vectors[p, 0],
  *             &cost_matrices[p, 0, 0], &transport_matrices_mv[p, 0, 0],             # <<<<<<<<<<<<<<
@@ -3935,7 +3959,7 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_2sequential_ot_solve(CYTHON_
     __pyx_t_25 = 0;
     __pyx_t_26 = 0;
 
-    /* "dapy/ot/batch_solvers.pyx":85
+    /* "dapy/ot/batch_solvers.pyx":89
  *             mu_dim, nu_dim, &mu_vectors[p, 0], &nu_vectors[p, 0],
  *             &cost_matrices[p, 0, 0], &transport_matrices_mv[p, 0, 0],
  *             &alpha_vectors_mv[p, 0], &beta_vectors_mv[p, 0], &costs_mv[p],             # <<<<<<<<<<<<<<
@@ -3948,7 +3972,7 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_2sequential_ot_solve(CYTHON_
     __pyx_t_30 = 0;
     __pyx_t_31 = __pyx_v_p;
 
-    /* "dapy/ot/batch_solvers.pyx":82
+    /* "dapy/ot/batch_solvers.pyx":86
  * 
  *     for p in range(n_problem):
  *         result_codes_mv[p] = emd(             # <<<<<<<<<<<<<<
@@ -3959,13 +3983,13 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_2sequential_ot_solve(CYTHON_
     *((int *) ( /* dim=0 */ ((char *) (((int *) __pyx_v_result_codes_mv.data) + __pyx_t_32)) )) = emd(__pyx_v_mu_dim, __pyx_v_nu_dim, (&(*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_mu_vectors.data + __pyx_t_17 * __pyx_v_mu_vectors.strides[0]) )) + __pyx_t_18)) )))), (&(*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_nu_vectors.data + __pyx_t_19 * __pyx_v_nu_vectors.strides[0]) )) + __pyx_t_20)) )))), (&(*((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_cost_matrices.data + __pyx_t_21 * __pyx_v_cost_matrices.strides[0]) ) + __pyx_t_22 * __pyx_v_cost_matrices.strides[1]) )) + __pyx_t_23)) )))), (&(*((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_transport_matrices_mv.data + __pyx_t_24 * __pyx_v_transport_matrices_mv.strides[0]) ) + __pyx_t_25 * __pyx_v_transport_matrices_mv.strides[1]) )) + __pyx_t_26)) )))), (&(*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_alpha_vectors_mv.data + __pyx_t_27 * __pyx_v_alpha_vectors_mv.strides[0]) )) + __pyx_t_28)) )))), (&(*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_beta_vectors_mv.data + __pyx_t_29 * __pyx_v_beta_vectors_mv.strides[0]) )) + __pyx_t_30)) )))), (&(*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_costs_mv.data) + __pyx_t_31)) )))), __pyx_v_max_iter);
   }
 
-  /* "dapy/ot/batch_solvers.pyx":88
+  /* "dapy/ot/batch_solvers.pyx":92
  *             max_iter)
  * 
  *     return transport_matrices, costs, result_codes             # <<<<<<<<<<<<<<
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_3 = PyTuple_New(3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 88, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 92, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_INCREF(((PyObject *)__pyx_v_transport_matrices));
   __Pyx_GIVEREF(((PyObject *)__pyx_v_transport_matrices));
@@ -3980,7 +4004,7 @@ static PyObject *__pyx_pf_4dapy_2ot_13batch_solvers_2sequential_ot_solve(CYTHON_
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "dapy/ot/batch_solvers.pyx":57
+  /* "dapy/ot/batch_solvers.pyx":61
  * 
  * 
  * def sequential_ot_solve(double[:, ::1] mu_vectors, double[:, ::1] nu_vectors,             # <<<<<<<<<<<<<<
@@ -20038,7 +20062,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_u_double, __pyx_k_double, sizeof(__pyx_k_double), 0, 1, 0, 1},
   {&__pyx_n_s_dtype, __pyx_k_dtype, sizeof(__pyx_k_dtype), 0, 0, 1, 1},
   {&__pyx_n_s_dtype_is_object, __pyx_k_dtype_is_object, sizeof(__pyx_k_dtype_is_object), 0, 0, 1, 1},
-  {&__pyx_n_s_empty, __pyx_k_empty, sizeof(__pyx_k_empty), 0, 0, 1, 1},
   {&__pyx_n_s_encode, __pyx_k_encode, sizeof(__pyx_k_encode), 0, 0, 1, 1},
   {&__pyx_n_s_enumerate, __pyx_k_enumerate, sizeof(__pyx_k_enumerate), 0, 0, 1, 1},
   {&__pyx_n_s_error, __pyx_k_error, sizeof(__pyx_k_error), 0, 0, 1, 1},
@@ -20052,6 +20075,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_u_int32, __pyx_k_int32, sizeof(__pyx_k_int32), 0, 1, 0, 1},
   {&__pyx_n_s_itemsize, __pyx_k_itemsize, sizeof(__pyx_k_itemsize), 0, 0, 1, 1},
   {&__pyx_kp_s_itemsize_0_for_cython_array, __pyx_k_itemsize_0_for_cython_array, sizeof(__pyx_k_itemsize_0_for_cython_array), 0, 0, 1, 0},
+  {&__pyx_n_s_loop_range, __pyx_k_loop_range, sizeof(__pyx_k_loop_range), 0, 0, 1, 1},
   {&__pyx_n_s_main, __pyx_k_main, sizeof(__pyx_k_main), 0, 0, 1, 1},
   {&__pyx_n_s_max_iter, __pyx_k_max_iter, sizeof(__pyx_k_max_iter), 0, 0, 1, 1},
   {&__pyx_n_s_memview, __pyx_k_memview, sizeof(__pyx_k_memview), 0, 0, 1, 1},
@@ -20110,10 +20134,11 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_u_unknown_dtype_code_in_numpy_pxd, __pyx_k_unknown_dtype_code_in_numpy_pxd, sizeof(__pyx_k_unknown_dtype_code_in_numpy_pxd), 0, 1, 0, 0},
   {&__pyx_n_s_unpack, __pyx_k_unpack, sizeof(__pyx_k_unpack), 0, 0, 1, 1},
   {&__pyx_n_s_update, __pyx_k_update, sizeof(__pyx_k_update), 0, 0, 1, 1},
+  {&__pyx_n_s_zeros, __pyx_k_zeros, sizeof(__pyx_k_zeros), 0, 0, 1, 1},
   {0, 0, 0, 0, 0, 0, 0}
 };
 static int __Pyx_InitCachedBuiltins(void) {
-  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 81, __pyx_L1_error)
+  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 48, __pyx_L1_error)
   __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(1, 218, __pyx_L1_error)
   __pyx_builtin_RuntimeError = __Pyx_GetBuiltinName(__pyx_n_s_RuntimeError); if (!__pyx_builtin_RuntimeError) __PYX_ERR(1, 799, __pyx_L1_error)
   __pyx_builtin_ImportError = __Pyx_GetBuiltinName(__pyx_n_s_ImportError); if (!__pyx_builtin_ImportError) __PYX_ERR(1, 989, __pyx_L1_error)
@@ -20432,29 +20457,29 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__28);
   __Pyx_GIVEREF(__pyx_tuple__28);
 
-  /* "dapy/ot/batch_solvers.pyx":21
+  /* "dapy/ot/batch_solvers.pyx":23
  * 
  * 
  * def parallel_ot_solve(double[:, ::1] mu_vectors, double[:, ::1] nu_vectors,             # <<<<<<<<<<<<<<
  *                       double[:, :, ::1] cost_matrices, int max_iter=100000,
  *                       int num_threads=4):
  */
-  __pyx_tuple__29 = PyTuple_Pack(19, __pyx_n_s_mu_vectors, __pyx_n_s_nu_vectors, __pyx_n_s_cost_matrices, __pyx_n_s_max_iter, __pyx_n_s_num_threads, __pyx_n_s_n_problem, __pyx_n_s_mu_dim, __pyx_n_s_nu_dim, __pyx_n_s_p, __pyx_n_s_result_codes, __pyx_n_s_costs, __pyx_n_s_transport_matrices, __pyx_n_s_alpha_vectors, __pyx_n_s_beta_vectors, __pyx_n_s_result_codes_mv, __pyx_n_s_costs_mv, __pyx_n_s_transport_matrices_mv, __pyx_n_s_alpha_vectors_mv, __pyx_n_s_beta_vectors_mv); if (unlikely(!__pyx_tuple__29)) __PYX_ERR(0, 21, __pyx_L1_error)
+  __pyx_tuple__29 = PyTuple_Pack(20, __pyx_n_s_mu_vectors, __pyx_n_s_nu_vectors, __pyx_n_s_cost_matrices, __pyx_n_s_max_iter, __pyx_n_s_num_threads, __pyx_n_s_n_problem, __pyx_n_s_mu_dim, __pyx_n_s_nu_dim, __pyx_n_s_p, __pyx_n_s_result_codes, __pyx_n_s_costs, __pyx_n_s_transport_matrices, __pyx_n_s_alpha_vectors, __pyx_n_s_beta_vectors, __pyx_n_s_result_codes_mv, __pyx_n_s_costs_mv, __pyx_n_s_transport_matrices_mv, __pyx_n_s_alpha_vectors_mv, __pyx_n_s_beta_vectors_mv, __pyx_n_s_loop_range); if (unlikely(!__pyx_tuple__29)) __PYX_ERR(0, 23, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__29);
   __Pyx_GIVEREF(__pyx_tuple__29);
-  __pyx_codeobj__30 = (PyObject*)__Pyx_PyCode_New(5, 0, 19, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__29, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_dapy_ot_batch_solvers_pyx, __pyx_n_s_parallel_ot_solve, 21, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__30)) __PYX_ERR(0, 21, __pyx_L1_error)
+  __pyx_codeobj__30 = (PyObject*)__Pyx_PyCode_New(5, 0, 20, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__29, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_dapy_ot_batch_solvers_pyx, __pyx_n_s_parallel_ot_solve, 23, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__30)) __PYX_ERR(0, 23, __pyx_L1_error)
 
-  /* "dapy/ot/batch_solvers.pyx":57
+  /* "dapy/ot/batch_solvers.pyx":61
  * 
  * 
  * def sequential_ot_solve(double[:, ::1] mu_vectors, double[:, ::1] nu_vectors,             # <<<<<<<<<<<<<<
  *                         double[:, :, ::1] cost_matrices, int max_iter=100000):
  *     cdef int n_problem = cost_matrices.shape[0]
  */
-  __pyx_tuple__31 = PyTuple_Pack(18, __pyx_n_s_mu_vectors, __pyx_n_s_nu_vectors, __pyx_n_s_cost_matrices, __pyx_n_s_max_iter, __pyx_n_s_n_problem, __pyx_n_s_mu_dim, __pyx_n_s_nu_dim, __pyx_n_s_p, __pyx_n_s_result_codes, __pyx_n_s_costs, __pyx_n_s_transport_matrices, __pyx_n_s_alpha_vectors, __pyx_n_s_beta_vectors, __pyx_n_s_result_codes_mv, __pyx_n_s_costs_mv, __pyx_n_s_transport_matrices_mv, __pyx_n_s_alpha_vectors_mv, __pyx_n_s_beta_vectors_mv); if (unlikely(!__pyx_tuple__31)) __PYX_ERR(0, 57, __pyx_L1_error)
+  __pyx_tuple__31 = PyTuple_Pack(18, __pyx_n_s_mu_vectors, __pyx_n_s_nu_vectors, __pyx_n_s_cost_matrices, __pyx_n_s_max_iter, __pyx_n_s_n_problem, __pyx_n_s_mu_dim, __pyx_n_s_nu_dim, __pyx_n_s_p, __pyx_n_s_result_codes, __pyx_n_s_costs, __pyx_n_s_transport_matrices, __pyx_n_s_alpha_vectors, __pyx_n_s_beta_vectors, __pyx_n_s_result_codes_mv, __pyx_n_s_costs_mv, __pyx_n_s_transport_matrices_mv, __pyx_n_s_alpha_vectors_mv, __pyx_n_s_beta_vectors_mv); if (unlikely(!__pyx_tuple__31)) __PYX_ERR(0, 61, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__31);
   __Pyx_GIVEREF(__pyx_tuple__31);
-  __pyx_codeobj__32 = (PyObject*)__Pyx_PyCode_New(4, 0, 18, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__31, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_dapy_ot_batch_solvers_pyx, __pyx_n_s_sequential_ot_solve, 57, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__32)) __PYX_ERR(0, 57, __pyx_L1_error)
+  __pyx_codeobj__32 = (PyObject*)__Pyx_PyCode_New(4, 0, 18, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__31, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_dapy_ot_batch_solvers_pyx, __pyx_n_s_sequential_ot_solve, 61, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__32)) __PYX_ERR(0, 61, __pyx_L1_error)
 
   /* "View.MemoryView":282
  *         return self.name
@@ -20690,45 +20715,45 @@ PyMODINIT_FUNC PyInit_batch_solvers(void)
   if (__Pyx_patch_abc() < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   #endif
 
-  /* "dapy/ot/batch_solvers.pyx":9
- * # License: MIT License
+  /* "dapy/ot/batch_solvers.pyx":11
+ * """
  * 
  * import numpy as np             # <<<<<<<<<<<<<<
  * cimport numpy as np
  * cimport cython
  */
-  __pyx_t_1 = __Pyx_Import(__pyx_n_s_numpy, 0, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 9, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_Import(__pyx_n_s_numpy, 0, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 11, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_np, __pyx_t_1) < 0) __PYX_ERR(0, 9, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_np, __pyx_t_1) < 0) __PYX_ERR(0, 11, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "dapy/ot/batch_solvers.pyx":21
+  /* "dapy/ot/batch_solvers.pyx":23
  * 
  * 
  * def parallel_ot_solve(double[:, ::1] mu_vectors, double[:, ::1] nu_vectors,             # <<<<<<<<<<<<<<
  *                       double[:, :, ::1] cost_matrices, int max_iter=100000,
  *                       int num_threads=4):
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_4dapy_2ot_13batch_solvers_1parallel_ot_solve, NULL, __pyx_n_s_dapy_ot_batch_solvers); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 21, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_4dapy_2ot_13batch_solvers_1parallel_ot_solve, NULL, __pyx_n_s_dapy_ot_batch_solvers); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 23, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_parallel_ot_solve, __pyx_t_1) < 0) __PYX_ERR(0, 21, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_parallel_ot_solve, __pyx_t_1) < 0) __PYX_ERR(0, 23, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "dapy/ot/batch_solvers.pyx":57
+  /* "dapy/ot/batch_solvers.pyx":61
  * 
  * 
  * def sequential_ot_solve(double[:, ::1] mu_vectors, double[:, ::1] nu_vectors,             # <<<<<<<<<<<<<<
  *                         double[:, :, ::1] cost_matrices, int max_iter=100000):
  *     cdef int n_problem = cost_matrices.shape[0]
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_4dapy_2ot_13batch_solvers_3sequential_ot_solve, NULL, __pyx_n_s_dapy_ot_batch_solvers); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 57, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_4dapy_2ot_13batch_solvers_3sequential_ot_solve, NULL, __pyx_n_s_dapy_ot_batch_solvers); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 61, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_sequential_ot_solve, __pyx_t_1) < 0) __PYX_ERR(0, 57, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_sequential_ot_solve, __pyx_t_1) < 0) __PYX_ERR(0, 61, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "dapy/ot/batch_solvers.pyx":1
- * # -*- coding: utf-8 -*-             # <<<<<<<<<<<<<<
- * """Cython wrapper for basic batched exact optimal transport problem solvers."""
+ * # coding: utf-8             # <<<<<<<<<<<<<<
+ * """Cython wrapper for basic batched exact optimal transport problem solvers.
  * 
  */
   __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1, __pyx_L1_error)
