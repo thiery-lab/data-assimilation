@@ -11,7 +11,10 @@ References:
 """
 
 import numpy as np
-import pyfftw.interfaces.numpy_fft as fft
+try:
+    import pyfftw.interfaces.numpy_fft as fft
+except ImportError:
+    import numpy.fft as fft
 
 
 class FourierETDRK4Integrator(object):
@@ -65,8 +68,8 @@ class FourierETDRK4Integrator(object):
                 self.coeff_f2 * (n_a + n_b) * 2 + self.coeff_f3 * n_c)
 
     def forward_integrate(self, z, start_time_index, n_step=1):
-        v = np.fft.rfft(z)
+        v = fft.rfft(z)
         for s in range(n_step):
             # Step forward in Fourier space
             v = self.step_fft(v)
-        return np.fft.irfft(v)
+        return fft.irfft(v)
