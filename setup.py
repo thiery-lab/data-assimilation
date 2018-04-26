@@ -6,16 +6,16 @@ import sys
 
 parser = argparse.ArgumentParser(
     description='Python data assimilation package setup')
-parser.add_argument('-debug', action='store_true', default=False,
+parser.add_argument('--debug', action='store_true', default=False,
                     help='Export GDB debug information when compiling.')
-parser.add_argument('-use-cython', action='store_true', default=False,
+parser.add_argument('--use-cython', action='store_true', default=False,
                     help='Use Cython to compile from .pyx files.')
-parser.add_argument('-use-gcc-opts', action='store_true', default=False,
+parser.add_argument('--use-gcc-opts', action='store_true', default=False,
                     help='Use GCC compiler optimisations for quicker but '
                          'less safe mathematical operations.')
-parser.add_argument('-use-cython-opts', action='store_true', default=False,
-                    help='Add extra Cython compile directives for quicker '
-                         'but less safe array access. Requires -use-cython '
+parser.add_argument('--no-cython-opts', action='store_true', default=False,
+                    help='Remove extra Cython compiler directives for quicker '
+                         'but less safe array access. Requires --use-cython '
                          'to be set to have an effect.')
 
 # hack to get both argparser help and setuptools help displaying
@@ -37,13 +37,14 @@ for action in parser._actions:
             sys.argv.remove(opt_str)
         except ValueError:
             pass
-# if a help flag was found print parser help string then read so setuptools
+# if a help flag was found print parser help string then readd so setuptools
 # help also displayed
 if help_flag:
     parser.print_help()
     sys.argv.append(help_flag)
 
-ext = '.pyx' if args.use_cython else '.c'
+c_ext = '.pyx' if args.use_cython else '.c'
+cpp_ext = '.pyx' if args.use_cython else '.cpp'
 
 extra_compile_args = ['-fopenmp']
 extra_link_args = ['-fopenmp']
@@ -67,23 +68,23 @@ else:
 
 ext_modules = [
     Extension('dapy.integrators.implicitmidpoint',
-              ['dapy/integrators/implicitmidpoint' + ext],
+              ['dapy/integrators/implicitmidpoint' + c_ext],
               extra_compile_args=extra_compile_args,
               extra_link_args=extra_link_args),
     Extension('dapy.integrators.lorenz63',
-              ['dapy/integrators/lorenz63' + ext],
+              ['dapy/integrators/lorenz63' + c_ext],
               extra_compile_args=extra_compile_args,
               extra_link_args=extra_link_args),
     Extension('dapy.integrators.lorenz96',
-              ['dapy/integrators/lorenz96' + ext],
+              ['dapy/integrators/lorenz96' + c_ext],
               extra_compile_args=extra_compile_args,
               extra_link_args=extra_link_args),
     Extension('dapy.integrators.interpolate',
-              ['dapy/integrators/interpolate' + ext],
+              ['dapy/integrators/interpolate' + c_ext],
               extra_compile_args=extra_compile_args,
               extra_link_args=extra_link_args),
     Extension('dapy.ot.solvers',
-              ['dapy/ot/solvers' + ext],
+              ['dapy/ot/solvers' + cpp_ext],
               language='c++', include_dirs=['dapy/ot'],
               extra_compile_args=extra_compile_args,
               extra_link_args=extra_link_args),
