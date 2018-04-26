@@ -1908,7 +1908,6 @@ static PyObject *contiguous = 0;
 static PyObject *indirect_contiguous = 0;
 static int __pyx_memoryview_thread_locks_used;
 static PyThread_type_lock __pyx_memoryview_thread_locks[8];
-static int __pyx_f_4dapy_11integrators_11interpolate_python_mod(int, int); /*proto*/
 static struct __pyx_array_obj *__pyx_array_new(PyObject *, Py_ssize_t, char *, char *, char *); /*proto*/
 static void *__pyx_align_pointer(void *, size_t); /*proto*/
 static PyObject *__pyx_memoryview_new(PyObject *, int, int, __Pyx_TypeInfo *); /*proto*/
@@ -2054,6 +2053,7 @@ static const char __pyx_k_unable_to_allocate_array_data[] = "unable to allocate 
 static const char __pyx_k_strided_and_direct_or_indirect[] = "<strided and direct or indirect>";
 static const char __pyx_k_numpy_core_multiarray_failed_to[] = "numpy.core.multiarray failed to import";
 static const char __pyx_k_unknown_dtype_code_in_numpy_pxd[] = "unknown dtype code in numpy.pxd (%d)";
+static const char __pyx_k_Batched_two_dimensional_bilinear[] = "Batched two-dimensional bilinear interpolation.";
 static const char __pyx_k_Buffer_view_does_not_expose_stri[] = "Buffer view does not expose strides";
 static const char __pyx_k_Can_only_create_a_buffer_that_is[] = "Can only create a buffer that is contiguous in memory.";
 static const char __pyx_k_Empty_shape_tuple_for_cython_arr[] = "Empty shape tuple for cython.array";
@@ -2277,43 +2277,9 @@ static PyObject *__pyx_tuple__36;
 static PyObject *__pyx_codeobj__30;
 static PyObject *__pyx_codeobj__37;
 
-/* "dapy/integrators/interpolate.pyx":8
- * 
- * @cython.cdivision(True)
- * cdef int python_mod(int n, int m) nogil:             # <<<<<<<<<<<<<<
- *     return ((n % m) + m) % m
- * 
- */
-
-static int __pyx_f_4dapy_11integrators_11interpolate_python_mod(int __pyx_v_n, int __pyx_v_m) {
-  int __pyx_r;
-
-  /* "dapy/integrators/interpolate.pyx":9
- * @cython.cdivision(True)
- * cdef int python_mod(int n, int m) nogil:
- *     return ((n % m) + m) % m             # <<<<<<<<<<<<<<
- * 
- * def batch_bilinear_interpolate(
- */
-  __pyx_r = (((__pyx_v_n % __pyx_v_m) + __pyx_v_m) % __pyx_v_m);
-  goto __pyx_L0;
-
-  /* "dapy/integrators/interpolate.pyx":8
- * 
- * @cython.cdivision(True)
- * cdef int python_mod(int n, int m) nogil:             # <<<<<<<<<<<<<<
- *     return ((n % m) + m) % m
- * 
- */
-
-  /* function exit code */
-  __pyx_L0:;
-  return __pyx_r;
-}
-
 /* "dapy/integrators/interpolate.pyx":11
- *     return ((n % m) + m) % m
  * 
+ * @cython.cdivision(True)
  * def batch_bilinear_interpolate(             # <<<<<<<<<<<<<<
  *         double[:, :, :] fields, double[:, :, :, :] interp_points,
  *         int n_thread=1):
@@ -2321,7 +2287,7 @@ static int __pyx_f_4dapy_11integrators_11interpolate_python_mod(int __pyx_v_n, i
 
 /* Python wrapper */
 static PyObject *__pyx_pw_4dapy_11integrators_11interpolate_1batch_bilinear_interpolate(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_4dapy_11integrators_11interpolate_batch_bilinear_interpolate[] = "batch_bilinear_interpolate(__Pyx_memviewslice fields, __Pyx_memviewslice interp_points, int n_thread=1)\nUse bilinear interpolation to map 2D fields to a new set of points.\n\n    Periodic boundary conditions are assumed. In the comments below the\n    following layout is assumed for the grid cell surrounding each\n    interpolation point\n\n      (l_ix, t_ix) ---- (r_ix, t_ix)\n            |                |\n            |                |\n      (l_ix, b_ix) ---- (r_ix, b_ix)\n\n    Args:\n        fields (array): Stack of two dimensional arrays defining values of a\n            scalar field on a rectilinear grid. The array should be of shape\n            `(n_field, grid_shape_0, grid_shape_1)` where `n_field` specifies\n            the number of (independent) spatial fields and `grid_shape_0` and\n            `grid_shape_1` specify the number of grid points along the two grid\n            dimensions.\n        interp_points (array): Stack of three dimensional arrays defining\n            spatial points to resample field at in array index coordinates. The\n            array should be of shape `(n_field, 2, grid_shape_0, grid_shape_1)`\n            where `n_field`, `grid_shape_0` and `grid_shape_1` are as above and\n            the size 2 dimension represents the two spatial coordinates.\n    ";
+static char __pyx_doc_4dapy_11integrators_11interpolate_batch_bilinear_interpolate[] = "batch_bilinear_interpolate(__Pyx_memviewslice fields, __Pyx_memviewslice interp_points, int n_thread=1)\nUse bilinear interpolation to map 2D fields to a new set of points.\n\n    Periodic boundary conditions are assumed. In the comments below the\n    following layout is assumed for the grid cell surrounding each\n    interpolation point\n\n      (l_ix, t_ix) -- (r_ix, t_ix)\n            |               |\n      (l_ix, b_ix) -- (r_ix, b_ix)\n\n    Args:\n        fields (3D array): Stack of two dimensional arrays defining values of a\n            scalar field on a rectilinear grid. The array should be of shape\n            `(n_field, grid_shape_0, grid_shape_1)` where `n_field` specifies\n            the number of (independent) spatial fields and `grid_shape_0` and\n            `grid_shape_1` specify the number of grid points along the two grid\n            dimensions.\n        interp_points (4D array): Stack of three dimensional arrays defining\n            spatial points to resample field at in array index coordinates. The\n            array should be of shape `(n_field, 2, grid_shape_0, grid_shape_1)`\n            where `n_field`, `grid_shape_0` and `grid_shape_1` are as above and\n            the size 2 dimension represents the two spatial coordinates.\n        n_thread (int): Number of parallel threads to distribute interpolation\n            of independent fields over.\n\n    Returns:\n        interp_fields (3D array): Stack of two dimensional arrays defining\n            computed interpolated values of the scalar field at the\n            interpolation points.\n    ";
 static PyMethodDef __pyx_mdef_4dapy_11integrators_11interpolate_1batch_bilinear_interpolate = {"batch_bilinear_interpolate", (PyCFunction)__pyx_pw_4dapy_11integrators_11interpolate_1batch_bilinear_interpolate, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4dapy_11integrators_11interpolate_batch_bilinear_interpolate};
 static PyObject *__pyx_pw_4dapy_11integrators_11interpolate_1batch_bilinear_interpolate(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_fields = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -2441,7 +2407,7 @@ static PyObject *__pyx_pf_4dapy_11integrators_11interpolate_batch_bilinear_inter
   Py_ssize_t __pyx_t_20;
   Py_ssize_t __pyx_t_21;
   Py_ssize_t __pyx_t_22;
-  Py_ssize_t __pyx_t_23;
+  int __pyx_t_23;
   Py_ssize_t __pyx_t_24;
   Py_ssize_t __pyx_t_25;
   Py_ssize_t __pyx_t_26;
@@ -2464,13 +2430,14 @@ static PyObject *__pyx_pf_4dapy_11integrators_11interpolate_batch_bilinear_inter
   Py_ssize_t __pyx_t_43;
   Py_ssize_t __pyx_t_44;
   Py_ssize_t __pyx_t_45;
+  Py_ssize_t __pyx_t_46;
   __Pyx_RefNannySetupContext("batch_bilinear_interpolate", 0);
   __pyx_pybuffer_new_fields.pybuffer.buf = NULL;
   __pyx_pybuffer_new_fields.refcount = 0;
   __pyx_pybuffernd_new_fields.data = NULL;
   __pyx_pybuffernd_new_fields.rcbuffer = &__pyx_pybuffer_new_fields;
 
-  /* "dapy/integrators/interpolate.pyx":40
+  /* "dapy/integrators/interpolate.pyx":46
  *     cdef int p, i, j
  *     cdef int l_ix, r_ix, t_ix, b_ix
  *     cdef int n_field = fields.shape[0]             # <<<<<<<<<<<<<<
@@ -2479,7 +2446,7 @@ static PyObject *__pyx_pf_4dapy_11integrators_11interpolate_batch_bilinear_inter
  */
   __pyx_v_n_field = (__pyx_v_fields.shape[0]);
 
-  /* "dapy/integrators/interpolate.pyx":41
+  /* "dapy/integrators/interpolate.pyx":47
  *     cdef int l_ix, r_ix, t_ix, b_ix
  *     cdef int n_field = fields.shape[0]
  *     cdef int dim_0 = fields.shape[1]             # <<<<<<<<<<<<<<
@@ -2488,7 +2455,7 @@ static PyObject *__pyx_pf_4dapy_11integrators_11interpolate_batch_bilinear_inter
  */
   __pyx_v_dim_0 = (__pyx_v_fields.shape[1]);
 
-  /* "dapy/integrators/interpolate.pyx":42
+  /* "dapy/integrators/interpolate.pyx":48
  *     cdef int n_field = fields.shape[0]
  *     cdef int dim_0 = fields.shape[1]
  *     cdef int dim_1 = fields.shape[2]             # <<<<<<<<<<<<<<
@@ -2497,33 +2464,33 @@ static PyObject *__pyx_pf_4dapy_11integrators_11interpolate_batch_bilinear_inter
  */
   __pyx_v_dim_1 = (__pyx_v_fields.shape[2]);
 
-  /* "dapy/integrators/interpolate.pyx":44
+  /* "dapy/integrators/interpolate.pyx":50
  *     cdef int dim_1 = fields.shape[2]
  *     cdef double h_wt, v_wt
  *     cdef np.ndarray[double, ndim=3, mode='c'] new_fields = np.empty(             # <<<<<<<<<<<<<<
  *         (n_field, dim_0, dim_1), dtype='double', order='C')
  *     cdef double[:, :, :] new_fields_mv = new_fields
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 44, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 50, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_empty); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 44, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_empty); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 50, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "dapy/integrators/interpolate.pyx":45
+  /* "dapy/integrators/interpolate.pyx":51
  *     cdef double h_wt, v_wt
  *     cdef np.ndarray[double, ndim=3, mode='c'] new_fields = np.empty(
  *         (n_field, dim_0, dim_1), dtype='double', order='C')             # <<<<<<<<<<<<<<
  *     cdef double[:, :, :] new_fields_mv = new_fields
  *     for p in prange(n_field, schedule='static', num_threads=n_thread,
  */
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_n_field); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 45, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_n_field); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 51, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_dim_0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 45, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_dim_0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 51, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_dim_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 45, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_dim_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 51, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = PyTuple_New(3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 45, __pyx_L1_error)
+  __pyx_t_5 = PyTuple_New(3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 51, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_1);
@@ -2535,50 +2502,50 @@ static PyObject *__pyx_pf_4dapy_11integrators_11interpolate_batch_bilinear_inter
   __pyx_t_3 = 0;
   __pyx_t_4 = 0;
 
-  /* "dapy/integrators/interpolate.pyx":44
+  /* "dapy/integrators/interpolate.pyx":50
  *     cdef int dim_1 = fields.shape[2]
  *     cdef double h_wt, v_wt
  *     cdef np.ndarray[double, ndim=3, mode='c'] new_fields = np.empty(             # <<<<<<<<<<<<<<
  *         (n_field, dim_0, dim_1), dtype='double', order='C')
  *     cdef double[:, :, :] new_fields_mv = new_fields
  */
-  __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 44, __pyx_L1_error)
+  __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 50, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_GIVEREF(__pyx_t_5);
   PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_5);
   __pyx_t_5 = 0;
 
-  /* "dapy/integrators/interpolate.pyx":45
+  /* "dapy/integrators/interpolate.pyx":51
  *     cdef double h_wt, v_wt
  *     cdef np.ndarray[double, ndim=3, mode='c'] new_fields = np.empty(
  *         (n_field, dim_0, dim_1), dtype='double', order='C')             # <<<<<<<<<<<<<<
  *     cdef double[:, :, :] new_fields_mv = new_fields
  *     for p in prange(n_field, schedule='static', num_threads=n_thread,
  */
-  __pyx_t_5 = PyDict_New(); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 45, __pyx_L1_error)
+  __pyx_t_5 = PyDict_New(); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 51, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_dtype, __pyx_n_u_double) < 0) __PYX_ERR(0, 45, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_order, __pyx_n_u_C) < 0) __PYX_ERR(0, 45, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_dtype, __pyx_n_u_double) < 0) __PYX_ERR(0, 51, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_order, __pyx_n_u_C) < 0) __PYX_ERR(0, 51, __pyx_L1_error)
 
-  /* "dapy/integrators/interpolate.pyx":44
+  /* "dapy/integrators/interpolate.pyx":50
  *     cdef int dim_1 = fields.shape[2]
  *     cdef double h_wt, v_wt
  *     cdef np.ndarray[double, ndim=3, mode='c'] new_fields = np.empty(             # <<<<<<<<<<<<<<
  *         (n_field, dim_0, dim_1), dtype='double', order='C')
  *     cdef double[:, :, :] new_fields_mv = new_fields
  */
-  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 44, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 50, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  if (!(likely(((__pyx_t_3) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_3, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 44, __pyx_L1_error)
+  if (!(likely(((__pyx_t_3) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_3, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 50, __pyx_L1_error)
   __pyx_t_6 = ((PyArrayObject *)__pyx_t_3);
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
     if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_new_fields.rcbuffer->pybuffer, (PyObject*)__pyx_t_6, &__Pyx_TypeInfo_double, PyBUF_FORMAT| PyBUF_C_CONTIGUOUS, 3, 0, __pyx_stack) == -1)) {
       __pyx_v_new_fields = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_new_fields.rcbuffer->pybuffer.buf = NULL;
-      __PYX_ERR(0, 44, __pyx_L1_error)
+      __PYX_ERR(0, 50, __pyx_L1_error)
     } else {__pyx_pybuffernd_new_fields.diminfo[0].strides = __pyx_pybuffernd_new_fields.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_new_fields.diminfo[0].shape = __pyx_pybuffernd_new_fields.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_new_fields.diminfo[1].strides = __pyx_pybuffernd_new_fields.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_new_fields.diminfo[1].shape = __pyx_pybuffernd_new_fields.rcbuffer->pybuffer.shape[1]; __pyx_pybuffernd_new_fields.diminfo[2].strides = __pyx_pybuffernd_new_fields.rcbuffer->pybuffer.strides[2]; __pyx_pybuffernd_new_fields.diminfo[2].shape = __pyx_pybuffernd_new_fields.rcbuffer->pybuffer.shape[2];
     }
   }
@@ -2586,7 +2553,7 @@ static PyObject *__pyx_pf_4dapy_11integrators_11interpolate_batch_bilinear_inter
   __pyx_v_new_fields = ((PyArrayObject *)__pyx_t_3);
   __pyx_t_3 = 0;
 
-  /* "dapy/integrators/interpolate.pyx":46
+  /* "dapy/integrators/interpolate.pyx":52
  *     cdef np.ndarray[double, ndim=3, mode='c'] new_fields = np.empty(
  *         (n_field, dim_0, dim_1), dtype='double', order='C')
  *     cdef double[:, :, :] new_fields_mv = new_fields             # <<<<<<<<<<<<<<
@@ -2594,12 +2561,12 @@ static PyObject *__pyx_pf_4dapy_11integrators_11interpolate_batch_bilinear_inter
  *                     nogil=True):
  */
   __pyx_t_7 = __Pyx_PyObject_to_MemoryviewSlice_dsdsds_double(((PyObject *)__pyx_v_new_fields));
-  if (unlikely(!__pyx_t_7.memview)) __PYX_ERR(0, 46, __pyx_L1_error)
+  if (unlikely(!__pyx_t_7.memview)) __PYX_ERR(0, 52, __pyx_L1_error)
   __pyx_v_new_fields_mv = __pyx_t_7;
   __pyx_t_7.memview = NULL;
   __pyx_t_7.data = NULL;
 
-  /* "dapy/integrators/interpolate.pyx":47
+  /* "dapy/integrators/interpolate.pyx":53
  *         (n_field, dim_0, dim_1), dtype='double', order='C')
  *     cdef double[:, :, :] new_fields_mv = new_fields
  *     for p in prange(n_field, schedule='static', num_threads=n_thread,             # <<<<<<<<<<<<<<
@@ -2626,7 +2593,7 @@ static PyObject *__pyx_pf_4dapy_11integrators_11interpolate_batch_bilinear_inter
             if (__pyx_t_10 > 0)
             {
                 #ifdef _OPENMP
-                #pragma omp parallel num_threads(__pyx_v_n_thread) private(__pyx_t_11, __pyx_t_12, __pyx_t_13, __pyx_t_14, __pyx_t_15, __pyx_t_16, __pyx_t_17, __pyx_t_18, __pyx_t_19, __pyx_t_20, __pyx_t_21, __pyx_t_22, __pyx_t_23, __pyx_t_24, __pyx_t_25, __pyx_t_26, __pyx_t_27, __pyx_t_28, __pyx_t_29, __pyx_t_30, __pyx_t_31, __pyx_t_32, __pyx_t_33, __pyx_t_34, __pyx_t_35, __pyx_t_36, __pyx_t_37, __pyx_t_38, __pyx_t_39, __pyx_t_40, __pyx_t_41, __pyx_t_42, __pyx_t_43, __pyx_t_44, __pyx_t_45)
+                #pragma omp parallel num_threads(__pyx_v_n_thread) private(__pyx_t_11, __pyx_t_12, __pyx_t_13, __pyx_t_14, __pyx_t_15, __pyx_t_16, __pyx_t_17, __pyx_t_18, __pyx_t_19, __pyx_t_20, __pyx_t_21, __pyx_t_22, __pyx_t_23, __pyx_t_24, __pyx_t_25, __pyx_t_26, __pyx_t_27, __pyx_t_28, __pyx_t_29, __pyx_t_30, __pyx_t_31, __pyx_t_32, __pyx_t_33, __pyx_t_34, __pyx_t_35, __pyx_t_36, __pyx_t_37, __pyx_t_38, __pyx_t_39, __pyx_t_40, __pyx_t_41, __pyx_t_42, __pyx_t_43, __pyx_t_44, __pyx_t_45, __pyx_t_46)
                 #endif /* _OPENMP */
                 {
                     #ifdef _OPENMP
@@ -2645,7 +2612,7 @@ static PyObject *__pyx_pf_4dapy_11integrators_11interpolate_batch_bilinear_inter
                             __pyx_v_t_ix = ((int)0xbad0bad0);
                             __pyx_v_v_wt = ((double)__PYX_NAN());
 
-                            /* "dapy/integrators/interpolate.pyx":49
+                            /* "dapy/integrators/interpolate.pyx":55
  *     for p in prange(n_field, schedule='static', num_threads=n_thread,
  *                     nogil=True):
  *         for i in range(dim_0):             # <<<<<<<<<<<<<<
@@ -2656,7 +2623,7 @@ static PyObject *__pyx_pf_4dapy_11integrators_11interpolate_batch_bilinear_inter
                             for (__pyx_t_12 = 0; __pyx_t_12 < __pyx_t_11; __pyx_t_12+=1) {
                               __pyx_v_i = __pyx_t_12;
 
-                              /* "dapy/integrators/interpolate.pyx":50
+                              /* "dapy/integrators/interpolate.pyx":56
  *                     nogil=True):
  *         for i in range(dim_0):
  *             for j in range(dim_1):             # <<<<<<<<<<<<<<
@@ -2667,7 +2634,7 @@ static PyObject *__pyx_pf_4dapy_11integrators_11interpolate_batch_bilinear_inter
                               for (__pyx_t_14 = 0; __pyx_t_14 < __pyx_t_13; __pyx_t_14+=1) {
                                 __pyx_v_j = __pyx_t_14;
 
-                                /* "dapy/integrators/interpolate.pyx":52
+                                /* "dapy/integrators/interpolate.pyx":58
  *             for j in range(dim_1):
  *                 # Calculate left edge index of interpolation point.
  *                 l_ix = int(floor(interp_points[p, 0, i, j]))             # <<<<<<<<<<<<<<
@@ -2680,12 +2647,12 @@ static PyObject *__pyx_pf_4dapy_11integrators_11interpolate_batch_bilinear_inter
                                 __pyx_t_18 = __pyx_v_j;
                                 __pyx_v_l_ix = ((int)floor((*((double *) ( /* dim=3 */ (( /* dim=2 */ (( /* dim=1 */ (( /* dim=0 */ (__pyx_v_interp_points.data + __pyx_t_15 * __pyx_v_interp_points.strides[0]) ) + __pyx_t_16 * __pyx_v_interp_points.strides[1]) ) + __pyx_t_17 * __pyx_v_interp_points.strides[2]) ) + __pyx_t_18 * __pyx_v_interp_points.strides[3]) )))));
 
-                                /* "dapy/integrators/interpolate.pyx":54
+                                /* "dapy/integrators/interpolate.pyx":60
  *                 l_ix = int(floor(interp_points[p, 0, i, j]))
  *                 # Calculate horizontal weight coefficient for interpolation.
  *                 h_wt = interp_points[p, 0, i, j] - l_ix             # <<<<<<<<<<<<<<
- *                 # Wrap index to [0, grid_shape_0).
- *                 l_ix = python_mod(l_ix, dim_0)
+ *                 # Wrap index to [0, dim_0). Need to account for handling
+ *                 # of negative arguments by C modulus operator.
  */
                                 __pyx_t_19 = __pyx_v_p;
                                 __pyx_t_20 = 0;
@@ -2693,123 +2660,164 @@ static PyObject *__pyx_pf_4dapy_11integrators_11interpolate_batch_bilinear_inter
                                 __pyx_t_22 = __pyx_v_j;
                                 __pyx_v_h_wt = ((*((double *) ( /* dim=3 */ (( /* dim=2 */ (( /* dim=1 */ (( /* dim=0 */ (__pyx_v_interp_points.data + __pyx_t_19 * __pyx_v_interp_points.strides[0]) ) + __pyx_t_20 * __pyx_v_interp_points.strides[1]) ) + __pyx_t_21 * __pyx_v_interp_points.strides[2]) ) + __pyx_t_22 * __pyx_v_interp_points.strides[3]) ))) - __pyx_v_l_ix);
 
-                                /* "dapy/integrators/interpolate.pyx":56
- *                 h_wt = interp_points[p, 0, i, j] - l_ix
- *                 # Wrap index to [0, grid_shape_0).
- *                 l_ix = python_mod(l_ix, dim_0)             # <<<<<<<<<<<<<<
- *                 # Calculate right edge index of interpolation point cell.
- *                 r_ix = python_mod(l_ix + 1, dim_0)
+                                /* "dapy/integrators/interpolate.pyx":63
+ *                 # Wrap index to [0, dim_0). Need to account for handling
+ *                 # of negative arguments by C modulus operator.
+ *                 l_ix = l_ix % dim_0             # <<<<<<<<<<<<<<
+ *                 while l_ix < 0:
+ *                     l_ix = l_ix + dim_0
  */
-                                __pyx_v_l_ix = __pyx_f_4dapy_11integrators_11interpolate_python_mod(__pyx_v_l_ix, __pyx_v_dim_0);
+                                __pyx_v_l_ix = (__pyx_v_l_ix % __pyx_v_dim_0);
 
-                                /* "dapy/integrators/interpolate.pyx":58
- *                 l_ix = python_mod(l_ix, dim_0)
+                                /* "dapy/integrators/interpolate.pyx":64
+ *                 # of negative arguments by C modulus operator.
+ *                 l_ix = l_ix % dim_0
+ *                 while l_ix < 0:             # <<<<<<<<<<<<<<
+ *                     l_ix = l_ix + dim_0
  *                 # Calculate right edge index of interpolation point cell.
- *                 r_ix = python_mod(l_ix + 1, dim_0)             # <<<<<<<<<<<<<<
+ */
+                                while (1) {
+                                  __pyx_t_23 = ((__pyx_v_l_ix < 0) != 0);
+                                  if (!__pyx_t_23) break;
+
+                                  /* "dapy/integrators/interpolate.pyx":65
+ *                 l_ix = l_ix % dim_0
+ *                 while l_ix < 0:
+ *                     l_ix = l_ix + dim_0             # <<<<<<<<<<<<<<
+ *                 # Calculate right edge index of interpolation point cell.
+ *                 r_ix = (l_ix + 1) % dim_0
+ */
+                                  __pyx_v_l_ix = (__pyx_v_l_ix + __pyx_v_dim_0);
+                                }
+
+                                /* "dapy/integrators/interpolate.pyx":67
+ *                     l_ix = l_ix + dim_0
+ *                 # Calculate right edge index of interpolation point cell.
+ *                 r_ix = (l_ix + 1) % dim_0             # <<<<<<<<<<<<<<
  *                 # Calculate top edge index of interpolation point.
  *                 t_ix = int(floor(interp_points[p, 1, i, j]))
  */
-                                __pyx_v_r_ix = __pyx_f_4dapy_11integrators_11interpolate_python_mod((__pyx_v_l_ix + 1), __pyx_v_dim_0);
+                                __pyx_v_r_ix = ((__pyx_v_l_ix + 1) % __pyx_v_dim_0);
 
-                                /* "dapy/integrators/interpolate.pyx":60
- *                 r_ix = python_mod(l_ix + 1, dim_0)
+                                /* "dapy/integrators/interpolate.pyx":69
+ *                 r_ix = (l_ix + 1) % dim_0
  *                 # Calculate top edge index of interpolation point.
  *                 t_ix = int(floor(interp_points[p, 1, i, j]))             # <<<<<<<<<<<<<<
  *                 # Calculate vertical weight coefficient for interpolation.
  *                 v_wt = interp_points[p, 1, i, j] - t_ix
  */
-                                __pyx_t_23 = __pyx_v_p;
-                                __pyx_t_24 = 1;
-                                __pyx_t_25 = __pyx_v_i;
-                                __pyx_t_26 = __pyx_v_j;
-                                __pyx_v_t_ix = ((int)floor((*((double *) ( /* dim=3 */ (( /* dim=2 */ (( /* dim=1 */ (( /* dim=0 */ (__pyx_v_interp_points.data + __pyx_t_23 * __pyx_v_interp_points.strides[0]) ) + __pyx_t_24 * __pyx_v_interp_points.strides[1]) ) + __pyx_t_25 * __pyx_v_interp_points.strides[2]) ) + __pyx_t_26 * __pyx_v_interp_points.strides[3]) )))));
+                                __pyx_t_24 = __pyx_v_p;
+                                __pyx_t_25 = 1;
+                                __pyx_t_26 = __pyx_v_i;
+                                __pyx_t_27 = __pyx_v_j;
+                                __pyx_v_t_ix = ((int)floor((*((double *) ( /* dim=3 */ (( /* dim=2 */ (( /* dim=1 */ (( /* dim=0 */ (__pyx_v_interp_points.data + __pyx_t_24 * __pyx_v_interp_points.strides[0]) ) + __pyx_t_25 * __pyx_v_interp_points.strides[1]) ) + __pyx_t_26 * __pyx_v_interp_points.strides[2]) ) + __pyx_t_27 * __pyx_v_interp_points.strides[3]) )))));
 
-                                /* "dapy/integrators/interpolate.pyx":62
+                                /* "dapy/integrators/interpolate.pyx":71
  *                 t_ix = int(floor(interp_points[p, 1, i, j]))
  *                 # Calculate vertical weight coefficient for interpolation.
  *                 v_wt = interp_points[p, 1, i, j] - t_ix             # <<<<<<<<<<<<<<
- *                 # Wrap index to [0, grid_shape_1).
- *                 t_ix = python_mod(t_ix, dim_1)
+ *                 # Wrap index to [0, dim_1).
+ *                 t_ix = t_ix % dim_1
  */
-                                __pyx_t_27 = __pyx_v_p;
-                                __pyx_t_28 = 1;
-                                __pyx_t_29 = __pyx_v_i;
-                                __pyx_t_30 = __pyx_v_j;
-                                __pyx_v_v_wt = ((*((double *) ( /* dim=3 */ (( /* dim=2 */ (( /* dim=1 */ (( /* dim=0 */ (__pyx_v_interp_points.data + __pyx_t_27 * __pyx_v_interp_points.strides[0]) ) + __pyx_t_28 * __pyx_v_interp_points.strides[1]) ) + __pyx_t_29 * __pyx_v_interp_points.strides[2]) ) + __pyx_t_30 * __pyx_v_interp_points.strides[3]) ))) - __pyx_v_t_ix);
+                                __pyx_t_28 = __pyx_v_p;
+                                __pyx_t_29 = 1;
+                                __pyx_t_30 = __pyx_v_i;
+                                __pyx_t_31 = __pyx_v_j;
+                                __pyx_v_v_wt = ((*((double *) ( /* dim=3 */ (( /* dim=2 */ (( /* dim=1 */ (( /* dim=0 */ (__pyx_v_interp_points.data + __pyx_t_28 * __pyx_v_interp_points.strides[0]) ) + __pyx_t_29 * __pyx_v_interp_points.strides[1]) ) + __pyx_t_30 * __pyx_v_interp_points.strides[2]) ) + __pyx_t_31 * __pyx_v_interp_points.strides[3]) ))) - __pyx_v_t_ix);
 
-                                /* "dapy/integrators/interpolate.pyx":64
+                                /* "dapy/integrators/interpolate.pyx":73
  *                 v_wt = interp_points[p, 1, i, j] - t_ix
- *                 # Wrap index to [0, grid_shape_1).
- *                 t_ix = python_mod(t_ix, dim_1)             # <<<<<<<<<<<<<<
- *                 # Calculate bottom edge index of interpolation point cell.
- *                 b_ix = python_mod(t_ix + 1, dim_1)
+ *                 # Wrap index to [0, dim_1).
+ *                 t_ix = t_ix % dim_1             # <<<<<<<<<<<<<<
+ *                 while t_ix < 0:
+ *                     t_ix = t_ix + dim_1
  */
-                                __pyx_v_t_ix = __pyx_f_4dapy_11integrators_11interpolate_python_mod(__pyx_v_t_ix, __pyx_v_dim_1);
+                                __pyx_v_t_ix = (__pyx_v_t_ix % __pyx_v_dim_1);
 
-                                /* "dapy/integrators/interpolate.pyx":66
- *                 t_ix = python_mod(t_ix, dim_1)
+                                /* "dapy/integrators/interpolate.pyx":74
+ *                 # Wrap index to [0, dim_1).
+ *                 t_ix = t_ix % dim_1
+ *                 while t_ix < 0:             # <<<<<<<<<<<<<<
+ *                     t_ix = t_ix + dim_1
  *                 # Calculate bottom edge index of interpolation point cell.
- *                 b_ix = python_mod(t_ix + 1, dim_1)             # <<<<<<<<<<<<<<
+ */
+                                while (1) {
+                                  __pyx_t_23 = ((__pyx_v_t_ix < 0) != 0);
+                                  if (!__pyx_t_23) break;
+
+                                  /* "dapy/integrators/interpolate.pyx":75
+ *                 t_ix = t_ix % dim_1
+ *                 while t_ix < 0:
+ *                     t_ix = t_ix + dim_1             # <<<<<<<<<<<<<<
+ *                 # Calculate bottom edge index of interpolation point cell.
+ *                 b_ix = (t_ix + 1) % dim_1
+ */
+                                  __pyx_v_t_ix = (__pyx_v_t_ix + __pyx_v_dim_1);
+                                }
+
+                                /* "dapy/integrators/interpolate.pyx":77
+ *                     t_ix = t_ix + dim_1
+ *                 # Calculate bottom edge index of interpolation point cell.
+ *                 b_ix = (t_ix + 1) % dim_1             # <<<<<<<<<<<<<<
  *                 # Calculate new field value as weighted sum of field values
  *                 # at grid points on corners of interpolation point grid cell.
  */
-                                __pyx_v_b_ix = __pyx_f_4dapy_11integrators_11interpolate_python_mod((__pyx_v_t_ix + 1), __pyx_v_dim_1);
+                                __pyx_v_b_ix = ((__pyx_v_t_ix + 1) % __pyx_v_dim_1);
 
-                                /* "dapy/integrators/interpolate.pyx":70
+                                /* "dapy/integrators/interpolate.pyx":81
  *                 # at grid points on corners of interpolation point grid cell.
  *                 new_fields_mv[p, i, j] = (
  *                     (1 - h_wt) * (1 - v_wt) * fields[p, l_ix, t_ix] +             # <<<<<<<<<<<<<<
  *                     (1 - h_wt) * v_wt * fields[p, l_ix, b_ix] +
  *                     h_wt * (1 - v_wt) * fields[p, r_ix, t_ix] +
  */
-                                __pyx_t_31 = __pyx_v_p;
-                                __pyx_t_32 = __pyx_v_l_ix;
-                                __pyx_t_33 = __pyx_v_t_ix;
+                                __pyx_t_32 = __pyx_v_p;
+                                __pyx_t_33 = __pyx_v_l_ix;
+                                __pyx_t_34 = __pyx_v_t_ix;
 
-                                /* "dapy/integrators/interpolate.pyx":71
+                                /* "dapy/integrators/interpolate.pyx":82
  *                 new_fields_mv[p, i, j] = (
  *                     (1 - h_wt) * (1 - v_wt) * fields[p, l_ix, t_ix] +
  *                     (1 - h_wt) * v_wt * fields[p, l_ix, b_ix] +             # <<<<<<<<<<<<<<
  *                     h_wt * (1 - v_wt) * fields[p, r_ix, t_ix] +
- *                     h_wt * v_wt * fields[p, r_ix, b_ix]
+ *                     h_wt * v_wt * fields[p, r_ix, b_ix])
  */
-                                __pyx_t_34 = __pyx_v_p;
-                                __pyx_t_35 = __pyx_v_l_ix;
-                                __pyx_t_36 = __pyx_v_b_ix;
+                                __pyx_t_35 = __pyx_v_p;
+                                __pyx_t_36 = __pyx_v_l_ix;
+                                __pyx_t_37 = __pyx_v_b_ix;
 
-                                /* "dapy/integrators/interpolate.pyx":72
+                                /* "dapy/integrators/interpolate.pyx":83
  *                     (1 - h_wt) * (1 - v_wt) * fields[p, l_ix, t_ix] +
  *                     (1 - h_wt) * v_wt * fields[p, l_ix, b_ix] +
  *                     h_wt * (1 - v_wt) * fields[p, r_ix, t_ix] +             # <<<<<<<<<<<<<<
- *                     h_wt * v_wt * fields[p, r_ix, b_ix]
- *                 )
- */
-                                __pyx_t_37 = __pyx_v_p;
-                                __pyx_t_38 = __pyx_v_r_ix;
-                                __pyx_t_39 = __pyx_v_t_ix;
-
-                                /* "dapy/integrators/interpolate.pyx":73
- *                     (1 - h_wt) * v_wt * fields[p, l_ix, b_ix] +
- *                     h_wt * (1 - v_wt) * fields[p, r_ix, t_ix] +
- *                     h_wt * v_wt * fields[p, r_ix, b_ix]             # <<<<<<<<<<<<<<
- *                 )
+ *                     h_wt * v_wt * fields[p, r_ix, b_ix])
  *     return new_fields
  */
-                                __pyx_t_40 = __pyx_v_p;
-                                __pyx_t_41 = __pyx_v_r_ix;
-                                __pyx_t_42 = __pyx_v_b_ix;
+                                __pyx_t_38 = __pyx_v_p;
+                                __pyx_t_39 = __pyx_v_r_ix;
+                                __pyx_t_40 = __pyx_v_t_ix;
 
-                                /* "dapy/integrators/interpolate.pyx":69
+                                /* "dapy/integrators/interpolate.pyx":84
+ *                     (1 - h_wt) * v_wt * fields[p, l_ix, b_ix] +
+ *                     h_wt * (1 - v_wt) * fields[p, r_ix, t_ix] +
+ *                     h_wt * v_wt * fields[p, r_ix, b_ix])             # <<<<<<<<<<<<<<
+ *     return new_fields
+ */
+                                __pyx_t_41 = __pyx_v_p;
+                                __pyx_t_42 = __pyx_v_r_ix;
+                                __pyx_t_43 = __pyx_v_b_ix;
+
+                                /* "dapy/integrators/interpolate.pyx":80
  *                 # Calculate new field value as weighted sum of field values
  *                 # at grid points on corners of interpolation point grid cell.
  *                 new_fields_mv[p, i, j] = (             # <<<<<<<<<<<<<<
  *                     (1 - h_wt) * (1 - v_wt) * fields[p, l_ix, t_ix] +
  *                     (1 - h_wt) * v_wt * fields[p, l_ix, b_ix] +
  */
-                                __pyx_t_43 = __pyx_v_p;
-                                __pyx_t_44 = __pyx_v_i;
-                                __pyx_t_45 = __pyx_v_j;
-                                *((double *) ( /* dim=2 */ (( /* dim=1 */ (( /* dim=0 */ (__pyx_v_new_fields_mv.data + __pyx_t_43 * __pyx_v_new_fields_mv.strides[0]) ) + __pyx_t_44 * __pyx_v_new_fields_mv.strides[1]) ) + __pyx_t_45 * __pyx_v_new_fields_mv.strides[2]) )) = ((((((1.0 - __pyx_v_h_wt) * (1.0 - __pyx_v_v_wt)) * (*((double *) ( /* dim=2 */ (( /* dim=1 */ (( /* dim=0 */ (__pyx_v_fields.data + __pyx_t_31 * __pyx_v_fields.strides[0]) ) + __pyx_t_32 * __pyx_v_fields.strides[1]) ) + __pyx_t_33 * __pyx_v_fields.strides[2]) )))) + (((1.0 - __pyx_v_h_wt) * __pyx_v_v_wt) * (*((double *) ( /* dim=2 */ (( /* dim=1 */ (( /* dim=0 */ (__pyx_v_fields.data + __pyx_t_34 * __pyx_v_fields.strides[0]) ) + __pyx_t_35 * __pyx_v_fields.strides[1]) ) + __pyx_t_36 * __pyx_v_fields.strides[2]) ))))) + ((__pyx_v_h_wt * (1.0 - __pyx_v_v_wt)) * (*((double *) ( /* dim=2 */ (( /* dim=1 */ (( /* dim=0 */ (__pyx_v_fields.data + __pyx_t_37 * __pyx_v_fields.strides[0]) ) + __pyx_t_38 * __pyx_v_fields.strides[1]) ) + __pyx_t_39 * __pyx_v_fields.strides[2]) ))))) + ((__pyx_v_h_wt * __pyx_v_v_wt) * (*((double *) ( /* dim=2 */ (( /* dim=1 */ (( /* dim=0 */ (__pyx_v_fields.data + __pyx_t_40 * __pyx_v_fields.strides[0]) ) + __pyx_t_41 * __pyx_v_fields.strides[1]) ) + __pyx_t_42 * __pyx_v_fields.strides[2]) )))));
+                                __pyx_t_44 = __pyx_v_p;
+                                __pyx_t_45 = __pyx_v_i;
+                                __pyx_t_46 = __pyx_v_j;
+                                *((double *) ( /* dim=2 */ (( /* dim=1 */ (( /* dim=0 */ (__pyx_v_new_fields_mv.data + __pyx_t_44 * __pyx_v_new_fields_mv.strides[0]) ) + __pyx_t_45 * __pyx_v_new_fields_mv.strides[1]) ) + __pyx_t_46 * __pyx_v_new_fields_mv.strides[2]) )) = ((((((1.0 - __pyx_v_h_wt) * (1.0 - __pyx_v_v_wt)) * (*((double *) ( /* dim=2 */ (( /* dim=1 */ (( /* dim=0 */ (__pyx_v_fields.data + __pyx_t_32 * __pyx_v_fields.strides[0]) ) + __pyx_t_33 * __pyx_v_fields.strides[1]) ) + __pyx_t_34 * __pyx_v_fields.strides[2]) )))) + (((1.0 - __pyx_v_h_wt) * __pyx_v_v_wt) * (*((double *) ( /* dim=2 */ (( /* dim=1 */ (( /* dim=0 */ (__pyx_v_fields.data + __pyx_t_35 * __pyx_v_fields.strides[0]) ) + __pyx_t_36 * __pyx_v_fields.strides[1]) ) + __pyx_t_37 * __pyx_v_fields.strides[2]) ))))) + ((__pyx_v_h_wt * (1.0 - __pyx_v_v_wt)) * (*((double *) ( /* dim=2 */ (( /* dim=1 */ (( /* dim=0 */ (__pyx_v_fields.data + __pyx_t_38 * __pyx_v_fields.strides[0]) ) + __pyx_t_39 * __pyx_v_fields.strides[1]) ) + __pyx_t_40 * __pyx_v_fields.strides[2]) ))))) + ((__pyx_v_h_wt * __pyx_v_v_wt) * (*((double *) ( /* dim=2 */ (( /* dim=1 */ (( /* dim=0 */ (__pyx_v_fields.data + __pyx_t_41 * __pyx_v_fields.strides[0]) ) + __pyx_t_42 * __pyx_v_fields.strides[1]) ) + __pyx_t_43 * __pyx_v_fields.strides[2]) )))));
                               }
                             }
                         }
@@ -2825,7 +2833,7 @@ static PyObject *__pyx_pf_4dapy_11integrators_11interpolate_batch_bilinear_inter
         #endif
       }
 
-      /* "dapy/integrators/interpolate.pyx":47
+      /* "dapy/integrators/interpolate.pyx":53
  *         (n_field, dim_0, dim_1), dtype='double', order='C')
  *     cdef double[:, :, :] new_fields_mv = new_fields
  *     for p in prange(n_field, schedule='static', num_threads=n_thread,             # <<<<<<<<<<<<<<
@@ -2844,9 +2852,9 @@ static PyObject *__pyx_pf_4dapy_11integrators_11interpolate_batch_bilinear_inter
       }
   }
 
-  /* "dapy/integrators/interpolate.pyx":75
- *                     h_wt * v_wt * fields[p, r_ix, b_ix]
- *                 )
+  /* "dapy/integrators/interpolate.pyx":85
+ *                     h_wt * (1 - v_wt) * fields[p, r_ix, t_ix] +
+ *                     h_wt * v_wt * fields[p, r_ix, b_ix])
  *     return new_fields             # <<<<<<<<<<<<<<
  */
   __Pyx_XDECREF(__pyx_r);
@@ -2855,8 +2863,8 @@ static PyObject *__pyx_pf_4dapy_11integrators_11interpolate_batch_bilinear_inter
   goto __pyx_L0;
 
   /* "dapy/integrators/interpolate.pyx":11
- *     return ((n % m) + m) % m
  * 
+ * @cython.cdivision(True)
  * def batch_bilinear_interpolate(             # <<<<<<<<<<<<<<
  *         double[:, :, :] fields, double[:, :, :, :] interp_points,
  *         int n_thread=1):
@@ -18833,7 +18841,7 @@ static struct PyModuleDef __pyx_moduledef = {
     PyModuleDef_HEAD_INIT,
   #endif
     "interpolate",
-    0, /* m_doc */
+    __pyx_k_Batched_two_dimensional_bilinear, /* m_doc */
     -1, /* m_size */
     __pyx_methods /* m_methods */,
     NULL, /* m_reload */
@@ -18963,7 +18971,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {0, 0, 0, 0, 0, 0, 0}
 };
 static int __Pyx_InitCachedBuiltins(void) {
-  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 49, __pyx_L1_error)
+  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 55, __pyx_L1_error)
   __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(1, 218, __pyx_L1_error)
   __pyx_builtin_RuntimeError = __Pyx_GetBuiltinName(__pyx_n_s_RuntimeError); if (!__pyx_builtin_RuntimeError) __PYX_ERR(1, 799, __pyx_L1_error)
   __pyx_builtin_ImportError = __Pyx_GetBuiltinName(__pyx_n_s_ImportError); if (!__pyx_builtin_ImportError) __PYX_ERR(1, 989, __pyx_L1_error)
@@ -19283,8 +19291,8 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__28);
 
   /* "dapy/integrators/interpolate.pyx":11
- *     return ((n % m) + m) % m
  * 
+ * @cython.cdivision(True)
  * def batch_bilinear_interpolate(             # <<<<<<<<<<<<<<
  *         double[:, :, :] fields, double[:, :, :, :] interp_points,
  *         int n_thread=1):
@@ -19432,7 +19440,7 @@ PyMODINIT_FUNC PyInit_interpolate(void)
   #endif
   /*--- Module creation code ---*/
   #if PY_MAJOR_VERSION < 3
-  __pyx_m = Py_InitModule4("interpolate", __pyx_methods, 0, 0, PYTHON_API_VERSION); Py_XINCREF(__pyx_m);
+  __pyx_m = Py_InitModule4("interpolate", __pyx_methods, __pyx_k_Batched_two_dimensional_bilinear, 0, PYTHON_API_VERSION); Py_XINCREF(__pyx_m);
   #else
   __pyx_m = PyModule_Create(&__pyx_moduledef);
   #endif
@@ -19528,19 +19536,21 @@ PyMODINIT_FUNC PyInit_interpolate(void)
   if (__Pyx_patch_abc() < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   #endif
 
-  /* "dapy/integrators/interpolate.pyx":1
+  /* "dapy/integrators/interpolate.pyx":3
+ * """Batched two-dimensional bilinear interpolation."""
+ * 
  * import numpy as np             # <<<<<<<<<<<<<<
  * cimport numpy as np
  * from cython.parallel import prange
  */
-  __pyx_t_1 = __Pyx_Import(__pyx_n_s_numpy, 0, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_Import(__pyx_n_s_numpy, 0, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_np, __pyx_t_1) < 0) __PYX_ERR(0, 1, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_np, __pyx_t_1) < 0) __PYX_ERR(0, 3, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "dapy/integrators/interpolate.pyx":11
- *     return ((n % m) + m) % m
  * 
+ * @cython.cdivision(True)
  * def batch_bilinear_interpolate(             # <<<<<<<<<<<<<<
  *         double[:, :, :] fields, double[:, :, :, :] interp_points,
  *         int n_thread=1):
@@ -19551,9 +19561,9 @@ PyMODINIT_FUNC PyInit_interpolate(void)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "dapy/integrators/interpolate.pyx":1
- * import numpy as np             # <<<<<<<<<<<<<<
- * cimport numpy as np
- * from cython.parallel import prange
+ * """Batched two-dimensional bilinear interpolation."""             # <<<<<<<<<<<<<<
+ * 
+ * import numpy as np
  */
   __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);

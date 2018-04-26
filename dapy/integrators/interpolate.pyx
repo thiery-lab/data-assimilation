@@ -1,13 +1,13 @@
+"""Batched two-dimensional bilinear interpolation."""
+
 import numpy as np
 cimport numpy as np
 from cython.parallel import prange
 from libc.math cimport floor
 cimport cython
 
-@cython.cdivision(True)
-cdef int python_mod(int n, int m) nogil:
-    return ((n % m) + m) % m
 
+@cython.cdivision(True)
 def batch_bilinear_interpolate(
         double[:, :, :] fields, double[:, :, :, :] interp_points,
         int n_thread=1):
@@ -17,23 +17,29 @@ def batch_bilinear_interpolate(
     following layout is assumed for the grid cell surrounding each
     interpolation point
 
-      (l_ix, t_ix) ---- (r_ix, t_ix)
-            |                |
-            |                |
-      (l_ix, b_ix) ---- (r_ix, b_ix)
+      (l_ix, t_ix) -- (r_ix, t_ix)
+            |               |
+      (l_ix, b_ix) -- (r_ix, b_ix)
 
     Args:
-        fields (array): Stack of two dimensional arrays defining values of a
+        fields (3D array): Stack of two dimensional arrays defining values of a
             scalar field on a rectilinear grid. The array should be of shape
             `(n_field, grid_shape_0, grid_shape_1)` where `n_field` specifies
             the number of (independent) spatial fields and `grid_shape_0` and
             `grid_shape_1` specify the number of grid points along the two grid
             dimensions.
-        interp_points (array): Stack of three dimensional arrays defining
+        interp_points (4D array): Stack of three dimensional arrays defining
             spatial points to resample field at in array index coordinates. The
             array should be of shape `(n_field, 2, grid_shape_0, grid_shape_1)`
             where `n_field`, `grid_shape_0` and `grid_shape_1` are as above and
             the size 2 dimension represents the two spatial coordinates.
+        n_thread (int): Number of parallel threads to distribute interpolation
+            of independent fields over.
+
+    Returns:
+        interp_fields (3D array): Stack of two dimensional arrays defining
+            computed interpolated values of the scalar field at the
+            interpolation points.
     """
     cdef int p, i, j
     cdef int l_ix, r_ix, t_ix, b_ix
@@ -52,24 +58,28 @@ def batch_bilinear_interpolate(
                 l_ix = int(floor(interp_points[p, 0, i, j]))
                 # Calculate horizontal weight coefficient for interpolation.
                 h_wt = interp_points[p, 0, i, j] - l_ix
-                # Wrap index to [0, grid_shape_0).
-                l_ix = python_mod(l_ix, dim_0)
+                # Wrap index to [0, dim_0). Need to account for handling
+                # of negative arguments by C modulus operator.
+                l_ix = l_ix % dim_0
+                while l_ix < 0:
+                    l_ix = l_ix + dim_0
                 # Calculate right edge index of interpolation point cell.
-                r_ix = python_mod(l_ix + 1, dim_0)
+                r_ix = (l_ix + 1) % dim_0
                 # Calculate top edge index of interpolation point.
                 t_ix = int(floor(interp_points[p, 1, i, j]))
                 # Calculate vertical weight coefficient for interpolation.
                 v_wt = interp_points[p, 1, i, j] - t_ix
-                # Wrap index to [0, grid_shape_1).
-                t_ix = python_mod(t_ix, dim_1)
+                # Wrap index to [0, dim_1).
+                t_ix = t_ix % dim_1
+                while t_ix < 0:
+                    t_ix = t_ix + dim_1
                 # Calculate bottom edge index of interpolation point cell.
-                b_ix = python_mod(t_ix + 1, dim_1)
+                b_ix = (t_ix + 1) % dim_1
                 # Calculate new field value as weighted sum of field values
                 # at grid points on corners of interpolation point grid cell.
                 new_fields_mv[p, i, j] = (
                     (1 - h_wt) * (1 - v_wt) * fields[p, l_ix, t_ix] +
                     (1 - h_wt) * v_wt * fields[p, l_ix, b_ix] +
                     h_wt * (1 - v_wt) * fields[p, r_ix, t_ix] +
-                    h_wt * v_wt * fields[p, r_ix, b_ix]
-                )
+                    h_wt * v_wt * fields[p, r_ix, b_ix])
     return new_fields
