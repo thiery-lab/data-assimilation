@@ -53,7 +53,7 @@ if args.use_gcc_opts:
     extra_compile_args += ['-O3', '-ffast-math']
 
 
-if args.use_cython and args.use_cython_opts:
+if args.use_cython and not args.no_cython_opts:
     compiler_directives = {
         'boundscheck': False,  # don't check for invalid indexing
         'wraparound': False,  # assume no negative indexing
