@@ -128,7 +128,8 @@ class EnsembleTransformParticleFilter(BootstrapParticleFilter):
     """
 
     def __init__(self, init_state_sampler, next_state_sampler,
-                 log_prob_dens_obs_gvn_state, rng, ot_solver,
+                 log_prob_dens_obs_gvn_state, rng,
+                 ot_solver=ot.solve_optimal_transport_exact,
                  ot_solver_params={}):
         """
         Args:
@@ -169,29 +170,31 @@ class EnsembleTransformParticleFilter(BootstrapParticleFilter):
         n_particles = z_forecast.shape[0]
         source_dist = np.ones(n_particles) / n_particles
         target_dist = weights
+        target_dist /= target_dist.sum()
         # Cost matrix entries Euclidean distance between particles
         cost_matrix = ot.pairwise_euclidean_distance(z_forecast, z_forecast)
         trans_matrix = n_particles * self.ot_solver(
-            source_dist, target_dist, cost_matrix, **ot_solver_params)
-        return trans_mtx.dot(z_forecast)
+            source_dist, target_dist, cost_matrix, **self.ot_solver_params)
+        return trans_matrix.dot(z_forecast)
 
 
 class LocalEnsembleTransformParticleFilter(AbstractLocalEnsembleFilter):
 
-    def __init__(self, init_state_sampler, next_state_sampler, rng,
+    def __init__(self, init_state_sampler, next_state_sampler,
                  observation_func, obser_noise_std, n_grid, localisation_func,
-                 ot_solver, ot_solver_params={}, inflation_factor=1.):
+                 rng=None, inflation_factor=1.,
+                 ot_solver=ot.solve_optimal_transport_exact,
+                 ot_solver_params={}):
         """
         Args:
-            init_state_sampler (function): Function returning sample(s) from
+            init_state_sampler (callable): Function returning sample(s) from
                 initial state distribution. Takes number of particles to sample
                 as argument.
-            next_state_sampler (function): Function returning sample(s) from
+            next_state_sampler (callable): Function returning sample(s) from
                 distribution on next state given current state(s). Takes array
                 of current state(s) and current time index as
                 arguments.
-            rng (RandomState): Numpy RandomState random number generator.
-            observation_func (function): Function returning pre-noise
+            observation_func (callable): Function returning pre-noise
                 observations given current state(s). Takes array of current
                 state(s) and current time index as arguments.
             obser_noise_std (array): One-dimensional array defining standard
@@ -207,7 +210,7 @@ class LocalEnsembleTransformParticleFilter(AbstractLocalEnsembleFilter):
                     z_grid = z.reshape((dim_z // n_grid, n_grid))
                 will correspond to iterating over the state component values
                 across the different spatial (grid) locations.
-            localisation_func (function): Function (or callable object) which
+            localisation_func (callable): Function (or callable object) which
                 given an index corresponding to a spatial grid point (i.e.
                 the iteration index over the last dimension of a reshaped
                 array `z_grid` as described above) will return an array of
@@ -216,7 +219,12 @@ class LocalEnsembleTransformParticleFilter(AbstractLocalEnsembleFilter):
                 entries 'local' to state grid point described by the index and
                 there corresponding weights (with closer observations
                 potentially given larger weights).
-            ot_solver (function): Optimal transport solver function with
+            rng (RandomState): Numpy RandomState random number generator.
+            inflation_factor (float): A value greater than or equal to one used
+                to inflate the analysis ensemble on each update as a heuristic
+                to overcome the underestimation of the uncertainty in the
+                system state by ensemble methods.
+            ot_solver (callable): Optimal transport solver function with
                 call signature
                     ot_solver(source_dist, target_dist, cost_matrix,
                               **ot_solver_params)
@@ -227,10 +235,6 @@ class LocalEnsembleTransformParticleFilter(AbstractLocalEnsembleFilter):
                 for the solver.
             ot_solver_params (dict): Any additional keyword parameters values
                 for the optimal transport solver.
-            inflation_factor (float): A value greater than or equal to one used
-                to inflate the analysis ensemble on each update as a heuristic
-                to overcome the underestimation of the uncertainty in the
-                system state by ensemble methods.
         """
         super(LocalEnsembleTransformParticleFilter, self).__init__(
                 init_state_sampler=init_state_sampler,
@@ -252,6 +256,7 @@ class LocalEnsembleTransformParticleFilter(AbstractLocalEnsembleFilter):
         ).sum(-1)
         target_dist = np.exp(
             log_particle_weights - logsumexp(log_particle_weights))
+        target_dist /= target_dist.sum()
         source_dist = np.ones(n_particles) / n_particles
         cost_matrix = ot.pairwise_euclidean_distance(z_forecast, z_forecast)
         trans_matrix = n_particles * self.ot_solver(
@@ -312,7 +317,7 @@ class PouLocalEnsembleTransportParticleFilter(AbstractEnsembleFilter):
         else:
             target_dists = self.pou_basis.integrate_against_bases(
                 np.exp(loc_log_weights))
-            target_dists /= target_dists.sum(0)
+        target_dists /= target_dists.sum(0)
         target_dists = target_dists.T
         # localised transport source distributions uniform
         source_dists = np.ones_like(target_dists) / n_particle
