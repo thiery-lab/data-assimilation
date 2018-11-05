@@ -48,7 +48,7 @@ class EnsembleKalmanFilter(AbstractEnsembleFilter):
     """
 
     def __init__(self, init_state_sampler, next_state_sampler,
-                 observation_sampler, rng):
+                 observation_sampler, rng=None):
         """
         Args:
             init_state_sampler (function): Function returning sample(s) from
@@ -116,7 +116,7 @@ class EnsembleSquareRootFilter(AbstractEnsembleFilter):
     """
 
     def __init__(self, init_state_sampler, next_state_sampler,
-                 observation_func, obser_noise_matrix, rng, warn=True):
+                 observation_func, obser_noise_matrix, rng=None, warn=True):
         """
         Args:
             init_state_sampler (function): Function returning sample(s) from
@@ -216,7 +216,7 @@ class WoodburyEnsembleSquareRootFilter(AbstractEnsembleFilter):
     """
 
     def __init__(self, init_state_sampler, next_state_sampler,
-                 observation_func, obser_noise_preci, rng, warn=True):
+                 observation_func, obser_noise_preci, rng=None, warn=True):
         """
         Args:
             init_state_sampler (function): Function returning sample(s) from
@@ -246,7 +246,8 @@ class WoodburyEnsembleSquareRootFilter(AbstractEnsembleFilter):
         )
         self.observation_func = observation_func
         self.obser_noise_preci_is_dense = (
-            isinstance(obser_noise_preci, np.ndarray) and obser_noise_preci.ndim == 2)
+            isinstance(obser_noise_preci, np.ndarray) and
+            obser_noise_preci.ndim == 2)
         self.obser_noise_preci = obser_noise_preci
         self.warn = warn
 
@@ -284,7 +285,8 @@ class WoodburyEnsembleSquareRootFilter(AbstractEnsembleFilter):
 
 @inherit_docstrings
 class LocalEnsembleTransformKalmanFilter(AbstractLocalEnsembleFilter):
-    """Localised ensemble transform Kalman filter for spatially extended models
+    """
+    Localised ensemble transform Kalman filter for spatially extended models.
 
     References:
         1. Hunt, B. R., Kostelich, E. J., & Szunyogh, I. (2007).
@@ -295,7 +297,7 @@ class LocalEnsembleTransformKalmanFilter(AbstractLocalEnsembleFilter):
 
     def __init__(self, init_state_sampler, next_state_sampler,
                  observation_func, obser_noise_std, n_grid, localisation_func,
-                 inflation_factor, rng):
+                 rng=None, inflation_factor=1.):
         """
         Args:
             init_state_sampler (function): Function returning sample(s) from
@@ -330,11 +332,11 @@ class LocalEnsembleTransformKalmanFilter(AbstractLocalEnsembleFilter):
                 entries 'local' to state grid point described by the index and
                 there corresponding weights (with closer observations
                 potentially given larger weights).
+            rng (RandomState): Numpy RandomState random number generator.
             inflation_factor (float): A value greater than or equal to one used
                 to inflate the analysis ensemble on each update as a heuristic
                 to overcome the underestimation of the uncertainty in the
                 system state by ensemble Kalman filter methods.
-            rng (RandomState): Numpy RandomState random number generator.
         """
         super(LocalEnsembleTransformKalmanFilter, self).__init__(
                 init_state_sampler=init_state_sampler,
