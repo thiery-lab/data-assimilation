@@ -89,7 +89,7 @@ def get_result_code_strings(result_code):
     if result_code == INFEASIBLE:
         return ('Infeasible',
                 'The problem has no feasible solution. Source or target '
-                'distribution entries may be non-negative or sum to different '
+                'distribution entries may be negative or sum to different '
                 'values.')
     elif result_code == OPTIMAL:
         return 'Optimal', 'The algorithm converged to an optimal solution.'
