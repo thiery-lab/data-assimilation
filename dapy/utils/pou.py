@@ -1,6 +1,7 @@
 """Partition of unity bases functions for scalable localisation."""
 
 import numpy as np
+import numpy.fft as fft
 
 
 class PerGridPointPartitionOfUnityBasis(object):
@@ -130,6 +131,80 @@ class GaspariAndCohn1dPartitionOfUnityBasis(object):
             np.roll(f_stack[..., 2, :], shift=-2*self.basis_spacing, axis=-1) +
             np.roll(f_stack[..., 3, :], shift=-3*self.basis_spacing, axis=-1)
         ).reshape(f_patches.shape[:-2] + (self.n_grid,))
+
+
+def corrected_gaspari_and_cohn_weights(u, basis_spacing):
+    corr = 0.5 * (u**2 - u) - 1. / (1 - 0.5 * (u**2 - u)) + 58. / 24
+    basis_weights = np.empty(basis_spacing * 4) * np.nan
+    basis_weights[:basis_spacing] = (
+        (-2 * u**5 + 8 * u**4 + u**3 + 2 * u**2 + 4 * u + 8) / 24. -
+        2 / (6 - 3 * u)) / corr
+    basis_weights[basis_spacing:2 * basis_spacing] = (
+        (6 * u**5 - 18 * u**4 - 3 * u**3 + 17 * u**2 + 17 * u + 5) / 24.
+        ) / corr
+    basis_weights[2 * basis_spacing:3 * basis_spacing] = (
+        (-6 * u**5 + 12 * u**4 + 15 * u**3 - 40 * u**2 + 24) / 24.) / corr
+    basis_weights[3 * basis_spacing:] = (
+        (2 * u**5 - 2 * u**4 - 13 * u**3 + 33 * u**2 - 33 * u + 21) / 24. -
+        2 / (3 + 3 * u)) / corr
+    return basis_weights
+
+
+class GaspariAndCohn2dPartitionOfUnityBasis(object):
+    """PoU on 2D grid using Gaspari and Cohn compact smooth basis functions."""
+
+    def __init__(self, grid_shape, bases_grid_shape):
+        self.grid_shape = grid_shape
+        self.n_grid = grid_shape[0] * grid_shape[1]
+        self.bases_grid_shape = bases_grid_shape
+        self.n_bases = bases_grid_shape[0] * bases_grid_shape[1]
+        self.basis_spacing = np.array([
+            grid_shape[0] // bases_grid_shape[0],
+            grid_shape[1] // bases_grid_shape[1]])
+        self.basis_dim = 4 * self.basis_spacing
+        u0 = ((np.arange(self.basis_spacing[0]) + 0.5) / self.basis_spacing[0])
+        u1 = ((np.arange(self.basis_spacing[1]) + 0.5) / self.basis_spacing[1])
+        basis_weights_0 = corrected_gaspari_and_cohn_weights(
+            u0, self.basis_spacing[0])
+        basis_weights_1 = corrected_gaspari_and_cohn_weights(
+            u1, self.basis_spacing[1])
+        self.basis_weights = (
+            basis_weights_0[:, None] * basis_weights_1[None, :]).flatten()
+
+    def split_into_patches_and_scale(self, f):
+        f_2d = np.reshape(f, (-1,) + self.grid_shape)
+        f_2d_shifted_stack = []
+        for i in range(4):
+            for j in range(4):
+                shift = (self.basis_spacing[0] * i, self.basis_spacing[1] * j)
+                f_2d_shifted_stack.append(
+                    np.roll(f_2d, shift=shift, axis=(-2, -1)))
+        f_2d_shifted_stack = np.stack(f_2d_shifted_stack, axis=1)
+        f_patches = f_2d_shifted_stack.reshape(
+            f.shape[:-1] + (
+                16,
+                self.bases_grid_shape[0] // 4, self.basis_dim[0],
+                self.bases_grid_shape[1] // 4, self.basis_dim[1])
+        ).swapaxes(-3, -2).reshape(f.shape[:-1] + (self.n_bases, -1))
+        return f_patches * self.basis_weights
+
+    def integrate_against_bases(self, f):
+        return self.split_into_patches_and_scale(f).sum(-1)
+
+    def combine_patches(self, f_patches):
+        f_2d_shifted_stack = f_patches.reshape((
+            -1, 16,
+            self.bases_grid_shape[0] // 4, self.bases_grid_shape[1] // 4,
+            self.basis_dim[0], self.basis_dim[1]
+        )).swapaxes(-3, -2).reshape((-1, 16) + self.grid_shape)
+        f_2d_unshifted = 0
+        for i in range(4):
+            for j in range(4):
+                shift = (-self.basis_spacing[0] * i,
+                         -self.basis_spacing[1] * j)
+                f_2d_unshifted += np.roll(
+                    f_2d_shifted_stack[:, i*4+j], shift=shift, axis=(-2, -1))
+        return f_2d_unshifted.reshape(f_patches.shape[:-2] + (self.n_grid,))
 
 
 class SquaredCosine1dPartitionOfUnityBasis(object):
