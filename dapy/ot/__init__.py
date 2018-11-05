@@ -4,6 +4,7 @@ import warnings
 import numpy as np
 from scipy.special import logsumexp
 from dapy.ot.solvers import (
+    get_result_code_strings,
     solve_optimal_transport_network_simplex,
     solve_optimal_transport_network_simplex_batch)
 try:
@@ -14,6 +15,10 @@ except ImportError:
 
 DEFAULT_MAX_ITER = 100000
 DEFAULT_SUM_DIFF_TOLERANCE = 1e-8
+
+
+class ConvergenceError(Exception):
+    """Error raised when optimal transport solver fails to converge."""
 
 
 def pairwise_euclidean_distance(z1, z2):
@@ -31,8 +36,8 @@ def solve_optimal_transport_exact(
             source_dist, target_dist, cost_matrix, max_iter=max_iter,
             sum_diff_tolerance=sum_diff_tolerance))
     if not results_code == 1:
-        warnings.warn('OT solution did not converge. Error codes: {9}'
-                      .format(results_code))
+        raise ConvergenceError('OT solution did not converge. {0}: {1}'
+                               .format(*get_result_code_strings(results_code)))
     return trans_matrix
 
 
@@ -44,11 +49,19 @@ def solve_optimal_transport_exact_batch(
             source_dists, target_dists, cost_matrices, max_iter=max_iter,
             sum_diff_tolerance=sum_diff_tolerance, n_thread=n_thread))
     if not np.all(results_codes == 1):
-        err_codes = np.unique(results_codes[results_codes != 1])
-        warnings.warn('{0}/{1} of OT solutions did not converge. '
-                      'Error codes: {2}'
-                      .format(np.sum(results_codes != 1),
-                              source_dists.shape[0], err_codes))
+        if POT_AVAILABLE:
+            is_err = results_codes != 1
+            trans_matrices[is_err] = solve_optimal_transport_exact_batch_pot(
+                source_dists[is_err], target_dists[is_err],
+                cost_matrices[is_err], max_iter)
+        else:
+            err_codes = np.unique(results_codes[results_codes != 1])
+            raise ConvergenceError(
+                '{0}/{1} of OT solutions did not converge. '
+                'Errors: {2}.'
+                .format(np.sum(results_codes != 1), source_dists.shape[0],
+                        ['{0}: {1}'.format(*get_result_code_strings(e))
+                         for e in err_codes]))
     return trans_matrices
 
 
@@ -110,11 +123,11 @@ if POT_AVAILABLE:
                 np.ascontiguousarray(cost_matrices[p]), numItermax=max_iter,
                 log=True)
             result_codes[p] = log['result_code']
-        if not np.all(results_codes == 1):
-            err_codes = np.unique(results_codes[results_codes != 1])
+        if not np.all(result_codes == 1):
+            err_codes = np.unique(result_codes[result_codes != 1])
             warnings.warn('{0}/{1} of OT solutions did not converge. '
                           'Error codes: {2}'
-                          .format(np.sum(results_codes != 1),
+                          .format(np.sum(result_codes != 1),
                                   source_dists.shape[0], err_codes))
         return trans_matrices
 
