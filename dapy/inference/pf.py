@@ -5,6 +5,7 @@ from scipy.special import logsumexp
 from dapy.inference.base import (
         AbstractEnsembleFilter, AbstractLocalEnsembleFilter)
 from dapy.utils.doc import inherit_docstrings
+import dapy.ot as ot
 
 
 @inherit_docstrings
@@ -169,8 +170,7 @@ class EnsembleTransformParticleFilter(BootstrapParticleFilter):
         source_dist = np.ones(n_particles) / n_particles
         target_dist = weights
         # Cost matrix entries Euclidean distance between particles
-        cost_matrix = np.sum(
-            (z_forecast[:, None] - z_forecast[None, :])**2, -1)
+        cost_matrix = ot.pairwise_euclidean_distance(z_forecast, z_forecast)
         trans_matrix = n_particles * self.ot_solver(
             source_dist, target_dist, cost_matrix, **ot_solver_params)
         return trans_mtx.dot(z_forecast)
@@ -253,8 +253,7 @@ class LocalEnsembleTransformParticleFilter(AbstractLocalEnsembleFilter):
         target_dist = np.exp(
             log_particle_weights - logsumexp(log_particle_weights))
         source_dist = np.ones(n_particles) / n_particles
-        cost_matrix = np.sum(
-            (z_forecast[:, None] - z_forecast[None, :])**2, -1)
+        cost_matrix = ot.pairwise_euclidean_distance(z_forecast, z_forecast)
         trans_matrix = n_particles * self.ot_solver(
             source_dist, target_dist, cost_matrix, **self.ot_solver_params)
         z_analysis = trans_matrix.dot(z_forecast)

@@ -16,6 +16,13 @@ DEFAULT_MAX_ITER = 100000
 DEFAULT_SUM_DIFF_TOLERANCE = 1e-8
 
 
+def pairwise_euclidean_distance(z1, z2):
+    z1_sq_norms = np.sum(z1**2, -1)[:, None]
+    z2_sq_norms = z1_sq_norms.T if z2 is z1 else np.sum(z2**2, -1)[None, :]
+    return np.clip(
+        z1_sq_norms - 2 * np.dot(z1, z2.T) + z2_sq_norms, 0, None)
+
+
 def solve_optimal_transport_exact(
         source_dist, target_dist, cost_matrix, max_iter=DEFAULT_MAX_ITER,
         sum_diff_tolerance=DEFAULT_SUM_DIFF_TOLERANCE):
