@@ -2,7 +2,7 @@
 
 import numpy as np
 from dapy.utils.doc import inherit_docstrings
-import tqdm
+import tqdm.autonotebook as tqdm
 
 
 class AbstractEnsembleFilter(object):

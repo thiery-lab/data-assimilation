@@ -1,7 +1,7 @@
 """Base model class for data assimilation example models."""
 
 import numpy as np
-import tqdm
+import tqdm.autonotebook as tqdm
 from dapy.utils.doc import inherit_docstrings
 
 
