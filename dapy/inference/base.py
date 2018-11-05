@@ -8,7 +8,7 @@ import tqdm.autonotebook as tqdm
 class AbstractEnsembleFilter(object):
     """Abstract base class for ensemble filters defining standard interface."""
 
-    def __init__(self, init_state_sampler, next_state_sampler, rng):
+    def __init__(self, init_state_sampler, next_state_sampler, rng=None):
         """
         Args:
             init_state_sampler (function): Function returning sample(s) from
@@ -21,7 +21,10 @@ class AbstractEnsembleFilter(object):
         """
         self.init_state_sampler = init_state_sampler
         self.next_state_sampler = next_state_sampler
-        self.rng = rng
+        if rng is not None:
+            self.rng = rng
+        else:
+            self.rng = np.random.RandomState()
 
     def analysis_update(self, z_forecast, x_observed, time_index):
         """Perform analysis update to forecasted states given observations.
@@ -112,7 +115,7 @@ class AbstractLocalEnsembleFilter(AbstractEnsembleFilter):
 
     def __init__(self, init_state_sampler, next_state_sampler,
                  observation_func, obser_noise_std, n_grid, localisation_func,
-                 rng):
+                 rng=None):
         """
         Args:
             init_state_sampler (function): Function returning sample(s) from
