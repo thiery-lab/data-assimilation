@@ -4,8 +4,7 @@ from dapy.inference.enkf import (
     EnsembleKalmanFilter, EnsembleSquareRootFilter,
     WoodburyEnsembleSquareRootFilter, LocalEnsembleTransformKalmanFilter)
 from dapy.inference.kf import (
-    KalmanFilter, FunctionKalmanFilter, JosephFunctionKalmanFilter,
-    SquareRootKalmanFilter)
+    MatrixKalmanFilter, FunctionKalmanFilter, SquareRootKalmanFilter)
 from dapy.inference.pf import (
     BootstrapParticleFilter, EnsembleTransformParticleFilter,
     LocalEnsembleTransformParticleFilter,
