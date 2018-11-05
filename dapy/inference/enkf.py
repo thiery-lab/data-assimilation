@@ -349,22 +349,51 @@ class LocalEnsembleTransformKalmanFilter(AbstractLocalEnsembleFilter):
 
     def local_analysis_update(self, z_forecast, x_forecast, x_observed,
                               obs_noise_std, localisation_weights):
-        n_particles = z_forecast.shape[0]
+        # Number of particles
+        n_p = z_forecast.shape[0]
+        # Compute local state ensemble mean vector and deviations matrix
         z_mean_forecast = z_forecast.mean(0)
         dz_forecast = z_forecast - z_mean_forecast
+        # Compute local observation ensemble mean vector and deviations matrix
         x_mean_forecast = x_forecast.mean(0)
         dx_forecast = x_forecast - x_mean_forecast
-        eff_inv_obs_noise_std = localisation_weights**0.5 / obs_noise_std
-        eigvec_p_inv, s, _ = la.svd(dx_forecast * eff_inv_obs_noise_std)
-        eigval_p_inv = np.ones(n_particles) * (n_particles - 1)
-        eigval_p_inv[:dx_forecast.shape[1]] += s**2
-        if eigval_p_inv.min() <= 0:
-            warnings.warn('Localisation P matrix non positive-definite '
-                          '(min eigval {0:.2e}).'.format(eigval_p_inv.min()))
-        d_vector = (dx_forecast * eff_inv_obs_noise_std**2).dot(
+        # Compute reciprocal of effective per observation standard variances
+        # by scaling by the inverse variances by the localisation weights
+        eff_inv_obs_var = localisation_weights / obs_noise_std**2
+        # The local analysis covariance in the reduced n_p dimensional subspace
+        # spanned by the the ensemble members (denoted $\tilde{\mathbf{P}}^a$
+        # in Hunt et al. (2007)) is calculated as the inverse of
+        #    identity(n_p) * (n_p - 1) / inflation_factor +
+        #    dx_forecast @ diag(eff_inv_obs_var) @ dx_forecast.T
+        # where identity(n_p) is the n_p dimensional identity matrix. If we
+        # calculate a singular value decomposition
+        #    u, s, vh = svd(dx_forecast @ diag(eff_inv_obs_var**0.5))
+        # then u corresponds to a set of orthonormal eigenvectors for this
+        # local analysis covariance and
+        #    (ones(n_p) * (n_p - 1) / inflation_factor +
+        #     concatenate([s**2, zeros(n_p - n_o)]))**(-1)
+        # to a vector of eigenvalues of the reduced subspace local analysis
+        # covariance matrix, where n_o is the number of local observations.
+        eigvec_p, sing_val, _ = la.svd(dx_forecast * eff_inv_obs_var**0.5)
+        eigval_p_inv = np.ones(n_p) * (n_p - 1) / self.inflation_factor
+        eigval_p_inv[:dx_forecast.shape[1]] += sing_val**2
+        eigval_p = 1. / eigval_p_inv
+        # The 'deviations' (from mean) of the n_particles * n_particles
+        # matrix used to weight the forecast state ensemble deviations when
+        # calculating the analysis state ensemble is calculated as a scaled
+        # symmetric matrix square root of the local analysis covariance matrix
+        # an eigendecomposition was calculated for above
+        dw_matrix = (n_p - 1)**0.5 * (eigvec_p * eigval_p**0.5).dot(eigvec_p.T)
+        # Mean of weightings matrix rows is calculated from the observed data
+        # and the inverse of the local analysis covariance which we have an
+        # eigendecomposition for
+        d_vector = (dx_forecast * eff_inv_obs_var).dot(
             x_observed - x_mean_forecast)
-        dw_matrix = (n_particles - 1)**0.5 * eigvec_p_inv / eigval_p_inv**0.5
-        w_mean = (eigvec_p_inv / eigval_p_inv).dot(
-            eigvec_p_inv.T.dot(d_vector))
-        w_matrix = w_mean + dw_matrix
+        w_mean = eigvec_p.dot(eigval_p * eigvec_p.T.dot(d_vector))
+        # Calculate weighting matrix by adding mean vector to each row of the
+        # weighting deviations matrix
+        w_matrix = w_mean[None] + dw_matrix
+        # Local analysis state ensemble calculated as a weighted linear
+        # combination of local forecast state ensemble deviations shifted by
+        # the local forecast state mean
         return z_mean_forecast + w_matrix.dot(dz_forecast)
