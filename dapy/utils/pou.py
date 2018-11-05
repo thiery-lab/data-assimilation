@@ -319,3 +319,58 @@ class SquaredCosine2dPartitionOfUnityBasis(object):
             axis=(1, 2))
         return sum([f_2d_ss, f_2d_sc, f_2d_cs, f_2d_cc]).reshape(
             (n_particle, dim_field, self.n_grid))
+
+
+class SmoothedBlock1dPartitionOfUnityBasis(object):
+    """PoU on 1D grid using block PoU convolved with smooth kernel."""
+
+    def __init__(self, n_grid, n_bases, kernel):
+        self.n_grid = n_grid
+        self.n_bases = n_bases
+        self.block_width = n_grid // n_bases
+        self.kernel_width = kernel.shape[0]
+        kernel = kernel / kernel.sum()
+        self.kernel = np.zeros(n_grid)
+        self.kernel[-(self.kernel_width - 1) // 2:] = kernel[
+            :self.kernel_width // 2]
+        self.kernel[:(self.kernel_width + 1) // 2] = kernel[
+            self.kernel_width // 2:]
+        self.rfft_kernel = fft.rfft(self.kernel)
+        block = np.zeros(n_grid)
+        block[(n_grid - self.block_width) // 2:
+              (n_grid + self.block_width) // 2] = 1
+        self.basis_width = self.block_width + self.kernel_width - 1
+        self.smoothed_basis = fft.irfft(self.rfft_kernel * fft.rfft(block))[
+            (n_grid - self.basis_width) // 2 - 1:
+            (n_grid + self.basis_width) // 2 - 1]
+
+    def split_into_patches_and_scale(self, f):
+        f_padded = np.zeros(
+            f.shape[:-1] + (self.n_grid + self.kernel_width - 1,))
+        f_padded[..., :(self.kernel_width - 1) // 2] = f[
+            ..., -(self.kernel_width - 1) // 2:]
+        f_padded[..., -(self.kernel_width - 1) // 2:] = f[
+            ..., :(self.kernel_width - 1) // 2]
+        f_padded[..., (self.kernel_width - 1) // 2:
+                 -(self.kernel_width - 1) // 2] = f
+        shape = f.shape[:-1] + (self.n_bases, self.basis_width)
+        strides = f_padded.strides[:-1] + (
+            self.block_width * f.strides[-1], f.strides[-1])
+        f_patches = np.lib.stride_tricks.as_strided(f_padded, shape, strides)
+        return f_patches * self.smoothed_basis
+
+    def integrate_against_bases(self, f):
+        f_1d = np.reshape(f, (-1, self.n_grid))
+        f_1d_smooth = fft.irfft(self.rfft_kernel * fft.rfft(f_1d))
+        return f_1d_smooth.reshape(f.shape[:-1] + (self.n_bases, -1)).sum(-1)
+
+    def combine_patches(self, f_patches):
+        w = self.block_width
+        k = self.kernel_width
+        f_1d_padded = np.zeros(f_patches.shape[:-2] + (self.n_grid + k - 1,))
+        for b in range(self.n_bases):
+            f_1d_padded[..., b*w:(b+1)*w+(k-1)] += f_patches[..., b, :]
+        f_1d_padded[..., (k-1)//2:(k-1)] += f_1d_padded[..., -(k-1)//2:]
+        f_1d_padded[..., -(k-1):-(k-1)//2] += f_1d_padded[..., :(k-1)//2]
+        f_1d = f_1d_padded[..., (k-1)//2:-(k-1)//2]
+        return f_1d.reshape(f_patches.shape[:-2] + (-1,))
