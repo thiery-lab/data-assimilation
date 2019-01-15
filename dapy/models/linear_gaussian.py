@@ -319,8 +319,9 @@ class SpectralStochasticTurbulenceModel(AbstractModel):
 
     def __init__(self, dim_z, rng, obs_subsample, dt, grid_size,
                  damp_coeff, adv_coeff, diff_coeff, state_noise_ampl,
-                 state_noise_length_scale, obs_noise_std):
+                 state_noise_length_scale, obs_noise_std, obs_offset=0):
         self.obs_subsample = obs_subsample
+        self.obs_offset = obs_offset
         self.dt = dt
         self.grid_size = grid_size
         self.damp_coeff = damp_coeff
@@ -391,7 +392,7 @@ class SpectralStochasticTurbulenceModel(AbstractModel):
             np.fft.irfft(self.to_complex(self.state_noise_std_fourier * n)))
 
     def observation_func(self, z, t):
-        return z.T[::self.obs_subsample].T
+        return z[..., self.obs_offset::self.obs_subsample]
 
     def observation_sampler(self, z, t):
         x_mean = self.observation_func(z, t)
