@@ -189,7 +189,20 @@ class GaspariAndCohn2dPartitionOfUnityBasis(object):
         return f_patches * self.basis_weights
 
     def integrate_against_bases(self, f):
-        return self.split_into_patches_and_scale(f).sum(-1)
+        # return self.split_into_patches_and_scale(f).sum(-1)
+        f_2d = np.reshape(f, (-1,) + self.grid_shape)
+        integrals = []
+        for i in range(4):
+            for j in range(4):
+                shift = (self.basis_spacing[0] * i, self.basis_spacing[1] * j)
+                f_2d_shifted = np.roll(f_2d, shift=shift, axis=(-2, -1))
+                f_patches = f_2d_shifted.reshape(f.shape[:-1] + (
+                    self.bases_grid_shape[0] // 4, self.basis_dim[0],
+                    self.bases_grid_shape[1] // 4, self.basis_dim[1])
+                ).swapaxes(-3, -2).reshape(
+                    f.shape[:-1] + (self.n_bases // 16, -1))
+                integrals.append((f_patches * self.basis_weights).sum(-1))
+        return np.concatenate(integrals, -1)
 
     def combine_patches(self, f_patches):
         f_2d_shifted_stack = f_patches.reshape((
