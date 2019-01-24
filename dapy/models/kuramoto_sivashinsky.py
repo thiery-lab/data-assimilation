@@ -92,3 +92,96 @@ class KuramotoSivashinskyModel(
 
     def observation_func(self, z, t):
         return z.T[::self.obs_subsample].T
+
+
+@inherit_docstrings
+class KuramotoSivashinskySDEModel(DiagonalGaussianObservationModel):
+
+    def __init__(self, rng, n_grid=512, l_param=16, decay_coeff=1. / 6,
+                 dt=0.25, n_steps_per_update=10, obser_noise_std=1.,
+                 obs_space_indices=slice(4, None, 8),
+                 init_state_ampl_scale=1., init_state_length_scale=1.,
+                 state_noise_ampl_scale=1., state_noise_length_scale=1.,
+                 n_roots=16):
+        self.l_param = l_param
+        self.decay_coeff = decay_coeff
+        self.dt = dt
+        self.n_steps_per_update = n_steps_per_update
+        self.obs_space_indices = obs_space_indices
+        self.init_state_ampl_scale = init_state_ampl_scale
+        self.init_state_length_scale = init_state_length_scale
+        self.state_noise_ampl_scale = state_noise_ampl_scale
+        self.state_noise_length_scale = state_noise_length_scale
+
+        def linear_operator(freqs, freqs_sq):
+            return freqs_sq - freqs_sq**2 - decay_coeff
+
+        def nonlinear_operator(v, freqs, freqs_sq):
+            return -0.5j * freqs * np.fft.rfft(np.fft.irfft(v)**2)
+
+        grid_size = l_param * 2 * np.pi
+
+        self.integrator = FourierETDRK4Integrator(
+            linear_operator=linear_operator,
+            nonlinear_operator=nonlinear_operator, n_grid=n_grid,
+            grid_size=grid_size, dt=dt, n_roots=n_roots)
+
+        self.init_state_kernel = init_state_ampl_scale * np.exp(
+            -0.5 * self.integrator.freqs_sq * init_state_length_scale**2
+        ) * (init_state_length_scale / grid_size)**0.5
+        self.state_noise_kernel = state_noise_ampl_scale * np.exp(
+            -0.5 * self.integrator.freqs_sq * state_noise_length_scale**2
+        ) * (state_noise_length_scale / grid_size)**0.5
+
+        super(KuramotoSivashinskySDEModel, self).__init__(
+            obser_noise_std=obser_noise_std, dim_z=n_grid,
+            dim_x=len(range(n_grid)[obs_space_indices]), rng=rng)
+
+    def _to_rfft_rep(self, u):
+        return np.concatenate([
+            self.dim_z * u[..., 0:1],
+            self.dim_z * (u[..., 1:-1:2] + 1j * u[..., 2:-1:2]) / 2**0.5,
+            self.dim_z * u[..., -1:]
+        ], -1)
+
+    def init_state_sampler(self, n=None):
+        if n is None:
+            n = 1
+            n_was_none = True
+        else:
+            n_was_none = False
+        v = (
+            self.init_state_kernel *
+            self._to_rfft_rep(self.rng.normal(size=(n, self.dim_z))))
+        for s in range(self.n_steps_per_update):
+            v = self.integrator.step_fft(v)
+            v += (
+                self.dt**0.5 * self.state_noise_kernel *
+                self._to_rfft_rep(self.rng.normal(size=(n, self.dim_z))))
+        z_init = fft.irfft(v)
+        if n_was_none:
+            return z_init[0]
+        else:
+            return z_init
+
+    def next_state_sampler(self, z, t):
+        if z.ndim == 1:
+            z = z[None]
+            z_was_one_dim = True
+        else:
+            z_was_one_dim = False
+        n_particle = z.shape[0]
+        v = fft.rfft(z)
+        for s in range(self.n_steps_per_update):
+            v = self.integrator.step_fft(v)
+            v += (
+                self.dt**0.5 * self.state_noise_kernel *
+                self._to_rfft_rep(self.rng.normal(size=z.shape)))
+        z_next = fft.irfft(v)
+        if z_was_one_dim:
+            return z_next[0]
+        else:
+            return z_next
+
+    def observation_func(self, z, t):
+        return z[..., self.obs_space_indices]
