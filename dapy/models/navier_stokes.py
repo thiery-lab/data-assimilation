@@ -30,7 +30,7 @@ class NavierStokes2dModel(IntegratorModel, DiagonalGaussianObservationModel):
                  vort_noise_ampl_scale=1e-2, init_vort_int_time=0.,
                  obser_noise_std=1e-1, obs_subsample=2, dt=0.01,
                  n_steps_per_update=5, grid_size=(2., 2.), obs_speed=False,
-                 max_n_thread=4):
+                 obs_func=lambda x: x, max_n_thread=4):
         """
         Args:
             rng (RandomState): Numpy RandomState random number generator.
@@ -75,6 +75,7 @@ class NavierStokes2dModel(IntegratorModel, DiagonalGaussianObservationModel):
         self.vort_noise_ampl_scale = vort_noise_ampl_scale
         self.init_vort_int_time = init_vort_int_time
         self.obs_speed = obs_speed
+        self.obs_func = obs_func
         super(NavierStokes2dModel, self).__init__(
             integrator=integrator, n_steps_per_update=n_steps_per_update,
             obser_noise_std=obser_noise_std, dim_z=dim_z, dim_x=dim_x, rng=rng)
@@ -112,7 +113,7 @@ class NavierStokes2dModel(IntegratorModel, DiagonalGaussianObservationModel):
                 speed = (velocity**2).sum(-3)**0.5
                 return speed[::skip, ::skip].flatten()
             else:
-                return vorticity[::skip, ::skip].flatten()
+                return self.obs_func(vorticity[::skip, ::skip].flatten())
 
         else:
             vorticity = z.reshape((-1,) + self.integrator.grid_shape)
@@ -121,4 +122,5 @@ class NavierStokes2dModel(IntegratorModel, DiagonalGaussianObservationModel):
                 speed = (velocity**2).sum(-3)**0.5
                 return speed[:, ::skip, ::skip].reshape((z.shape[0], -1))
             else:
-                return vorticity[:, ::skip, ::skip].reshape((z.shape[0], -1))
+                return self.obs_func(
+                    vorticity[:, ::skip, ::skip].reshape((z.shape[0], -1)))
