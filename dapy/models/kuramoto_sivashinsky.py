@@ -95,11 +95,11 @@ class KuramotoSivashinskyModel(
 
 
 @inherit_docstrings
-class KuramotoSivashinskySDEModel(DiagonalGaussianObservationModel):
+class KuramotoSivashinskySPDEModel(DiagonalGaussianObservationModel):
 
     def __init__(self, rng, n_grid=512, l_param=16, decay_coeff=1. / 6,
-                 dt=0.25, n_steps_per_update=10, obser_noise_std=1.,
-                 obs_space_indices=slice(4, None, 8),
+                 dt=0.25, n_steps_per_update=10, obs_noise_std=0.5,
+                 obs_space_indices=slice(4, None, 8), obs_func=None,
                  init_state_ampl_scale=1., init_state_length_scale=1.,
                  state_noise_ampl_scale=1., state_noise_length_scale=1.,
                  n_roots=16):
@@ -108,6 +108,9 @@ class KuramotoSivashinskySDEModel(DiagonalGaussianObservationModel):
         self.dt = dt
         self.n_steps_per_update = n_steps_per_update
         self.obs_space_indices = obs_space_indices
+        if obs_func is None:
+            obs_func = lambda z: z
+        self.obs_func = obs_func
         self.init_state_ampl_scale = init_state_ampl_scale
         self.init_state_length_scale = init_state_length_scale
         self.state_noise_ampl_scale = state_noise_ampl_scale
@@ -133,8 +136,8 @@ class KuramotoSivashinskySDEModel(DiagonalGaussianObservationModel):
             -0.5 * self.integrator.freqs_sq * state_noise_length_scale**2
         ) * (state_noise_length_scale / grid_size)**0.5
 
-        super(KuramotoSivashinskySDEModel, self).__init__(
-            obser_noise_std=obser_noise_std, dim_z=n_grid,
+        super(KuramotoSivashinskySPDEModel, self).__init__(
+            obser_noise_std=obs_noise_std, dim_z=n_grid,
             dim_x=len(range(n_grid)[obs_space_indices]), rng=rng)
 
     def _to_rfft_rep(self, u):
@@ -184,4 +187,4 @@ class KuramotoSivashinskySDEModel(DiagonalGaussianObservationModel):
             return z_next
 
     def observation_func(self, z, t):
-        return z[..., self.obs_space_indices]
+        return self.obs_func(z[..., self.obs_space_indices])
