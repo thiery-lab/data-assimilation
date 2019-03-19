@@ -2,6 +2,7 @@
 
 import numpy as np
 import numpy.fft as fft
+import numba as nb
 
 
 class PerGridPointPartitionOfUnityBasis(object):
@@ -220,6 +221,51 @@ class GaspariAndCohn2dPartitionOfUnityBasis(object):
         return f_2d_unshifted.reshape(f_patches.shape[:-2] + (self.n_grid,))
 
 
+class AltGaspariAndCohn2dPartitionOfUnityBasis(object):
+    """PoU on 2D grid using Gaspari and Cohn compact smooth basis functions."""
+
+    def __init__(self, grid_shape, bases_grid_shape):
+        self.grid_shape = grid_shape
+        self.n_grid = grid_shape[0] * grid_shape[1]
+        self.bases_grid_shape = bases_grid_shape
+        self.n_bases = bases_grid_shape[0] * bases_grid_shape[1]
+        self.basis_spacing = np.array([
+            grid_shape[0] // bases_grid_shape[0],
+            grid_shape[1] // bases_grid_shape[1]])
+        self.basis_dim = 4 * self.basis_spacing
+        u0 = ((np.arange(self.basis_spacing[0]) + 0.5) / self.basis_spacing[0])
+        u1 = ((np.arange(self.basis_spacing[1]) + 0.5) / self.basis_spacing[1])
+        basis_weights_0 = corrected_gaspari_and_cohn_weights(
+            u0, self.basis_spacing[0])
+        basis_weights_1 = corrected_gaspari_and_cohn_weights(
+            u1, self.basis_spacing[1])
+        basis_patches = []
+        for i in range(4):
+            for j in range(4):
+                b0 = np.roll(basis_weights_0, (i - 1) * self.basis_spacing[0])
+                b1 = np.roll(basis_weights_1, (j - 1) * self.basis_spacing[1])
+                basis_patches.append(b0[:, None] * b1[None, :])
+        self.basis_patches = np.array(basis_patches)
+
+    def split_into_patches_and_scale(self, f):
+        f_2d_patches = f.reshape((
+            -1, 1,
+            self.bases_grid_shape[0] // 4, self.basis_dim[0],
+            self.bases_grid_shape[1] // 4, self.basis_dim[1])).swapaxes(3, 4)
+        f_2d_scaled_patches = f_2d_patches * self.basis_patches[:, None, None]
+        return f_2d_scaled_patches.reshape(f.shape[:-1] + (self.n_bases, -1))
+
+    def integrate_against_bases(self, f):
+        return self.split_into_patches_and_scale(f).sum(-1)
+
+    def combine_patches(self, f_patches):
+        return f_patches.reshape((
+            -1, 16,
+            self.bases_grid_shape[0] // 4, self.bases_grid_shape[1] // 4,
+            self.basis_dim[0], self.basis_dim[1]
+        )).swapaxes(3, 4).sum(1).reshape(f_patches.shape[:-2] + (self.n_grid,))
+
+
 class SquaredCosine1dPartitionOfUnityBasis(object):
     """PoU on 1D grid using squared cosine compact smooth basis functions."""
 
@@ -334,19 +380,35 @@ class SquaredCosine2dPartitionOfUnityBasis(object):
             (n_particle, dim_field, self.n_grid))
 
 
+@nb.njit(nb.float64[:, :, :](nb.float64[:, :, :, :], nb.int64,
+                             nb.int64, nb.int64, nb.int64))
+def _sum_overlapping_patches_1d(
+        f_patches, block_width, kernel_width, n_patch, n_node):
+    w = block_width
+    k = kernel_width
+    f_padded = np.zeros(f_patches.shape[:-2] + (n_node + k - 1,))
+    for b in range(n_patch):
+        f_padded[..., b*w:(b+1)*w+(k-1)] += f_patches[..., b, :]
+    f_padded[..., (k-1)//2:(k-1)] += f_padded[..., -(k-1)//2:]
+    f_padded[..., -(k-1):-(k-1)//2] += f_padded[..., :(k-1)//2]
+    return f_padded[..., (k-1)//2:-(k-1)//2]
+
+
 class SmoothedBlock1dPartitionOfUnityBasis(object):
     """PoU on 1D grid using block PoU convolved with smooth kernel."""
 
-    def __init__(self, n_node, n_patch, kernel):
+    def __init__(self, n_node, n_patch, kernel, offset=0):
         self.n_node = n_node
         self.n_patch = n_patch
         self.mesh_coords = (0.5 + np.arange(n_node)) / n_node
         self.block_width = n_node // n_patch
         self.kernel_width = kernel.shape[0]
+        self.offset = offset
         kernel = kernel / kernel.sum()
         self.kernel = np.zeros(n_node)
-        self.kernel[-(self.kernel_width - 1) // 2:] = kernel[
-            :self.kernel_width // 2]
+        if self.kernel_width > 1:
+            self.kernel[-(self.kernel_width - 1) // 2:] = kernel[
+                :self.kernel_width // 2]
         self.kernel[:(self.kernel_width + 1) // 2] = kernel[
             self.kernel_width // 2:]
         self.rfft_kernel = fft.rfft(self.kernel)
@@ -359,20 +421,26 @@ class SmoothedBlock1dPartitionOfUnityBasis(object):
             (n_node + self.patch_width) // 2]
         self.patch_lims = np.full((self.n_patch, 2), np.nan)
         half_width = (self.kernel_width - 1) // 2
-        patch_lindex = np.arange(n_patch) * self.block_width - half_width
+        patch_lindex = (
+            offset + np.arange(n_patch) * self.block_width - half_width)
         self.patch_lims = np.stack(
             [patch_lindex, patch_lindex + self.patch_width], -1
         ) / self.n_node % 1.
 
     def split_into_patches(self, f):
-        f_padded = np.zeros(
-            f.shape[:-1] + (self.n_node + self.kernel_width - 1,))
-        f_padded[..., :(self.kernel_width - 1) // 2] = f[
-            ..., -(self.kernel_width - 1) // 2:]
-        f_padded[..., -(self.kernel_width - 1) // 2:] = f[
-            ..., :(self.kernel_width - 1) // 2]
-        f_padded[..., (self.kernel_width - 1) // 2:
-                 -(self.kernel_width - 1) // 2] = f
+        if self.offset != 0:
+            f = np.roll(f, -self.offset, axis=-1)
+        if self.kernel_width > 1:
+            f_padded = np.zeros(
+                f.shape[:-1] + (self.n_node + self.kernel_width - 1,))
+            f_padded[..., :(self.kernel_width - 1) // 2] = f[
+                ..., -(self.kernel_width - 1) // 2:]
+            f_padded[..., -(self.kernel_width - 1) // 2:] = f[
+                ..., :(self.kernel_width - 1) // 2]
+            f_padded[..., (self.kernel_width - 1) // 2:
+                     -(self.kernel_width - 1) // 2] = f
+        else:
+            f_padded = f.copy()
         shape = f.shape[:-1] + (self.n_patch, self.patch_width)
         strides = f_padded.strides[:-1] + (
             self.block_width * f.strides[-1], f.strides[-1])
@@ -384,25 +452,32 @@ class SmoothedBlock1dPartitionOfUnityBasis(object):
 
     def integrate_against_bases(self, f):
         f_1d = np.reshape(f, (-1, self.n_node))
+        if self.offset != 0:
+            f_1d = np.roll(f_1d, -self.offset, axis=-1)
         f_1d_smooth = fft.irfft(self.rfft_kernel * fft.rfft(f_1d))
         return f_1d_smooth.reshape(f.shape[:-1] + (self.n_patch, -1)).sum(-1)
 
     def combine_patches(self, f_patches):
         w = self.block_width
         k = self.kernel_width
-        f_1d_padded = np.zeros(f_patches.shape[:-2] + (self.n_node + k - 1,))
-        for b in range(self.n_patch):
-            f_1d_padded[..., b*w:(b+1)*w+(k-1)] += f_patches[..., b, :]
-        f_1d_padded[..., (k-1)//2:(k-1)] += f_1d_padded[..., -(k-1)//2:]
-        f_1d_padded[..., -(k-1):-(k-1)//2] += f_1d_padded[..., :(k-1)//2]
-        f_1d = f_1d_padded[..., (k-1)//2:-(k-1)//2]
-        return f_1d.reshape(f_patches.shape[:-2] + (-1,))
+        if k > 1:
+            f_1d = _sum_overlapping_patches_1d(
+                f_patches, w, k, self.n_patch, self.n_node)
+        else:
+            f_1d = f_patches.reshape(f_patches.shape[:-2] + (self.n_node,))
+        if self.offset != 0:
+            f_1d = np.roll(f_1d, self.offset, axis=-1)
+        return f_1d
 
     def patch_distance(self, patch_index, coords):
         lim = self.patch_lims[patch_index]
-        m0 = np.maximum(0, lim[0] - coords)
-        m1 = np.maximum(0, coords - lim[1])
-        return np.maximum(m0, m1) if lim[0] < lim[1] else np.minimum(m0, m1)
+        edge_dist = np.minimum((lim[0] - coords) % 1., (coords - lim[1]) % 1.)
+        if lim[1] > lim[0]:
+            not_in_patch = (coords < lim[0]) | (coords > lim[1])
+            return not_in_patch * edge_dist
+        else:
+            not_in_patch = (coords < lim[0]) & (coords > lim[1])
+            return not_in_patch * edge_dist
 
 
 def _separable_fft_convolve_2d(x, fft_k_0, fft_k_1):
