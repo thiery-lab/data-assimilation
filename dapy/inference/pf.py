@@ -276,7 +276,7 @@ class ScalableLocalEnsembleTransportParticleFilter(AbstractEnsembleFilter):
     def __init__(self, init_state_sampler, next_state_sampler, rng,
                  log_obs_dens_per_loc_func, obs_coords, loc_func, loc_radius,
                  pou, calculate_cost_matrices_func, ot_solver,
-                 ot_solver_params={}):
+                 ot_solver_params={}, target_dist_callback=None):
         super().__init__(init_state_sampler, next_state_sampler, rng)
         self.log_obs_dens_per_loc_func = log_obs_dens_per_loc_func
         self.loc_func = loc_func
@@ -287,6 +287,7 @@ class ScalableLocalEnsembleTransportParticleFilter(AbstractEnsembleFilter):
             [loc_func(pou.patch_distance(p, obs_coords), loc_radius)
              for p in range(pou.n_patch)], -1)
         self.calculate_cost_matrices_func = calculate_cost_matrices_func
+        self.target_dist_callback = target_dist_callback
 
     def analysis_update(self, z_forecast, x_observed, time_index):
         n_particle = z_forecast.shape[0]
@@ -295,6 +296,8 @@ class ScalableLocalEnsembleTransportParticleFilter(AbstractEnsembleFilter):
         log_target_dists = log_obs_dens_per_loc.dot(self.loc_kernel_obs_coord)
         log_target_dists -= logsumexp(log_target_dists, axis=0)
         target_dists = np.exp(log_target_dists.T)
+        if self.target_dist_callback is not None:
+            self.target_dist_callback(time_index, target_dists)
         source_dists = np.ones_like(target_dists) / n_particle
         z_forecast = z_forecast.reshape(
             (z_forecast.shape[0], -1, self.pou.n_node))
