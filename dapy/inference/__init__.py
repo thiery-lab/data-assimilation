@@ -8,7 +8,7 @@ from dapy.inference.kf import (
 from dapy.inference.pf import (
     BootstrapParticleFilter, EnsembleTransformParticleFilter,
     LocalEnsembleTransformParticleFilter,
-    PouLocalEnsembleTransportParticleFilter)
+    ScalableLocalEnsembleTransportParticleFilter)
 
 __all__ = ['enkf', 'kf', 'pf']
 __authors__ = 'Matt Graham'
