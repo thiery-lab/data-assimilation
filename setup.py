@@ -3,6 +3,7 @@
 from setuptools import setup, Extension
 import argparse
 import sys
+import numpy as np
 
 parser = argparse.ArgumentParser(
     description='Python data assimilation package setup')
@@ -66,26 +67,34 @@ if args.use_cython and not args.no_cython_opts:
 else:
     compiler_directives = {}
 
+
+np_inc_dir = [np.get_include()]
+
+
 ext_modules = [
     Extension('dapy.integrators.implicitmidpoint',
               ['dapy/integrators/implicitmidpoint' + c_ext],
               extra_compile_args=extra_compile_args,
-              extra_link_args=extra_link_args),
+              extra_link_args=extra_link_args,
+              include_dirs=np_inc_dir),
     Extension('dapy.integrators.lorenz63',
               ['dapy/integrators/lorenz63' + c_ext],
               extra_compile_args=extra_compile_args,
-              extra_link_args=extra_link_args),
+              extra_link_args=extra_link_args,
+              include_dirs=np_inc_dir),
     Extension('dapy.integrators.lorenz96',
               ['dapy/integrators/lorenz96' + c_ext],
               extra_compile_args=extra_compile_args,
-              extra_link_args=extra_link_args),
+              extra_link_args=extra_link_args,
+              include_dirs=np_inc_dir),
     Extension('dapy.integrators.interpolate',
               ['dapy/integrators/interpolate' + c_ext],
               extra_compile_args=extra_compile_args,
-              extra_link_args=extra_link_args),
+              extra_link_args=extra_link_args,
+              include_dirs=np_inc_dir),
     Extension('dapy.ot.solvers',
               ['dapy/ot/solvers' + cpp_ext],
-              language='c++', include_dirs=['dapy/ot'],
+              language='c++', include_dirs=np_inc_dir + ['dapy/ot'],
               extra_compile_args=extra_compile_args,
               extra_link_args=extra_link_args),
 ]
