@@ -22,20 +22,18 @@ Example usages of the models and inference methods are provided in the [Jupyter]
 
 ## Dependencies
 
-Intended for use with Python 3.6. Environment with all dependencies can be set up using [conda](https://conda.io/miniconda.html) with
+Intended for use with Python 3.6+. Environment with all dependencies can be set up using [conda](https://conda.io/miniconda.html) with
 
     conda env create -f environment.yml
 
-Alternatively conda or [pip](https://pip.pypa.io/en/stable/) can be used to manually create a Python 3 environment. The minimal requirements for using the inference methods and model classes implemented in the `dapy` package are [NumPy](http://www.numpy.org/) and [SciPy](https://www.scipy.org/). To install in a conda environment run
+Alternatively conda or [pip](https://pip.pypa.io/en/stable/) can be used to manually create a Python 3 environment. The minimal requirements for using the inference methods and model classes implemented in the `dapy` package are [NumPy](http://www.numpy.org/), [SciPy](https://www.scipy.org/), [PyFFTW](http://pyfftw.readthedocs.io/en/latest/) (for efficient FFT computations in models using spectral expansions) and [tqdm](https://github.com/tqdm) (for displaying progress bars during filtering). To install in a conda environment run
 
     conda install numpy scipy
+    conda install -c conda-forge pyfftw tqdm
 
 or using pip
 
-    pip install numpy scipy
-
-
-If available, the more efficient and parallelisable FFT implementations in [PyFFTW](http://pyfftw.readthedocs.io/en/latest/) will be used in some of the partial differential equation model integrators. PyFFTW can be installed with `conda install -c conda-forge pot` or using `pip install pyfftw`.
+    pip install numpy scipy pyfftw tqdm
 
 The ensemble transport particle filter inference methods require solving optimal transport problems. A C++ extension module (written in Cython) wrapping a network simplex linear programming based exact solver is included in the `dapy.ot` sub-package. Alternatively if available, solvers from the [Python Optimal Transport](http://pot.readthedocs.io/en/stable/) library can be used. To install in the current environment run `conda install -c conda-forge pot` or `pip install POT`.
 
@@ -46,6 +44,7 @@ The example [Jupyter](http://jupyter.readthedocs.io/en/latest/install.html) note
 or using pip with
 
     pip install jupyter matplotlib seaborn
+
 
 ## Installing the `dapy` package
 
