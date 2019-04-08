@@ -103,11 +103,12 @@ class SmoothedBlock1dPartitionOfUnityBasis(object):
             f_padded[..., (self.kernel_width - 1) // 2:
                      -(self.kernel_width - 1) // 2] = f
         else:
-            f_padded = f.copy()
+            f_padded = f
         shape = f.shape[:-1] + (self.n_patch, self.patch_width)
         strides = f_padded.strides[:-1] + (
-            self.block_width * f.strides[-1], f.strides[-1])
-        return np.lib.stride_tricks.as_strided(f_padded, shape, strides)
+            self.block_width * f_padded.strides[-1], f_padded.strides[-1])
+        return np.lib.stride_tricks.as_strided(
+            f_padded, shape, strides, writeable=False)
 
     def split_into_patches_and_scale(self, f):
         f_patches = self.split_into_patches(f)
