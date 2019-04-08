@@ -109,7 +109,7 @@ class KuramotoSivashinskySPDEModel(DiagonalGaussianObservationModel):
         self.n_steps_per_update = n_steps_per_update
         self.obs_space_indices = obs_space_indices
         if obs_func is None:
-            obs_func = lambda z: z
+            def obs_func(z): return z
         self.obs_func = obs_func
         self.init_state_ampl_scale = init_state_ampl_scale
         self.init_state_length_scale = init_state_length_scale
