@@ -335,7 +335,7 @@ class SpectralStochasticTurbulenceModel(AbstractModel):
         freqs_sq = freqs**2
         if dim_z % 2 == 0:
             freqs[dim_z // 2] = 0
-        state_noise_scale = state_noise_ampl * dim_z**0.5 * np.exp(
+        state_noise_scale = state_noise_ampl * np.exp(
             -freqs_sq * state_noise_length_scale**2)
         gamma = diff_coeff * freqs_sq + damp_coeff
         self.state_update_fourier_kernel = np.exp(
@@ -368,7 +368,7 @@ class SpectralStochasticTurbulenceModel(AbstractModel):
 
     def real_std_from_fourier_kernel(self, kernel):
         dim_z = (kernel.shape[0] - 1) * 2
-        s = np.ones(dim_z) * dim_z**0.5 / 2**0.5
+        s = np.ones(dim_z) * dim_z / 2**0.5
         s[0] *= 2**0.5
         s[dim_z // 2] *= 2**0.5
         s[:dim_z // 2 + 1] *= kernel
@@ -387,9 +387,9 @@ class SpectralStochasticTurbulenceModel(AbstractModel):
 
     def next_state_sampler(self, z, t):
         n = self.rng.normal(size=z.shape)
-        return (
-            self.next_state_func(z, t) +
-            np.fft.irfft(self.to_complex(self.state_noise_std_fourier * n)))
+        return np.fft.irfft(
+            self.state_update_fourier_kernel * np.fft.rfft(z) +
+            self.to_complex(self.state_noise_std_fourier * n))
 
     def observation_func(self, z, t):
         return z[..., self.obs_offset::self.obs_subsample]
