@@ -10,7 +10,7 @@ cimport cython
 @cython.cdivision(True)
 def batch_bilinear_interpolate(
         double[:, :, :] fields, double[:, :, :, :] interp_points,
-        int n_thread=1):
+        int num_thread=1):
     """Use bilinear interpolation to map 2D fields to a new set of points.
 
     Periodic boundary conditions are assumed. In the comments below the
@@ -33,7 +33,7 @@ def batch_bilinear_interpolate(
             array should be of shape `(n_field, 2, grid_shape_0, grid_shape_1)`
             where `n_field`, `grid_shape_0` and `grid_shape_1` are as above and
             the size 2 dimension represents the two spatial coordinates.
-        n_thread (int): Number of parallel threads to distribute interpolation
+        num_thread (int): Number of parallel threads to distribute interpolation
             of independent fields over.
 
     Returns:
@@ -50,7 +50,7 @@ def batch_bilinear_interpolate(
     cdef np.ndarray[double, ndim=3, mode='c'] new_fields = np.empty(
         (n_field, dim_0, dim_1), dtype='double', order='C')
     cdef double[:, :, :] new_fields_mv = new_fields
-    for p in prange(n_field, schedule='static', num_threads=n_thread,
+    for p in prange(n_field, schedule='static', num_threads=num_thread,
                     nogil=True):
         for i in range(dim_0):
             for j in range(dim_1):

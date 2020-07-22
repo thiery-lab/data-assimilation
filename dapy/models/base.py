@@ -1,533 +1,729 @@
-"""Base model class for data assimilation example models."""
+"""Base classes for models."""
 
+import abc
+from typing import Optional, Union, Sequence
 import numpy as np
-import tqdm.autonotebook as tqdm
-from dapy.utils.doc import inherit_docstrings
+from numpy.random import Generator
+import tqdm.auto as tqdm
 
 
 class DensityNotDefinedError(Exception):
     """Raised on calling a method to evaluate a undefined probability density.
 
-    For some (non-dominated) models the state transition or observation given
-    state conditional probability densities will not be defined for example
-    in the case of deterministic state transitions.
+    For some models the state transition or observation given state conditional
+    probability densities will not be definedm for example in the case of
+    deterministic state transitions or observations.
     """
-    pass
 
 
-class AbstractModel(object):
-    """Abstract model base class."""
+class AbstractModel(abc.ABC):
+    """Abstract dynamical model base class.
 
-    def __init__(self, dim_z, dim_x, rng):
+    The modelled system dynamics are of the form
+
+        state_sequence[0] = sample_initial_state(rng)
+        observation_sequence[0] = sample_observation_given_state(
+            rng, state_sequence[0], 0)
+        for t in range(1, num_observation_time):
+            state_sequence[t] = sample_state_transition(rng, state_sequence[t-1], t-1)
+            observation_sequence[t] = sample_observation_given_state(
+                rng, state_sequence[t], t)
+    """
+
+    def __init__(self, dim_state: int, dim_observation: int):
         """
         Args:
-            dim_z (integer): Dimension of model state vector.
-            dim_x (integer): Dimension of observation vector.
-            rng (RandomState): Numpy RandomState random number generator.
+            dim_state: Dimension of model state vector.
+            dim_observation: Dimension of observation vector.
         """
-        self.dim_z = dim_z
-        self.dim_x = dim_x
-        self.rng = rng
+        self.dim_state = dim_state
+        self.dim_observation = dim_observation
 
-    def init_state_sampler(self, n=None):
+    def sample_initial_state(
+        self, rng: Generator, num_state: Optional[int] = None
+    ) -> np.ndarray:
         """Independently sample initial state(s).
 
         Args:
-            n (integer): Number of state vectors to sample. If `None` a single
-            one-dimensional state vector sample is returned.
+            rng: NumPy random number generator object.
+            num_state: Number of states to sample. If `None` a one-dimensional state
+                array corresponding to a single sample is returned.
 
         Returns:
-            Array containing independent initial state sample(s). Either of
-            shape `(n, dim_z)` if `n` is not equal to `None` and of shape
-            `(dim_z,)` otherwise.
+            Array containing independent initial state sample(s). Either of shape
+            `(num_state, dim_state)` if `num_state` is not `None` or of shape
+            `(dim_state,)` otherwise.
         """
-        raise NotImplementedError()
+        if num_state is None:
+            num_state = 1
+            num_state_was_none = True
+        else:
+            num_state_was_none = False
+        initial_states = self._sample_initial_state(rng, num_state)
+        if num_state_was_none:
+            return initial_states[0]
+        else:
+            return initial_states
 
-    def next_state_sampler(self, z, t):
+    @abc.abstractmethod
+    def _sample_initial_state(self, rng: Generator, num_state: int) -> np.ndarray:
+        """Internal implementation of `sample_initial_state` method.
+
+        Unlike `sample_initial_state` only accepts / returns 2D arrays.
+
+        Args:
+            rng: NumPy random generator object.
+            num_state: Number of states to sample.
+
+        Returns:
+            Array containing independent initial state samples of shape
+            `(num_state, dim_state)`.
+        """
+
+    def sample_state_transition(
+        self, rng: Generator, states: np.ndarray, t: int
+    ) -> np.ndarray:
         """Independently sample next state(s) given current state(s).
 
         Args:
-            z (array): Array of model state(s) at time index `t`. Either of
-            shape `(n, dim_z)` if multiple states are to be propagated or
-            shape `(dim_z,)` if a single state is to be propagated.
-            t (integer): Current time index for time-inhomogeneous systems.
+            states: Array of model state(s) at time index `t`. Either of shape
+                `(num_state, dim_state)` if multiple states are to be propagated or
+                shape `(dim_state,)` if a single state is to be propagated.
+            t: Current time index.
 
         Returns:
-            Array containing samples of state(s) at time index `t+1`. Either of
-            shape `(n, dim_z)` if multiple states were propagated or shape
-            `(dim_z,)` if a single state was propagated.
+            Array containing samples of state(s) at time index `t+1`. Either of shape
+            `(num_state, dim_state)` if multiple states were propagated or shape
+            `(dim_state,)` if a single state was propagated.
         """
-        raise NotImplementedError()
+        if states.ndim == 1:
+            states = states[None]
+            states_was_one_dimensional = True
+        else:
+            states_was_one_dimensional = False
+        next_states = self._sample_state_transition(rng, states, t)
+        if states_was_one_dimensional:
+            return next_states[0]
+        else:
+            return next_states
 
-    def observation_sampler(self, z, t):
+    @abc.abstractmethod
+    def _sample_state_transition(
+        self, rng: Generator, states: np.ndarray, t: int
+    ) -> np.ndarray:
+        """Internal implementation of `sample_state_transition` method.
+
+        Unlike `sample_state_transition` only accepts / returns 2D arrays.
+
+        Args:
+            states: Array of model states at time index `t`  of shape
+                `(num_state, dim_state)`.
+            t: Current time index.
+
+        Returns:
+            Array containing samples of states at time index `t+1` of shape
+                `(num_state, dim_state)`.
+        """
+
+    def sample_observation_given_state(
+        self, rng: Generator, states: np.ndarray, t: int
+    ) -> np.ndarray:
         """Independently sample observation(s) given current state(s).
 
         Args:
-            z (array): Array of model state(s) at time index `t`. Either of
-            shape `(n, dim_z)` if multiple observations are to be generated or
-            shape `(dim_z,)` if a single observation is to be generated.
-            t (integer): Current time index for time-inhomogeneous systems.
+            states: Array of model state(s) at time index `t`. Either of shape
+            `(num_state, dim_state)` if multiple observations are to be generated or
+            shape `(dim_state,)` if a single observation is to be generated.
+            t: Current time index.
 
         Returns:
             Array containing samples of state(s) at time index `t+1`. Either of
-            shape `(n, dim_z)` if multiple observations were generated or shape
-            `(dim_z,)` if a single observation was generated.
+            shape `(num_state, dim_state)` if multiple observations were generated or
+            shape `(dim_state,)` if a single observation was generated.
         """
-        raise NotImplementedError()
+        if states.ndim == 1:
+            states = states[None]
+            states_was_one_dimensional = True
+        else:
+            states_was_one_dimensional = False
+        observations = self._sample_observation_given_state(rng, states, t)
+        if states_was_one_dimensional:
+            return observations[0]
+        else:
+            return observations
 
-    def log_prob_dens_init_state(self, z):
-        """Calculate log probability density of initial state(s).
+    @abc.abstractmethod
+    def _sample_observation_given_state(
+        self, rng: Generator, states: np.ndarray, t: int
+    ) -> np.ndarray:
+        """Internal implementation of `sample_observation_given_state` method.
+
+        Unlike `sample_observation_given_state` only accepts / returns 2D arrays.
 
         Args:
-            z (array): Array of model state(s) at time index 0. Either of
-            shape `(n, dim_z)` if the density is to be evalulated at multiple
-            states or shape `(dim_z,)` if density is to be evaluated for a
-            single state.
+            states: Array of model states at time index `t` of shape
+                `(num_state, dim_state)`.
+            t: Current time index.
 
         Returns:
-            Array of log probability densities for each state (or a single
-            scalar if a single state and observation pair is provided).
+            Array containing samples of states at time index `t+1` of shape
+            `(num_state, dim_state)`.
         """
-        raise NotImplementedError()
 
-    def log_prob_dens_state_trans(self, z_n, z_c, t):
-        """Calculate log probability density of a transition between states.
-
-        Args:
-            z_n (array): Array of model state(s) at time index `t + 1`. Either
-            of shape `(n, dim_z)` if the density is to be evalulated at
-            multiple state pairs or shape `(dim_z,)` if density is to be
-            evaluated for a single state pair.
-            z_c (array): Array of model state(s) at time index `t`. Either of
-            shape `(n, dim_z)` if the density is to be evalulated at multiple
-            state pairs or shape `(dim_z,)` if density is to be evaluated for
-            a single state pair.
-            t (integer): Current time index for time-inhomogeneous systems.
-
-        Returns:
-            Array of log conditional probability densities for each state pair
-            (or a single scalar if a single state pair is provided).
-        """
-        raise NotImplementedError()
-
-    def log_prob_dens_obs_gvn_state(self, x, z, t):
-        """Calculate log probability density of observation(s) given state(s).
-
-        Args:
-            z (array): Array of model state(s) at time index `t`. Either of
-            shape `(n, dim_z)` if the density is to be evalulated at multiple
-            observations or shape `(dim_z,)` if density is to be evaluated for
-            a single observation.
-            x (array): Array of model observation(s) at time index `t`. Either
-            of shape `(n, dim_x)` if the density is to be evalulated at
-            multiple observations or shape `(dim_x,)` if density is to be
-            evaluated for a single observation.
-            t (integer): Current time index for time-inhomogeneous systems.
-
-        Returns:
-            Array of log conditional probability densities for each state and
-            observation pair (or a single scalar if a single state and
-            observation pair is provided).
-        """
-        raise NotImplementedError()
-
-    def log_prob_dens_state_seq(self, z_seq):
-        """Evaluate the log joint probability density of a state sequence.
-
-        Args:
-           z_seq (array): State sequence array of shape `(n_step, dim_z)`
-           where `n_step` is the number of time steps in the state sequence
-           and `dim_z` the state dimensionality.
-
-        Returns:
-           Log joint probability density of overall state sequence.
-        """
-        log_dens = self.log_prob_dens_init_state(z_seq[0])
-        for t in range(1, z_seq.shape[0]):
-            log_dens += self.log_prob_dens_state_trans(
-                    z_seq[t], z_seq[t-1], t-1)
-            return log_dens
-
-    def log_prob_dens_state_and_obs_seq(self, z_seq, x_seq):
-        """Evaluate the log density of a state and observation sequence pair.
-
-        Args:
-           z_seq (array): State sequence array of shape `(n_step, dim_z)`
-           where `n_step` is the number of time steps in the sequence and
-           `dim_z` the state dimensionality.
-           z_seq (array): Observation sequence array of shape `(n_step, dim_x)`
-           where `n_step` is the number of time steps in the sequence and
-           `dim_x` the observation dimensionality.
-
-        Returns:
-           Log joint probability density of state and observation sequence
-           pair.
-        """
-        log_dens = self.log_prob_dens_init_state(z_seq[0])
-        log_dens += self.log_prob_dens_obs_gvn_state(x_seq[0], 0)
-        for t in range(1, z_seq.shape[0]):
-            log_dens += self.log_prob_dens_state_trans(
-                    z_seq[t], z_seq[t-1], t-1)
-            log_dens += self.log_prob_dens_obs_gvn_state(x_seq[t], z_seq[t], t)
-        return log_dens
-
-    def generate(self, n_step, n_sample=None):
+    def sample_state_and_observation_sequences(
+        self,
+        rng: Generator,
+        observation_time_indices: Sequence[int],
+        num_sample: Optional[int] = None,
+    ) -> np.ndarray:
         """Generate state and observation sequences from model.
 
         Args:
-            n_step: Number of time steps to generate sequences over.
-            n_sample: Number of independent trajectories to sample. If equal
-                to None (default) a single sample is generated.
+            rng: NumPy random number generator.
+            observation_time_indices: Sequence of time (step) indices at which state is
+                observed. The sequence elements must be integers. The maximal element
+                of the sequence corresponds to the total number of time steps to
+                simulate `num_step`, while the length of the sequence corresponds to
+                the number of observation times `num_observation_time`.
+            num_sample: Number of independent sequence pairs to sample. If equal
+                to `None` (default) a single sample is generated.
 
         Returns:
-            z_seq (array): Generated state sequence of shape (n_step, dim_z)
-                if n_sample is None or (n_step, n_sample, dim_z) otherwise.
-            x_seq (array): Generated obs. sequence of shape (n_step, dim_x)
-                if n_sample is None or (n_step, n_sample, dim_x) otherwise.
+            state_sequences: Generated state sequence(s) of shape
+                `(num_step, dim_state)` if `num_sample` is None or
+                `(num_step, num_sample, dim_state)` otherwise.
+            observation_sequences: Generated observation sequence(s) of shape
+                `(num_observation_time, dim_observation)` if `num_sample` is None or
+                `(num_observation_time, num_sample, dim_observation)` otherwise.
         """
-        if n_sample is None:
-            z_seq = np.full((n_step, self.dim_z), np.nan)
-            x_seq = np.full((n_step, self.dim_x), np.nan)
+        observation_time_indices = np.sort(observation_time_indices)
+        num_step = observation_time_indices[-1]
+        num_observation_time = len(observation_time_indices)
+        if num_sample is None:
+            state_sequences = np.full((num_step, self.dim_state), np.nan)
+            observation_sequences = np.full(
+                (num_observation_time, self.dim_observation), np.nan
+            )
         else:
-            z_seq = np.full((n_step, n_sample, self.dim_z), np.nan)
-            x_seq = np.full((n_step, n_sample, self.dim_x), np.nan)
-        z_seq[0] = self.init_state_sampler(n_sample)
-        x_seq[0] = self.observation_sampler(z_seq[0], 0)
-        for t in tqdm.trange(1, n_step, desc='Generating', unit='observation'):
-            z_seq[t] = self.next_state_sampler(z_seq[t - 1], t - 1)
-            x_seq[t] = self.observation_sampler(z_seq[t], t)
-        return z_seq, x_seq
+            state_sequences = np.full((num_step, num_sample, self.dim_state), np.nan)
+            observation_sequences = np.full(
+                (num_observation_time, num_sample, self.dim_observation), np.nan
+            )
+        for s in tqdm.trange(0, num_step, desc="Sampling", unit="time steps"):
+            if s == 0:
+                state_sequences[s] = self.sample_initial_state(rng, num_sample)
+                t = 0
+            else:
+                state_sequences[s] = self.sample_state_transition(
+                    rng, state_sequences[s - 1], s - 1
+                )
+            if s == observation_time_indices[t]:
+                observation_sequences[t] = self.sample_observation_given_state(
+                    rng, state_sequences[s], s
+                )
+                t += 1
+        return state_sequences, observation_sequences
+
+    @abc.abstractmethod
+    def log_density_initial_state(self, states: np.ndarray) -> np.ndarray:
+        """Calculate log probability density of initial state(s).
+
+        Args:
+            states: Array of model state(s) at time index 0. Either of shape
+                `(num_state, dim_state)` if the density is to be evalulated at multiple
+                states or shape `(dim_state,)` if density is to be evaluated for a
+                single state.
+
+        Returns:
+            Array of log probability densities for each state or a scalar / array of
+            shape `()` if a single state is provided.
+        """
+
+    @abc.abstractmethod
+    def log_density_state_transition(
+        self, next_states: np.ndarray, states: np.ndarray, t: int
+    ) -> np.ndarray:
+        """Calculate log probability density of a transition between states.
+
+        Args:
+            next_states: Array of model state(s) at time index `t + 1`. Either of shape
+                `(num_state, dim_state)` if the density is to be evalulated at multiple
+                state pairs or shape `(dim_state,)` if density is to be evaluated for a
+                single state pair.
+            states: Array of model state(s) at time index `t`. Either of shape
+                `(num_state, dim_state)` if the density is to be evalulated at multiple
+                state pairs or shape `(dim_state,)` if density is to be evaluated for a
+                single state pair.
+            t: Current time index.
+
+        Returns:
+            Array of log conditional probability densities of next state given current
+            state for each state pair or a scalar / array of shape `()` if a single
+            state pair is provided.
+        """
+
+    @abc.abstractmethod
+    def log_density_observation_given_state(
+        self, observations: np.ndarray, states: np.ndarray, t: int
+    ) -> np.ndarray:
+        """Calculate log probability density of observation(s) given state(s).
+
+        Args:
+            observations: Array of model observation(s) at time index `t`. Either of
+                shape `(num_state, dim_observation)` if density is to be evalulated at
+                multiple observations or shape `(dim_observation,)` if density is to be
+                evaluated for a single observation.
+            states: Array of model state(s) at time index `t`. Either of shape
+                `(num_state, dim_state)` if the density is to be evalulated at multiple
+                observations or shape `(dim_state,)` if density is to be evaluated for
+                a single observation.
+            t: Current time index.
+
+        Returns:
+            Array of log conditional probability densities of observation given state
+            for each state and observation pair of shape `(n_state,)` or a scalar /
+            array of shape `()` if a single state and observation pair is provided.
+        """
+
+    def log_density_state_sequence(self, state_sequences: np.ndarray) -> np.ndarray:
+        """Calculate the log joint probability density of state sequence(s).
+
+        Args:
+           state_sequences: Array of model state sequence(s). Either of shape
+               `(num_step, num_sequence, dim_state)` if density is to be evaluated for
+               multiple sequences or shape `(num_step, dim_state)` if density is to be
+               evaluated for a single sequence.
+
+        Returns:
+            Array of log joint probability densities of state sequences of shape
+            `(num_sequence,)` or a scalar / array of shape `()` if a single state
+            sequence is provided.
+        """
+        log_density = self.log_density_initial_state(state_sequences[0])
+        for t in range(1, state_sequences.shape[0]):
+            log_density += self.log_density_state_transition(
+                state_sequences[t], state_sequences[t - 1], t - 1
+            )
+        return log_density
+
+    def log_density_state_and_observation_sequence(
+        self,
+        state_sequence: np.ndarray,
+        observation_sequence: np.ndarray,
+        observation_time_indices: Sequence[int],
+    ) -> np.ndarray:
+        """Evaluate the log density of a state and observation sequence pair.
+
+        Args:
+            state_sequences: Array of model state sequence(s). Either of shape
+                `(num_step, num_sequence, dim_state)` if density is to be evaluated for
+                multiple sequences or shape `(num_step, dim_state)` if density is to be
+                evaluated for a single sequence.
+            observation_sequences: Array of model observation sequence(s). Either of
+                shape `(num_observation_time, num_sequence, dim_observation)` if density
+                is to be evaluated for multiple sequences or shape
+                `(num_observation_time, dim_observation)` if density is to be evaluated
+                for a single sequence.
+            observation_time_indices: Sequence of time (step) indices at which state is
+                observed. The sequence elements must be integers. The maximal element of
+                the sequence must corresponds to the total number of time steps
+                `num_step` represented in the `state_sequences` array while the length
+                of the sequence must correspond to the number of observation times
+                `num_observation_time` represented in the `observation_sequences_array`.
+
+        Returns:
+            Array of log joint probability densities of state and observation sequences
+            of shape `(num_sequence,)` or a scalar / array of shape `()` if a single
+            state and observation sequence pair is provided.
+        """
+        observation_time_indices = np.sort(observation_time_indices)
+        num_step = observation_time_indices[-1]
+        num_observation_time = len(observation_time_indices)
+        assert state_sequence.shape[0] == num_step
+        assert observation_sequence.shape[0] == num_observation_time
+        for s in range(0, state_sequence.shape[0]):
+            if s == 0:
+                log_density = self.log_density_initial_state(state_sequence[0])
+                t = 0
+            else:
+                log_density += self.log_density_state_transition(
+                    state_sequence[s], state_sequence[s - 1], s - 1
+                )
+            if s == observation_time_indices[t]:
+                log_density += self.log_density_observation_given_state(
+                    observation_sequence[t], state_sequence[s], s
+                )
+        return log_density
 
 
-@inherit_docstrings
 class DiagonalGaussianObservationModel(AbstractModel):
-    """Abstract model base class with diagonal Gaussian noise distributions.
+    """Abstract model base class with diagonal Gaussian observation noise distributions.
 
-    Assumes the model dynamics take the form
+    The modelled system dynamics are of the form
 
-        z[0] = init_state_sampler()
-        x[0] = observation_func(x[0], 0) + obser_noise_std * v[0]
-        for t in range(1, n_steps):
-            z[t] = next_state_sampler(z[t-1], t-1)
-            x[t] = observation_func(x[t], t) + obser_noise_std * v[t]
+        state_sequence[0] = sample_initial_state(rng)
+        observation_sequence[0] = (
+            observation_mean(state_sequence[0], 0)
+            + observation_noise_std * rng.standard_normal(dim_observation))
+        for t in range(1, num_step):
+            state_sequence[t] = sample_state_transition(rng, state_sequence[t-1], t-1)
+            observation_sequence[t] = (
+                observation_mean(state_sequence[t], t)
+                + observation_noise_std * rng.standard_normal(dim_observation))
 
-    where
-
-       z[t]: unobserved system state vector at time index t,
-       x[t]: observations vector at time index t,
-       v[t]: zero-mean identity covariance Gaussian observation noise vector
-             at time index t,
-       observation_func: function mapping from states to (pre-noise)
-           observations,
-       obser_noise_std: observation noise distribution standard deviation
-           vector,
-       init_state_sampler: stochastic function which generates an intial state
-           vector,
-       next_state_sampler: stochastic function which generates the next system
-           state vector given the current state vector and time index.
-
-    This corresponds to assuming the conditional distribution of the current
-    observation given current state takes the form of a multivariate Gaussian
-    distributions with diagonal covariance.
+    This corresponds to assuming the conditional distribution of the current observation
+    given current state takes the form of a multivariate Gaussian distributions with
+    diagonal covariance.
     """
 
-    def __init__(self, dim_z, dim_x, rng, obser_noise_std, **kwargs):
+    def __init__(
+        self,
+        dim_state: int,
+        dim_observation: int,
+        observation_noise_std: Union[float, np.ndarray],
+        **kwargs
+    ):
         """
         Args:
-            dim_z (integer): Dimension of model state vector.
-            dim_x (integer): Dimension of observation vector.
-            rng (RandomState): Numpy RandomState random number generator.
-            obser_noise_std (float): Standard deviation of additive Gaussian
-                noise in observations. Either a scalar or array of shape
-                `(dim_z,)`. Noise in each dimension assumed to be independent
-                i.e. a diagonal noise covariance.
+            dim_state: Dimension of model state vector.
+            dim_observation: Dimension of observation vector.
+            observation_noise_std: Standard deviation of additive Gaussian noise in
+                observations. Either a scalar or array of shape `(dim_state,)`. Noise in
+                each dimension assumed to be independent i.e. diagonal noise covariance.
         """
-        self.obser_noise_std = obser_noise_std
-        super(DiagonalGaussianObservationModel, self).__init__(
-            dim_z=dim_z, dim_x=dim_x, rng=rng, **kwargs)
+        self.observation_noise_std = observation_noise_std
+        super().__init__(dim_state=dim_state, dim_observation=dim_observation, **kwargs)
 
-    def observation_func(self, z, t):
-        """Computes mean of current observation state given current state.
-
-        Implements determinstic component of observation process with
-        observation calculated by output of this function plus additive
-        zero-mean Gaussian noise.
+    def observation_mean(self, states: np.ndarray, t: int) -> np.ndarray:
+        """Computes mean of observation(s) given state(s) at time index `t`.
 
         Args:
-            z (array): Current state vector.
-            t (integer): Current time index.
+            states: Array of model state(s) at time index `t`. Either of shape
+                `(num_state, dim_state)` if the mean is to be evalulated for multiple
+                observations or shape `(dim_state,)` if mean is to be evaluated for
+                a single observation.
+            t: Current time index.
 
         Returns:
-            Array corresponding to (mean of) observations at time index t.
+            Array corresponding to mean of observations at time index `t`, of shape
+            `(num_state, dim_observation)` if a 2D `states` array is passed or of shape
+            `(dim_observation,`) otherwise.
         """
-        raise NotImplementedError()
+        return self._observation_mean(states, t)
 
-    def observation_sampler(self, z, t):
-        if z.ndim == 2:
-            return (
-                self.observation_func(z, t) +
-                self.rng.normal(size=(z.shape[0], self.dim_x)) *
-                self.obser_noise_std
-            )
-        else:
-            return (
-                self.observation_func(z, t) +
-                self.rng.normal(size=(self.dim_x)) * self.obser_noise_std
-            )
+    @abc.abstractmethod
+    def _observation_mean(self, states: np.ndarray, t: int) -> np.ndarray:
+        """Internal implementation of `observation_mean` method.
 
-    def log_prob_dens_obs_gvn_state(self, x, z, t):
+        Should be called in preference to `observation_mean` internally by other
+        methods to allow use of mix-ins to change behaviour of `observation_mean`
+        without affecting internal use.
+
+        Args:
+            states: Array of model state(s) at time index `t` of shape
+                `(num_state, dim_state)` if the mean is to be evalulated for multiple
+                observations or shape `(dim_state,)` if mean is to be evaluated for
+                a single observation.
+            t: Current time index.
+
+        Returns:
+            Array corresponding to mean of observations at time index `t`, of shape
+            `(num_state, dim_observation)` if a 2D `states` array is passed or of shape
+            `(dim_observation,`) otherwise.
+        """
+
+    def _sample_observation_given_state(
+        self, rng: Generator, states: np.ndarray, t: int
+    ) -> np.ndarray:
+        return self._observation_mean(
+            states, t
+        ) + self.observation_noise_std * rng.standard_normal(
+            (states.shape[0], self.dim_observation)
+        )
+
+    def log_density_observation_given_state(
+        self, observations: np.ndarray, states: np.ndarray, t: int
+    ) -> np.ndarray:
         return -(
-            0.5 * ((x - self.observation_func(z, t)) /
-                   self.obser_noise_std)**2 +
-            0.5 * np.log(2 * np.pi) + np.log(self.obser_noise_std)
+            0.5
+            * (
+                (observations - self._observation_mean(states, t))
+                / self.observation_noise_std
+            )
+            ** 2
+            + 0.5 * np.log(2 * np.pi)
+            + np.log(self.observation_noise_std)
         ).sum(-1)
 
 
-@inherit_docstrings
 class DiagonalGaussianStateNoiseModel(AbstractModel):
     """Abstract model base class with diagonal Gaussian state distributions.
 
-    Assumes the model dynamics take the form
+    The modelled system dynamics are of the form
 
-        z[0] = init_state_mean + init_state_std * u[0]
-        x[0] = observation_sampler(x[0], 0)
+        state_sequence[0] = (
+            init_state_mean + init_state_std * rng.standard_normal(dim_state))
+        observation_sequence[0] = sample_observation_given_state(
+            rng, state_sequence[0], 0)
         for t in range(1, n_steps):
-            z[t] = next_state_func(z[t-1], t-1) + state_noise_std * u[t]
-            x[t] = observation_sampler(x[t], t)
-
-    where
-
-       z[t]: unobserved system state vector at time index t,
-       x[t]: observations vector at time index t,
-       u[t]: zero-mean identity covariance Gaussian state noise vector at time
-             index t,
-       init_state_mean: initial state distribution mean vector,
-       init_state_std: initial state distribution standard deviation vector,
-       observation_sampler: stochastic function which generates an observation
-           vector given the current system state vector and time index,
-       next_state_func: potentially non-linear function specifying state
-           update dynamics for example forward integration of a ODE system,
-       state_noise_std: state noise distribution standard deviation vector.
-           May be all zeros which corresponds to a model with deterministic
-           state update dynamics.
+            state_sequence[t] = (
+                next_state_mean(state_sequence[t-1], t-1)
+                + state_noise_std * rng.standard_normal(dim_state))
+            observation_sequence[t] = sample_observation_given_state(
+                rng, state_sequence[t], t)
 
     This corresponds to assuming the initial state distribution and conditional
-    distribution of the next state given current take the form of multivariate
-    Gaussian distributions with diagonal covariances. In the case of
-    deterministic state update dynamics the conditional distribution of the
-    next state given the current state will be a Dirac measure with all mass
-    located at the forward map of the current state through the state dynamics
-    function and so will not have a well-defined probability density function.
+    distribution of the next state given current take the form of multivariate Gaussian
+    distributions with diagonal covariances. In the case of deterministic state update
+    dynamics the conditional distribution of the next state given the current state will
+    be a Dirac measure with all mass located at the forward map of the current state
+    through the state dynamics function and so will not have a density with respect to
+    the Lebesgue measure.
     """
 
-    def __init__(self, dim_z, dim_x, rng, init_state_mean, init_state_std,
-                 state_noise_std, **kwargs):
+    def __init__(
+        self,
+        dim_state: int,
+        dim_observation: int,
+        initial_state_mean: Union[float, np.ndarray],
+        initial_state_std: Union[float, np.ndarray],
+        state_noise_std: Optional[Union[float, np.ndarray]] = None,
+        **kwargs
+    ):
         """
         Args:
-            dim_z (integer): Dimension of model state vector.
-            dim_x (integer): Dimension of observation vector.
-            rng (RandomState): Numpy RandomState random number generator.
-            init_state_mean (float or array): Initial state distribution mean.
-                Either a scalar or array of shape `(dim_z,)`.
-            init_state_std (float or array): Initial state distribution
-                standard deviation. Either a scalar or array of shape
-                `(dim_z,)`. Each state dimension is assumed to be independent
-                i.e. a diagonal covariance.
-            state_noise_std (float or array): Standard deviation of additive
-                Gaussian noise in state update. Either a scalar or array of
-                shape `(dim_z,)`. Noise in each dimension assumed to be
-                independent i.e. a diagonal noise covariance. If zero or None
-                deterministic dynamics are assumed.
+            dim_state: Dimension of model state vector.
+            dim_obs: Dimension of observation vector.
+            initial_state_mean: Initial state distribution mean.
+                Either a scalar or array of shape `(dim_state,)`.
+            initial_state_std: Initial state distribution standard deviation. Either a
+                scalar or array of shape `(dim_state,)`. Each state dimension is assumed
+                to be independent i.e. a diagonal covariance.
+            state_noise_std: Standard deviation of additive Gaussian noise in state
+                update. Either a scalar or array of shape `(dim_state,)` or `None`.
+                Noise in each dimension assumed to be independent i.e. a diagonal noise
+                covariance. If zero or `None` deterministic dynamics are assumed.
         """
-        self.init_state_mean = init_state_mean
-        self.init_state_std = init_state_std
-        if state_noise_std is None or np.all(state_noise_std == 0.):
-            self.deterministic_state_update = True
+        self.initial_state_mean = initial_state_mean
+        self.initial_state_std = initial_state_std
+        if state_noise_std is None or np.all(state_noise_std == 0.0):
+            self._deterministic_state_update = True
         else:
-            self.deterministic_state_update = False
+            self._deterministic_state_update = False
             self.state_noise_std = state_noise_std
-        super(DiagonalGaussianStateNoiseModel, self).__init__(
-            dim_z=dim_z, dim_x=dim_x, rng=rng, **kwargs)
+        super().__init__(dim_state=dim_state, dim_observation=dim_observation, **kwargs)
 
-    def init_state_sampler(self, n=None):
-        if n is None:
-            return (
-                self.init_state_mean +
-                self.rng.normal(size=(self.dim_z,)) * self.init_state_std
-            )
-        else:
-            return (
-                self.init_state_mean +
-                self.rng.normal(size=(n, self.dim_z)) * self.init_state_std
-            )
+    def _sample_initial_state(self, rng: Generator, num_state: int) -> np.ndarray:
+        return (
+            self.initial_state_mean
+            + rng.standard_normal((num_state, self.dim_state)) * self.initial_state_std
+        )
 
-    def next_state_func(self, z, t):
-        """Computes mean of next state given current state.
+    def next_state_mean(self, states: np.ndarray, t: int) -> np.ndarray:
+        """Computes mean of next state(s) given current state(s).
 
-        Implements determinstic component of state update dynamics with new
-        state calculated by output of this function plus additive zero-mean
-        Gaussian noise. For models with fully-determinstic state dynamics
-        no noise is added so this function exactly calculates the next state.
+        Implements determinstic component of state update dynamics with new state
+        calculated by output of this function plus additive zero-mean Gaussian noise.
+        For models with fully-determinstic state dynamics no noise is added so this
+        function exactly calculates the next state.
 
         Args:
-            z (array): Current state vector.
-            t (integer): Current time index.
+            states: Array of model state(s) at time index `t`. Either of shape
+                `(num_state, dim_state)` if the mean is to be evalulated for multiple
+                states or shape `(dim_state,)` if mean is to be evaluated for a single
+                state.
+            t: Current time index.
 
         Returns:
-            Array corresponding to (mean of) state at next time index t + 1.
+            Array corresponding to mean of states at time index `t + 1`, of shape
+            `(num_state, dim_state)` if a 2D `states` array is passed or of shape
+            `(dim_state,`) otherwise.
         """
-        raise NotImplementedError()
+        return self._next_state_mean(self, states, t)
 
-    def next_state_sampler(self, z, t):
-        if self.deterministic_state_update:
-            return self.next_state_func(z, t)
+    @abc.abstractmethod
+    def _next_state_mean(self, states: np.ndarray, t: int) -> np.ndarray:
+        """Internal implementation of `next_state_mean` method.
+
+        Should be called in preference to `next_state_mean` internally by other
+        methods to allow use of mix-ins to change behaviour of `next_state_mean`
+        without affecting internal use.
+
+        Args:
+            states: Array of model state(s) at time index `t`. Either of shape
+                `(num_state, dim_state)` if the mean is to be evalulated for multiple
+                states or shape `(dim_state,)` if mean is to be evaluated for a single
+                state.
+            t: Current time index.
+
+        Returns:
+            Array corresponding to mean of states at time index `t + 1`, of shape
+            `(num_state, dim_state)` if a 2D `states` array is passed or of shape
+            `(dim_state,`) otherwise.
+        """
+
+    def _sample_state_transition(
+        self, rng: Generator, states: np.ndarray, t: int
+    ) -> np.ndarray:
+        if self._deterministic_state_update:
+            return self._next_state_mean(states, t)
         else:
-            return (
-                self.next_state_func(z, t) +
-                self.state_noise_std * self.rng.normal(size=z.shape)
-            )
+            return self._next_state_mean(
+                states, t
+            ) + self.state_noise_std * rng.standard_normal(states.shape)
 
-    def log_prob_dens_init_state(self, z):
+    def log_density_initial_state(self, states: np.ndarray) -> np.ndarray:
         return -(
-            0.5 * ((z - self.init_state_mean) / self.init_state_std)**2 +
-            0.5 * np.log(2 * np.pi) + np.log(self.init_state_std)
+            0.5 * ((states - self.initial_state_mean) / self.initial_state_std) ** 2
+            + 0.5 * np.log(2 * np.pi)
+            + np.log(self.initial_state_std)
         ).sum(-1)
 
-    def log_prob_dens_state_trans(self, z_n, z_c, t):
-        if self.deterministic_state_update:
-            raise DensityNotDefinedError('Deterministic state transition.')
+    def log_density_state_transition(
+        self, next_states: np.ndarray, states: np.ndarray, t: int
+    ) -> np.ndarray:
+        if self._deterministic_state_update:
+            raise DensityNotDefinedError("Deterministic state transition.")
         else:
             return -(
-                0.5 * ((z_n - self.next_state_func(z_c, t)) /
-                       self.state_noise_std)**2 +
-                0.5 * np.log(2 * np.pi) + np.log(self.state_noise_std)
+                0.5
+                * (
+                    (next_states - self._next_state_mean(states, t))
+                    / self.state_noise_std
+                )
+                ** 2
+                + 0.5 * np.log(2 * np.pi)
+                + np.log(self.state_noise_std)
             ).sum(-1)
 
 
-@inherit_docstrings
 class DiagonalGaussianModel(
-        DiagonalGaussianObservationModel, DiagonalGaussianStateNoiseModel):
+    DiagonalGaussianObservationModel, DiagonalGaussianStateNoiseModel
+):
     """Abstract model base class with diagonal Gaussian noise distributions.
 
     Assumes the model dynamics take the form
 
-        z[0] = init_state_mean + init_state_std * u[0]
-        x[0] = observation_func(x[0], 0) + obser_noise_std * v[0]
+        state_sequence[0] = (
+            init_state_mean + init_state_std * rng.standard_normal(dim_state))
+        observation_sequence[0] = (
+            observation_mean(state_sequence[0], 0)
+            + observation_noise_std * rng.standard_normal(dim_observation))
         for t in range(1, n_steps):
-            z[t] = next_state_func(z[t-1], t-1) + state_noise_std * u[t]
-            x[t] = observation_func(x[t], t) + obser_noise_std * v[t]
-
-    where
-
-       z[t]: unobserved system state vector at time index t,
-       x[t]: observations vector at time index t,
-       u[t]: zero-mean identity covariance Gaussian state noise vector at time
-             index t,
-       v[t]: zero-mean identity covariance Gaussian observation noise vector
-             at time index t,
-       init_state_mean: initial state distribution mean vector,
-       init_state_std: initial state distribution standard deviation vector,
-       observation_func: function mapping from states to (pre-noise)
-           observations,
-       obser_noise_std: observation noise distribution standard deviation
-           vector,
-       next_state_func: potentially non-linear function specifying state
-           update dynamics for example forward integration of a ODE system,
-       state_noise_std: state noise distribution standard deviation vector.
-           May be all zeros which corresponds to a model with deterministic
-           state update dynamics.
+            state_sequence[t] = (
+                next_state_mean(state_sequence[t-1], t-1)
+                + state_noise_std * rng.standard_normal(dim_state))
+            observation_sequence[t] = (
+                observation_mean(state_sequence[t], t)
+                + observation_noise_std * rng.standard_normal(dim_observation))
 
     This corresponds to assuming the initial state distribution, conditional
-    distribution of the next state given current and conditional distribution
-    of the current observation given current state all take the form of
-    multivariate Gaussian distributions with diagonal covariances. In the case
-    of deterministic state update dynamics the conditional distribution of the
-    next state given the current state will be a Dirac measure with all mass
-    located at the forward map of the current state through the state dynamics
-    function and so will not have a well-defined probability density function.
+    distribution of the next state given current and conditional distribution of the
+    current observation given current state all take the form of multivariate Gaussian
+    distributions with diagonal covariances. In the case of deterministic state update
+    dynamics the conditional distribution of the next state given the current state will
+    be a Dirac measure with all mass located at the forward map of the current state
+    through the state dynamics function and so will not have a density with respect to
+    the Lebesgue measure.
     """
 
-    def __init__(self, dim_z, dim_x, rng, init_state_mean, init_state_std,
-                 state_noise_std, obser_noise_std, **kwargs):
+    def __init__(
+        self,
+        dim_state: int,
+        dim_observation: int,
+        observation_noise_std: Union[float, np.ndarray],
+        initial_state_mean: Union[float, np.ndarray],
+        initial_state_std: Union[float, np.ndarray],
+        state_noise_std: Optional[Union[float, np.ndarray]] = None,
+        **kwargs
+    ):
         """
         Args:
-            dim_z (integer): Dimension of model state vector.
-            dim_x (integer): Dimension of observation vector.
-            rng (RandomState): Numpy RandomState random number generator.
-            init_state_mean (float or array): Initial state distribution mean.
-                Either a scalar or array of shape `(dim_z,)`.
-            init_state_std (float or array): Initial state distribution
-                standard deviation. Either a scalar or array of shape
-                `(dim_z,)`. Each state dimension is assumed to be independent
-                i.e. a diagonal covariance.
-            state_noise_std (float or array): Standard deviation of additive
-                Gaussian noise in state update. Either a scalar or array of
-                shape `(dim_z,)`. Noise in each dimension assumed to be
-                independent i.e. a diagonal noise covariance. If zero or None
-                deterministic dynamics are assumed.
-            obser_noise_std (float): Standard deviation of additive Gaussian
-                noise in observations. Either a scalar or array of shape
-                `(dim_z,)`. Noise in each dimension assumed to be independent
-                i.e. a diagonal noise covariance.
+            dim_state: Dimension of model state vector.
+            dim_obs: Dimension of observation vector.
+            observation_noise_std: Standard deviation of additive Gaussian noise in
+                observations. Either a scalar or array of shape `(dim_state,)`. Noise in
+                each dimension assumed to be independent i.e. diagonal noise covariance.
+            initial_state_mean: Initial state distribution mean.
+                Either a scalar or array of shape `(dim_state,)`.
+            initial_state_std: Initial state distribution standard deviation. Either a
+                scalar or array of shape `(dim_state,)`. Each state dimension is assumed
+                to be independent i.e. a diagonal covariance.
+            state_noise_std: Standard deviation of additive Gaussian noise in state
+                update. Either a scalar or array of shape `(dim_state,)` or `None`.
+                Noise in each dimension assumed to be independent i.e. a diagonal noise
+                covariance. If zero or `None` deterministic dynamics are assumed.
+
         """
-        super(DiagonalGaussianModel, self).__init__(
-            dim_z=dim_z, dim_x=dim_x, rng=rng,
-            init_state_mean=init_state_mean,
-            init_state_std=init_state_std, state_noise_std=state_noise_std,
-            obser_noise_std=obser_noise_std, **kwargs)
+        super().__init__(
+            dim_state=dim_state,
+            dim_observation=dim_observation,
+            observation_noise_std=observation_noise_std,
+            initial_state_mean=initial_state_mean,
+            initial_state_std=initial_state_std,
+            state_noise_std=state_noise_std,
+            **kwargs
+        )
 
 
-@inherit_docstrings
 class IntegratorModel(AbstractModel):
     """Model using integrator to perform determinstic state updates."""
 
-    def __init__(self, integrator, n_steps_per_update, dim_z, dim_x, rng,
-                 **kwargs):
+    def __init__(
+        self,
+        dim_state: int,
+        dim_observation: int,
+        integrator,
+        num_integrator_step_per_update: int = 1,
+        **kwargs
+    ):
         """
         Args:
-            integrator (object): Integrator for model state dynamics. Object
-                should define a `forward_integrate` method with function
-                signature
-                    def forward_integrate(
-                        self, z_curr, start_time_index, n_step)
-                with `z_curr` an input array of a batch of state vectors at
-                current time index, `start_time_index` an integer defining the
-                current time index and `n_step` the number of integrator time
-                steps to perform, with the method returning  an array of state
-                vectors at the next time index. The integrator object should
-                also have a float attribute `dt` corresponding to the
-                integrator time step.
-            n_steps_per_update (int): Number of integrator time-steps between
+            dim_state: Dimension of model state vector.
+            dim_obs: Dimension of observation vector.
+            integrator: Integrator for model state dynamics. Object should define a
+                `forward_integrate` method with signature
+
+                    integrator.forward_integrate(states, start_time_index, num_step)
+
+                with `states` an array of a batch of state vectors at the current time
+                index, `start_time_index` an integer defining the current time index and
+                `num_step` the number of integrator time steps to perform, with the
+                method returning an array of state vectors at the next time index. The
+                integrator object should also have a float attribute `dt` corresponding
+                to the integrator time step.
+            num_integrator_step_per_update: Number of integrator time-steps between
                 successive observations and generated states.
-            dim_z (integer): Dimension of model state vector.
-            dim_x (integer): Dimension of observation vector.
-            rng (RandomState): Numpy RandomState random number generator.
         """
         self.integrator = integrator
-        self.n_steps_per_update = n_steps_per_update
-        super(IntegratorModel, self).__init__(
-                dim_z=dim_z, dim_x=dim_x, rng=rng, **kwargs)
+        self.num_integrator_step_per_update = num_integrator_step_per_update
+        super().__init__(dim_state=dim_state, dim_observation=dim_observation, **kwargs)
 
-    def next_state_func(self, z, t):
-        """Computes (pre-noise) next state given current state.
+    def _next_state_mean(self, states: np.ndarray, t: int) -> np.ndarray:
+        """Computes mean of next state(s) given current state(s).
 
-        Implements determinstic component of state update dynamics with new
-        state calculated by output of this function corrupted by noise
-        (may be e.g. additive or multiplicative).
-
-        For models with fully-determinstic state dynamics no noise is added so
-        this function exactly calculates the next state.
+        Implements determinstic component of state update dynamics with new state
+        calculated by output of this function plus additive zero-mean Gaussian noise.
+        For models with fully-determinstic state dynamics no noise is added so this
+        function exactly calculates the next state.
 
         Args:
-            z (array): Current state vector.
-            t (integer): Current time index.
+            states: Array of model state(s) at time index `t`. Either of shape
+                `(num_state, dim_state)` if the mean is to be evalulated for multiple
+                states or shape `(dim_state,)` if mean is to be evaluated for a single
+                state.
+            t: Current time index.
 
         Returns:
-            Array corresponding to (mean of) state at next time index t + 1.
+            Array corresponding to mean of states at time index `t + 1`, of shape
+            `(num_state, dim_state)` if a 2D `states` array is passed or of shape
+            `(dim_state,`) otherwise.
         """
-        if z.ndim == 1:
+        if states.ndim == 1:
             return self.integrator.forward_integrate(
-                z[None], t, self.n_steps_per_update)[0]
+                states[None], t, self.num_integrator_step_per_update
+            )[0]
         else:
             return self.integrator.forward_integrate(
-                z, t, self.n_steps_per_update)
+                states, t, self.num_integrator_step_per_update
+            )

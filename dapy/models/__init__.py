@@ -1,14 +1,22 @@
 """Data assimilation example models."""
 
 from dapy.models.linear_gaussian import DenseLinearGaussianModel
-from dapy.models.netto79 import Netto79Model
-from dapy.models.lorenz63 import Lorenz63Model
-from dapy.models.lorenz96 import Lorenz96Model
+from dapy.models.netto_gimeno_mendes import NettoGimenoMendesModel
+from dapy.models.lorenz_1963 import Lorenz1963Model
+from dapy.models.lorenz_1996 import Lorenz1996Model
+from dapy.models.majda_harlim import (
+    FourierStochasticTurbulenceModel,
+    SpatialStochasticTurbulenceModel,
+)
 from dapy.models.kuramoto_sivashinsky import (
-    KuramotoSivashinskyModel, KuramotoSivashinskySPDEModel)
-from dapy.models.navier_stokes import NavierStokes2dModel
+    FourierLaminarFlameModel,
+    SpatialLaminarFlameModel,
+)
+from dapy.models.navier_stokes import (
+    FourierIncompressibleFluidModel,
+    SpatialIncompressibleFluidModel,
+)
 
-__all__ = ['linear_gaussian', 'netto79', 'lorenz63', 'lorenz96',
-           'kuramoto_sivashinsky', 'navier_stokes']
-__authors__ = 'Matt Graham'
-__license__ = 'MIT'
+
+__authors__ = "Matt Graham"
+__license__ = "MIT"
