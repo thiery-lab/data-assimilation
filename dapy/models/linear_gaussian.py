@@ -1,8 +1,9 @@
 """Model with linear dynamics and observations and additive Gaussian noise."""
 
+from typing import Dict, Union
+from numbers import Number
 import numpy as np
 from numpy.random import Generator
-from typing import Dict
 import scipy.linalg as la
 from dapy.models.base import AbstractModel
 
@@ -41,27 +42,111 @@ def generate_random_dense_parameters(
     return params
 
 
-class DenseLinearGaussianModel(AbstractModel):
+class AbstractLinearGaussianModel(AbstractModel):
+    """Abstract base class for linear-Gaussian models defining expected interface.
+
+    All of `initial_state_covar`, `state_noise_covar`, and `observation_noise_covar`
+    may be specified by either a scalar, 1D array or 2D array. If a scalar the
+    covariance matrix will assume to be the identity scaled by this value. If a 1D
+    array the covariance matrix will be assumed to be diagonal with the array
+    specifying the diagonal values. If a 2D array the covariance will be assumed to
+    be specified directly by the array.
+    """
+
+    @property
+    def initial_state_mean(self) -> np.ndarray:
+        """Mean of initial state distribution."""
+        return self._initial_state_mean
+
+    @property
+    def initial_state_covar(self) -> Union[Number, np.ndarray]:
+        """Covariance matrix of initial state distribution."""
+        if hasattr(self, "_initial_state_covar"):
+            return self._initial_state_covar
+        elif hasattr(self, "_initial_state_std"):
+            return self._initial_state_std ** 2
+        else:
+            raise NotImplementedError()
+
+    @property
+    def state_noise_covar(self) -> Union[Number, np.ndarray]:
+        """Covariance matrix of state noise distribution."""
+        if hasattr(self, "_state_noise_covar"):
+            return self._initial_state_covar
+        elif hasattr(self, "_state_noise_std"):
+            return self._state_noise_std ** 2
+        else:
+            raise NotImplementedError()
+
+    @property
+    def observation_noise_covar(self) -> Union[Number, np.ndarray]:
+        """Covariance matrix of observation noise distribution."""
+        if hasattr(self, "_observation_noise_covar"):
+            return self._observation_noise_covar
+        elif hasattr(self, "_observation_noise_std"):
+            return self._observation_noise_std ** 2
+        else:
+            raise NotImplementedError()
+
+    @property
+    def state_transition_matrix(self) -> np.ndarray:
+        """Matrix representing linear state transition operator."""
+        if hasattr(self, '_state_transition_matrix'):
+            return self._state_transition_matrix
+        elif hasattr(self, "next_state_mean"):
+            self._state_transition_matrix = self.next_state_mean(
+                np.identity(self.dim_state), None
+            ).T
+            return self._state_transition_matrix
+        else:
+            raise NotImplementedError()
+
+    @property
+    def observation_matrix(self) -> np.ndarray:
+        """Matrix representing linear observation operator."""
+        if hasattr(self, '_observation_matrix'):
+            return self._observation_matrix
+        elif hasattr(self, "observation_mean"):
+            self._observation_matrix = self.observation_mean(
+                np.identity(self.dim_state), None
+            ).T
+            return self._observation_matrix
+        else:
+            raise NotImplementedError()
+
+
+class DenseLinearGaussianModel(AbstractLinearGaussianModel):
     """Model with linear dynamics and observations and additive Gaussian noise.
 
     The modelled system dynamics are of the form
 
-        state_sequence[0] = (
-            init_state_mean + chol(init_state_covar) @ rng.standard_normal(dim_state))
-        observation_sequence[0] = (
-            observation_matrix @ state_sequence[0] + 
-            chol(observation_noise_covar) @ rng.standard_normal(dim_observation))
-        for t in range(1, num_observation_time):
-            state_sequence[t] = (
-                state_transition_matrx @ state_sequence[t-1] + 
-                chol(state_noise_covar) @ rng.standard_normal(dim_state))
-            observation_sequence[t] = (
-                observation_matrix  @ state_sequence[t]) +
-                chol(observation_noise_covar) @ rng.standard_normal(dim_observation))
+        for s in range(num_step + 1):
+            if s == 0:
+                state_sequence[0] = (
+                    model.initial_state_mean +
+                    chol(model.initial_state_covar) @
+                    rng.standard_normal(model.dim_state)
+                )
+                t = 0
+            else:
+                state_sequence[s] = (
+                    model.state_transition_matrix @ state_sequence[s - 1] +
+                    chol(model.state_noise_covar) @ rng.standard_normal(model.dim_state)
+                )
+            if s == observation_time_indices[t]:
+                observation_sequence[t] = (
+                    model.observation_matrix  @ state_sequence[s]) +
+                    chol(model.observation_noise_covar) @
+                    rng.standard_normal(model.dim_observation)
+                )
+                t += 1
 
-   where `chol` is a function computing the lower-triangular Cholesky factor of a
-   positive-definite matrix.
-   """
+    where `observation_time_indices` is a sequence of integer time indices specifying
+    the observation times, `num_step = max(observation_time_indices)`, `rng` is
+    a random number generator used to generate the required random variates and `chol`
+    is a function computing the lower-triangular Cholesky factor of a positive-definite
+    matrix.
+    """
 
     def __init__(
         self,
@@ -93,15 +178,15 @@ class DenseLinearGaussianModel(AbstractModel):
         assert state_transition_matrix.shape[0] == initial_state_covar.shape[0]
         assert state_transition_matrix.shape[0] == initial_state_covar.shape[1]
         dim_observation, dim_state = observation_matrix.shape
-        self.state_transition_matrix = state_transition_matrix
-        self.observation_matrix = observation_matrix
-        self.initial_state_mean = initial_state_mean
-        self.initial_state_covar = initial_state_covar
-        self.chol_initial_state_covar = la.cholesky(initial_state_covar, lower=True)
-        self.state_noise_covar = state_noise_covar
-        self.chol_state_noise_covar = la.cholesky(state_noise_covar, lower=True)
-        self.observation_noise_covar = observation_noise_covar
-        self.chol_observation_noise_covar = la.cholesky(
+        self._state_transition_matrix = state_transition_matrix
+        self._observation_matrix = observation_matrix
+        self._initial_state_mean = initial_state_mean
+        self._initial_state_covar = initial_state_covar
+        self._chol_initial_state_covar = la.cholesky(initial_state_covar, lower=True)
+        self._state_noise_covar = state_noise_covar
+        self._chol_state_noise_covar = la.cholesky(state_noise_covar, lower=True)
+        self._observation_noise_covar = observation_noise_covar
+        self._chol_observation_noise_covar = la.cholesky(
             observation_noise_covar, lower=True
         )
         super().__init__(dim_state, dim_observation)
@@ -110,7 +195,7 @@ class DenseLinearGaussianModel(AbstractModel):
         return (
             self.initial_state_mean
             + rng.standard_normal((num_state, self.dim_state))
-            @ self.chol_initial_state_covar.T
+            @ self._chol_initial_state_covar.T
         )
 
     def next_state_mean(self, states: np.ndarray, t: int) -> np.ndarray:
@@ -122,7 +207,7 @@ class DenseLinearGaussianModel(AbstractModel):
         return (
             self.next_state_mean(states, t)
             + rng.standard_normal((states.shape[0], self.dim_state))
-            @ self.chol_state_noise_covar.T
+            @ self._chol_state_noise_covar.T
         )
 
     def observation_mean(self, states: np.ndarray, t: int) -> np.ndarray:
@@ -134,7 +219,7 @@ class DenseLinearGaussianModel(AbstractModel):
         return (
             self.observation_mean(states, t)
             + rng.standard_normal((states.shape[0], self.dim_observation))
-            @ self.chol_observation_noise_covar.T
+            @ self._chol_observation_noise_covar.T
         )
 
     def log_density_initial_state(self, states: np.ndarray) -> np.ndarray:
@@ -144,11 +229,11 @@ class DenseLinearGaussianModel(AbstractModel):
             * (
                 states_minus_mean.T
                 * la.cho_solve(
-                    (self.chol_initial_state_covar, True), states_minus_mean.T
+                    (self._chol_initial_state_covar, True), states_minus_mean.T
                 )
             ).sum(0)
             + 0.5 * self.dim_state * np.log(2 * np.pi)
-            + np.log(self.chol_initial_state_covar.diagonal()).sum()
+            + np.log(self._chol_initial_state_covar.diagonal()).sum()
         )
 
     def log_density_state_transition(
@@ -160,11 +245,11 @@ class DenseLinearGaussianModel(AbstractModel):
             * (
                 next_states_minus_mean.T
                 * la.cho_solve(
-                    (self.state_noise_covar_chol, True), next_states_minus_mean.T
+                    (self._chol_state_noise_covar, True), next_states_minus_mean.T
                 )
             ).sum(0)
             + 0.5 * self.dim_state * np.log(2 * np.pi)
-            + np.log(self.chol_state_noise_covar.diagonal()).sum()
+            + np.log(self._chol_state_noise_covar.diagonal()).sum()
         )
 
     def log_density_observation_given_state(
@@ -176,9 +261,10 @@ class DenseLinearGaussianModel(AbstractModel):
             * (
                 observations_minus_mean.T
                 * la.cho_solve(
-                    (self.chol_observation_noise_covar, True), observations_minus_mean.T
+                    (self._chol_observation_noise_covar, True),
+                    observations_minus_mean.T,
                 )
             ).sum(0)
             + 0.5 * self.dim_observation * np.log(2 * np.pi)
-            + np.log(self.chol_observation_noise_covar.diagonal()).sum()
+            + np.log(self._chol_observation_noise_covar.diagonal()).sum()
         )

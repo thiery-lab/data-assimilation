@@ -14,7 +14,7 @@ except ImportError:
 class AbstractTransformedModelMixIn(abc.ABC):
     """Base for mix-ins for models in which state is transform of state of a base model.
 
-    Given functions `forward_map` and `backward_map` which are mutual inverses, i.e. 
+    Given functions `forward_map` and `backward_map` which are mutual inverses, i.e.
     `forward_map(backward_map(x)) = x` and `backward_map(forward_map(x)) = x` for all
     `x`, and `sample_initial_state`, `sample_observation_given_state` and
     `sample_state_transition` functions (methods) of a 'base' model the model dynamics
@@ -43,7 +43,7 @@ class AbstractTransformedModelMixIn(abc.ABC):
 
         Returns:
 
-            Array of corresponding state(s) of *transformed model*, of shape 
+            Array of corresponding state(s) of *transformed model*, of shape
             `(dim_state,)` if `base_states` is one-dimensional otherwise of shape
             `(num_state, dim_state)`.
         """
@@ -135,6 +135,49 @@ class AbstractTransformedDiagonalGaussianModelMixin(AbstractTransformedModelMixI
         return self.forward_map(self._next_state_mean(self.backward_map(states), t))
 
 
+class AbstractLinearTransformedDiagonalGaussianModelMixin(
+    AbstractTransformedDiagonalGaussianModelMixin
+):
+    """Linear specialisation of `AbstractTransformedDiagonalGaussianModelMixin`.
+
+    Assumes transformation is linear.
+
+    Additionally provides `initial_state_covar` and `state_noise_covar` properties
+    which exploit linearity of transformation to compute covariance matrices from
+    linear transform matrix and base model diagonal covariances.
+    methods so that these methods operate on *transformed* state to allow consistent
+    external use.
+    """
+
+    @property
+    def initial_state_mean(self) -> np.ndarray:
+        return self.forward_map(self._initial_state_mean)
+
+    @property
+    def forward_transform_matrix(self) -> np.ndarray:
+        if not hasattr(self, "_transform_matrix"):
+            self._forward_transform_matrix = self.forward_map(
+                np.identity(self.dim_state)
+            )
+        return self._forward_transform_matrix
+
+    @property
+    def initial_state_covar(self) -> np.ndarray:
+        if not hasattr(self, "__initial_state_covar"):
+            self.__initial_state_covar = (
+                self.forward_transform_matrix * self._initial_state_std ** 2
+            ) @ self.forward_transform_matrix.T
+        return self.__initial_state_covar
+
+    @property
+    def state_noise_covar(self) -> np.ndarray:
+        if not hasattr(self, "__state_noise_covar"):
+            self.__state_noise_covar = (
+                self.forward_transform_matrix * self._state_noise_std ** 2
+            ) @ self.forward_transform_matrix.T
+        return self.__state_noise_covar
+
+
 def rfft_coeff_to_real_array(
     rfft_coeff: np.ndarray, orth_scale: bool = True
 ) -> np.ndarray:
@@ -207,7 +250,7 @@ def real_array_to_rfft_coeff(
 
 
 class OneDimensionalFourierTransformedDiagonalGaussianModelMixIn(
-    AbstractTransformedDiagonalGaussianModelMixin
+    AbstractLinearTransformedDiagonalGaussianModelMixin
 ):
     """Transformed model mix-in for diagonal Gaussian 1D Fourier domain base models.
 
@@ -333,7 +376,7 @@ def real_array_to_rfft2_coeff(
 
 
 class TwoDimensionalFourierTransformedDiagonalGaussianModelMixIn(
-    AbstractTransformedDiagonalGaussianModelMixin
+    AbstractLinearTransformedDiagonalGaussianModelMixin
 ):
     """Transformed model mix-in for diagonal Gaussian 2D Fourier domain base models.
 
