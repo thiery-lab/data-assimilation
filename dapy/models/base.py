@@ -21,13 +21,21 @@ class AbstractModel(abc.ABC):
 
     The modelled system dynamics are of the form
 
-        state_sequence[0] = sample_initial_state(rng)
-        observation_sequence[0] = sample_observation_given_state(
-            rng, state_sequence[0], 0)
-        for t in range(1, num_observation_time):
-            state_sequence[t] = sample_state_transition(rng, state_sequence[t-1], t-1)
-            observation_sequence[t] = sample_observation_given_state(
-                rng, state_sequence[t], t)
+        for s in range(num_step):
+            if s == 0:
+                state_sequence[0] = model.sample_initial_state(rng)
+                t = 0
+            else:
+                state_sequence[s] = model.sample_state_transition(
+                    rng, state_sequence[s - 1], s - 1)
+            if s == observation_time_indices[t]:
+                observation_sequence[t] = model.sample_observation_given_state(
+                    rng, state_sequence[s], s)
+                t += 1
+
+    where `observation_time_indices` is a sequence of integer time indices specifying
+    the observation times, `num_step = max(observation_time_indices)` and `rng` is
+    a random number generator used to generate the required random variates.
     """
 
     def __init__(self, dim_state: int, dim_observation: int):
@@ -175,6 +183,7 @@ class AbstractModel(abc.ABC):
         rng: Generator,
         observation_time_indices: Sequence[int],
         num_sample: Optional[int] = None,
+        return_states_at_all_times: bool = False,
     ) -> np.ndarray:
         """Generate state and observation sequences from model.
 
@@ -187,11 +196,17 @@ class AbstractModel(abc.ABC):
                 the number of observation times `num_observation_time`.
             num_sample: Number of independent sequence pairs to sample. If equal
                 to `None` (default) a single sample is generated.
+            return_states_at_all_times: Whether to return states at all time indices
+                including those not corresponding to observation times (`True`) or to
+                only return the sequence(s) of states at the observation time indices
+                (`False`).
 
         Returns:
             state_sequences: Generated state sequence(s) of shape
-                `(num_step, dim_state)` if `num_sample` is None or
-                `(num_step, num_sample, dim_state)` otherwise.
+                `(num_state_time, dim_state)` if `num_sample` is None or
+                `(num_state_time, num_sample, dim_state)` otherwise where
+                `num_state_time = num_step + 1` if `return_state_at_all_times == True`
+                and `num_state_time = num_observation_time` otherwise.
             observation_sequences: Generated observation sequence(s) of shape
                 `(num_observation_time, dim_observation)` if `num_sample` is None or
                 `(num_observation_time, num_sample, dim_observation)` otherwise.
@@ -199,27 +214,34 @@ class AbstractModel(abc.ABC):
         observation_time_indices = np.sort(observation_time_indices)
         num_step = observation_time_indices[-1]
         num_observation_time = len(observation_time_indices)
+        num_state_time = (
+            num_step + 1 if return_states_at_all_times else num_observation_time
+        )
         if num_sample is None:
-            state_sequences = np.full((num_step, self.dim_state), np.nan)
+            state_sequences = np.full((num_state_time, self.dim_state), np.nan)
             observation_sequences = np.full(
                 (num_observation_time, self.dim_observation), np.nan
             )
         else:
-            state_sequences = np.full((num_step, num_sample, self.dim_state), np.nan)
+            state_sequences = np.full(
+                (num_state_time, num_sample, self.dim_state), np.nan
+            )
             observation_sequences = np.full(
                 (num_observation_time, num_sample, self.dim_observation), np.nan
             )
-        for s in tqdm.trange(0, num_step, desc="Sampling", unit="time steps"):
+        for s in tqdm.trange(0, num_step + 1, desc="Sampling", unit="time steps"):
             if s == 0:
-                state_sequences[s] = self.sample_initial_state(rng, num_sample)
+                states = self.sample_initial_state(rng, num_sample)
                 t = 0
             else:
-                state_sequences[s] = self.sample_state_transition(
-                    rng, state_sequences[s - 1], s - 1
-                )
+                states = self.sample_state_transition(rng, states, s - 1)
+            if return_states_at_all_times:
+                state_sequences[s] = states
             if s == observation_time_indices[t]:
+                if not return_states_at_all_times:
+                    state_sequences[t] = states
                 observation_sequences[t] = self.sample_observation_given_state(
-                    rng, state_sequences[s], s
+                    rng, states, s
                 )
                 t += 1
         return state_sequences, observation_sequences
@@ -290,9 +312,9 @@ class AbstractModel(abc.ABC):
 
         Args:
            state_sequences: Array of model state sequence(s). Either of shape
-               `(num_step, num_sequence, dim_state)` if density is to be evaluated for
-               multiple sequences or shape `(num_step, dim_state)` if density is to be
-               evaluated for a single sequence.
+               `(num_step + 1, num_sequence, dim_state)` if density is to be evaluated
+               for multiple sequences or shape `(num_step + 1, dim_state)` if density
+               is to be evaluated for a single sequence.
 
         Returns:
             Array of log joint probability densities of state sequences of shape
@@ -316,9 +338,9 @@ class AbstractModel(abc.ABC):
 
         Args:
             state_sequences: Array of model state sequence(s). Either of shape
-                `(num_step, num_sequence, dim_state)` if density is to be evaluated for
-                multiple sequences or shape `(num_step, dim_state)` if density is to be
-                evaluated for a single sequence.
+                `(num_step + 1, num_sequence, dim_state)` if density is to be evaluated
+                form multiple sequences or shape `(num_step + 1, dim_state)` if density
+                is to be evaluated for a single sequence.
             observation_sequences: Array of model observation sequence(s). Either of
                 shape `(num_observation_time, num_sequence, dim_observation)` if density
                 is to be evaluated for multiple sequences or shape
@@ -339,9 +361,9 @@ class AbstractModel(abc.ABC):
         observation_time_indices = np.sort(observation_time_indices)
         num_step = observation_time_indices[-1]
         num_observation_time = len(observation_time_indices)
-        assert state_sequence.shape[0] == num_step
+        assert state_sequence.shape[0] == num_step + 1
         assert observation_sequence.shape[0] == num_observation_time
-        for s in range(0, state_sequence.shape[0]):
+        for s in range(0, num_step + 1):
             if s == 0:
                 log_density = self.log_density_initial_state(state_sequence[0])
                 t = 0
@@ -361,15 +383,20 @@ class DiagonalGaussianObservationModel(AbstractModel):
 
     The modelled system dynamics are of the form
 
-        state_sequence[0] = sample_initial_state(rng)
-        observation_sequence[0] = (
-            observation_mean(state_sequence[0], 0)
-            + observation_noise_std * rng.standard_normal(dim_observation))
-        for t in range(1, num_step):
-            state_sequence[t] = sample_state_transition(rng, state_sequence[t-1], t-1)
-            observation_sequence[t] = (
-                observation_mean(state_sequence[t], t)
-                + observation_noise_std * rng.standard_normal(dim_observation))
+        for s in range(num_step):
+            if s == 0:
+                state_sequence[0] = model.sample_initial_state(rng)
+                t = 0
+            else:
+                state_sequence[s] = model.sample_state_transition(
+                    rng, state_sequence[s - 1], s - 1)
+            if s == observation_time_indices[t]:
+                observation_sequence[t] = (
+                    model.observation_mean(state_sequence[t], t)
+                    + model.observation_noise_std *
+                    rng.standard_normal(model.dim_observation)
+                )
+                t += 1
 
     This corresponds to assuming the conditional distribution of the current observation
     given current state takes the form of a multivariate Gaussian distributions with
@@ -391,7 +418,7 @@ class DiagonalGaussianObservationModel(AbstractModel):
                 observations. Either a scalar or array of shape `(dim_state,)`. Noise in
                 each dimension assumed to be independent i.e. diagonal noise covariance.
         """
-        self.observation_noise_std = observation_noise_std
+        self._observation_noise_std = observation_noise_std
         super().__init__(dim_state=dim_state, dim_observation=dim_observation, **kwargs)
 
     def observation_mean(self, states: np.ndarray, t: int) -> np.ndarray:
@@ -437,7 +464,7 @@ class DiagonalGaussianObservationModel(AbstractModel):
     ) -> np.ndarray:
         return self._observation_mean(
             states, t
-        ) + self.observation_noise_std * rng.standard_normal(
+        ) + self._observation_noise_std * rng.standard_normal(
             (states.shape[0], self.dim_observation)
         )
 
@@ -448,11 +475,11 @@ class DiagonalGaussianObservationModel(AbstractModel):
             0.5
             * (
                 (observations - self._observation_mean(states, t))
-                / self.observation_noise_std
+                / self._observation_noise_std
             )
             ** 2
             + 0.5 * np.log(2 * np.pi)
-            + np.log(self.observation_noise_std)
+            + np.log(self._observation_noise_std)
         ).sum(-1)
 
 
@@ -461,16 +488,22 @@ class DiagonalGaussianStateNoiseModel(AbstractModel):
 
     The modelled system dynamics are of the form
 
-        state_sequence[0] = (
-            init_state_mean + init_state_std * rng.standard_normal(dim_state))
-        observation_sequence[0] = sample_observation_given_state(
-            rng, state_sequence[0], 0)
-        for t in range(1, n_steps):
-            state_sequence[t] = (
-                next_state_mean(state_sequence[t-1], t-1)
-                + state_noise_std * rng.standard_normal(dim_state))
-            observation_sequence[t] = sample_observation_given_state(
-                rng, state_sequence[t], t)
+        for s in range(num_step):
+            if s == 0:
+                state_sequence[0] = (
+                    model.initial_state_mean
+                    + model.initial_state_std * rng.standard_normal(model.dim_state)
+                )
+                t = 0
+            else:
+                state_sequence[s] = (
+                    model.next_state_mean(state_sequence[s - 1], s - 1)
+                    + model.state_noise_std * rng.standard_normal(model.dim_state)
+                )
+            if s == observation_time_indices[t]:
+                observation_sequence[t] = model.sample_observation_given_state(
+                    rng, state_sequence[s], s)
+                t += 1
 
     This corresponds to assuming the initial state distribution and conditional
     distribution of the next state given current take the form of multivariate Gaussian
@@ -504,19 +537,19 @@ class DiagonalGaussianStateNoiseModel(AbstractModel):
                 Noise in each dimension assumed to be independent i.e. a diagonal noise
                 covariance. If zero or `None` deterministic dynamics are assumed.
         """
-        self.initial_state_mean = initial_state_mean
-        self.initial_state_std = initial_state_std
+        self._initial_state_mean = initial_state_mean
+        self._initial_state_std = initial_state_std
         if state_noise_std is None or np.all(state_noise_std == 0.0):
             self._deterministic_state_update = True
         else:
             self._deterministic_state_update = False
-            self.state_noise_std = state_noise_std
+            self._state_noise_std = state_noise_std
         super().__init__(dim_state=dim_state, dim_observation=dim_observation, **kwargs)
 
     def _sample_initial_state(self, rng: Generator, num_state: int) -> np.ndarray:
         return (
-            self.initial_state_mean
-            + rng.standard_normal((num_state, self.dim_state)) * self.initial_state_std
+            self._initial_state_mean
+            + rng.standard_normal((num_state, self.dim_state)) * self._initial_state_std
         )
 
     def next_state_mean(self, states: np.ndarray, t: int) -> np.ndarray:
@@ -539,7 +572,7 @@ class DiagonalGaussianStateNoiseModel(AbstractModel):
             `(num_state, dim_state)` if a 2D `states` array is passed or of shape
             `(dim_state,`) otherwise.
         """
-        return self._next_state_mean(self, states, t)
+        return self._next_state_mean(states, t)
 
     @abc.abstractmethod
     def _next_state_mean(self, states: np.ndarray, t: int) -> np.ndarray:
@@ -570,13 +603,13 @@ class DiagonalGaussianStateNoiseModel(AbstractModel):
         else:
             return self._next_state_mean(
                 states, t
-            ) + self.state_noise_std * rng.standard_normal(states.shape)
+            ) + self._state_noise_std * rng.standard_normal(states.shape)
 
     def log_density_initial_state(self, states: np.ndarray) -> np.ndarray:
         return -(
-            0.5 * ((states - self.initial_state_mean) / self.initial_state_std) ** 2
+            0.5 * ((states - self._initial_state_mean) / self._initial_state_std) ** 2
             + 0.5 * np.log(2 * np.pi)
-            + np.log(self.initial_state_std)
+            + np.log(self._initial_state_std)
         ).sum(-1)
 
     def log_density_state_transition(
@@ -589,11 +622,11 @@ class DiagonalGaussianStateNoiseModel(AbstractModel):
                 0.5
                 * (
                     (next_states - self._next_state_mean(states, t))
-                    / self.state_noise_std
+                    / self._state_noise_std
                 )
                 ** 2
                 + 0.5 * np.log(2 * np.pi)
-                + np.log(self.state_noise_std)
+                + np.log(self._state_noise_std)
             ).sum(-1)
 
 
@@ -604,18 +637,25 @@ class DiagonalGaussianModel(
 
     Assumes the model dynamics take the form
 
-        state_sequence[0] = (
-            init_state_mean + init_state_std * rng.standard_normal(dim_state))
-        observation_sequence[0] = (
-            observation_mean(state_sequence[0], 0)
-            + observation_noise_std * rng.standard_normal(dim_observation))
-        for t in range(1, n_steps):
-            state_sequence[t] = (
-                next_state_mean(state_sequence[t-1], t-1)
-                + state_noise_std * rng.standard_normal(dim_state))
-            observation_sequence[t] = (
-                observation_mean(state_sequence[t], t)
-                + observation_noise_std * rng.standard_normal(dim_observation))
+        for s in range(num_step):
+            if s == 0:
+                state_sequence[0] = (
+                    model.initial_state_mean
+                    + model.initial_state_std * rng.standard_normal(model.dim_state)
+                )
+                t = 0
+            else:
+                state_sequence[s] = (
+                    model.next_state_mean(state_sequence[s - 1], s - 1)
+                    + model.state_noise_std * rng.standard_normal(model.dim_state)
+                )
+            if s == observation_time_indices[t]:
+                observation_sequence[t] = (
+                    model.observation_mean(state_sequence[t], t)
+                    + model.observation_noise_std *
+                    rng.standard_normal(model.dim_observation)
+                )
+                t += 1
 
     This corresponds to assuming the initial state distribution, conditional
     distribution of the next state given current and conditional distribution of the
