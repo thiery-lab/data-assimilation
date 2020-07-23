@@ -1,436 +1,404 @@
 """Exact Kalman filter for inference in linear-Gaussian dynamical systems."""
 
+import abc
+from typing import Union, Optional, Sequence, Tuple, Dict
+from numbers import Number
 import numpy as np
+from numpy.random import Generator
 import numpy.linalg as nla
 import scipy.linalg as sla
-import tqdm.autonotebook as tqdm
-import warnings
-from dapy.utils.doc import inherit_docstrings
+from dapy.models.linear_gaussian import AbstractLinearGaussianModel
+import tqdm.auto as tqdm
 
 
-class BaseKalmanFilter(object):
+class AbstractKalmanFilter(abc.ABC):
+    """Abstract base class for exact Kalman filters for linear-Gaussian models.
 
-    def __init__(self, init_state_mean, init_state_covar,
-                 state_noise_matrix, obser_noise_matrix, rng=None):
-        """
+    For linear-Gaussian models the Kalman filter (forward) updates [1] allow efficient
+    exact calculation of the filtering distributions
+
+        state_sequence[observation_time_indices[t]] | observation_sequence[0:t] ~
+            Normal(state_mean_sequence[t], state_covar_sequence[t])
+
+    with the Gaussian form of the filtering distribtions a result of the linear state
+    transition and observation operators and Gaussianity of the state and observation
+    noise.
+
+    References:
+
+        1. R. E. Kalman, A new approach to linear filtering and prediction
+           problems, Transactions of the ASME -- Journal of Basic Engineering,
+           Series D, 82 (1960), pp. 35--45.
+    """
+
+    def filter(
+        self,
+        model: AbstractLinearGaussianModel,
+        observation_sequence: np.ndarray,
+        observation_time_indices: Sequence[int],
+        num_sample: int = 0,
+        rng: Optional[Generator] = None,
+        return_covar: bool = False,
+    ) -> Dict[str, np.ndarray]:
+        """Compute means and covariances of Gaussian filtering distributions.
+
         Args:
-            init_state_mean (array): Mean of initial state distribution.
-            init_state_covar (array): Covariance matrix of initial state
-                distribution.
-            state_noise_matrix (array): Matrix defining transformation of
-                additive state noise.
-            obser_noise_matrix (array): Matrix defining transformation of
-                additive observation noise.
-            rng (RandomState): Numpy RandomState random number generator.
-                Only needs to be specified if samples to be computed during
-                filtering.
-        """
-        self.init_state_mean = init_state_mean
-        self.dim_z = init_state_mean.shape[0]
-        self.init_state_covar = init_state_covar
-        self.state_noise_matrix = state_noise_matrix
-        self.obser_noise_matrix = obser_noise_matrix
-        self.state_noise_covar = state_noise_matrix.dot(state_noise_matrix.T)
-        self.obser_noise_covar = obser_noise_matrix.dot(obser_noise_matrix.T)
-        self.rng = rng
-
-    def filter(self, x_observed, n_samples=None, return_covar=False):
-        """Compute filtering density parameters.
-
-        Args:
-            x_observed (array): Observed state sequence with shape
-                `(n_steps, dim_x)` where `n_steps` is number of time steps in
-                sequence and `dim_x` is dimensionality of observations.
-            n_samples (int): Number of samples from per-time step filtering
+            model: Linear-Gaussian generative model for observations.
+            observation_sequence: Observation sequence with shape
+                `(num_observation_time, dim_observation)` where `num_observation_time`
+                is the number of observed time indices in the sequence and
+                `dim_observation` is dimensionality of the observations.
+            observation_time_indices: Sequence of time (step) indices at which state is
+                observed. The sequence elements must be integers. The length of the
+                sequence must correspond to the number of observation times
+                `num_observation_time` represented in the `observation_sequences_array`.
+            num_sample: Number of samples from per time index filtering
                 distributions to return in addition to filtering distribution
                 parameters.
-            return_covar (bool): Whether to return full covariance matrices
-                for each time steps filtering distribution in addition to
-                standard deviations which are always returned.
+            rng: NumPy random number generator object. Required if `num_sample > 0`.
+            return_covar: Whether to return full covariance matrices for each filtering
+                distribution in addition to the standard deviations which are always
+                returned.
         Returns:
-            Dictionary containing arrays of filtering density parameters -
-                z_mean_seq: Array of filtering distribution means at all time
-                    steps.
-                z_std_seq: Array of filtering distribution standard deviations
-                    at all time steps.
-                z_covar_seq: Array of filtering distribution full covariances
-                    at all time steps (only returned if return_covar=True).
-                z_samples: Array of samples from filtering distributions at
-                    all time steps (only returned if n_samples != None).
+            Dictionary containing arrays of filtering distribution parameters -
+                state_mean_sequence: Array of filtering distribution means at all
+                    observation time indices. Shape `(num_observation_time, dim_state)`.
+                state_std_sequence: Array of filtering distribution standard deviations
+                    at all at all observation time indices. Shape
+                    `(num_observation_time, dim_state)`.
+                state_covar_sequence: Array of filtering distribution covariance
+                    matrices at all observation time indices. Only returned if
+                    `return_covar == True`. Shape
+                    `(num_observation_time, dim_state, dim_state)`.
+                state_samples_sequence: Array of samples from filtering distributions at
+                    at all observation time indices. Only returned if `num_sample > 0`.
+                    Shape `(num_observation_time, num_sample, dim_state)`.
         """
-        n_steps, dim_x = x_observed.shape
-        z_mean_seq = np.full((n_steps, self.dim_z), np.nan)
-        z_std_seq = np.full((n_steps, self.dim_z), np.nan)
+        num_obs_time, dim_observation = observation_sequence.shape
+        observation_time_indices = np.sort(observation_time_indices)
+        num_observation_time = len(observation_time_indices)
+        assert observation_sequence.shape[0] == num_observation_time
+        num_step = observation_time_indices[-1]
+        state_mean_sequence = np.full((num_observation_time, model.dim_state), np.nan)
+        state_std_sequence = np.full((num_observation_time, model.dim_state), np.nan)
         if return_covar:
-            z_covar_seq = np.full((n_steps, self.dim_z, self.dim_z), np.nan)
-        if n_samples is not None and n_samples > 0:
-            z_samples_seq = np.full((n_steps, n_samples, self.dim_z), np.nan)
-        for t in tqdm.trange(n_steps, desc='Filtering', unit='observation'):
-            if t == 0:
-                z_f_mean = self.init_state_mean
-                z_f_covar = self.init_state_covar
+            state_covar_sequence = np.full(
+                (num_observation_time, model.dim_state, model.dim_state), np.nan
+            )
+        if num_sample is not None and num_sample > 0:
+            state_samples_sequence = np.full(
+                (num_observation_time, num_sample, model.dim_state), np.nan
+            )
+        for s in tqdm.trange(num_step + 1, desc="Filtering", unit="time steps"):
+            if s == 0:
+                state_mean = model.initial_state_mean
+                state_covar = self._add_matrices(
+                    np.zeros((model.dim_state, model.dim_state)),
+                    model.initial_state_covar,
+                )
+                t = 0
             else:
-                z_f_mean, z_f_covar = self.forecast_update(
-                    z_a_mean, z_a_covar, t)
-            z_a_mean, z_a_covar = self.analysis_update(
-                z_f_mean, z_f_covar, x_observed[t], t)
-            z_mean_seq[t] = z_a_mean
-            z_std_seq[t] = z_a_covar.diagonal()**0.5
-            if return_covar:
-                z_covar_seq[t] = z_a_covar
-            if n_samples is not None and n_samples > 0:
-                try:
-                    z_a_covar_sqrt = sla.cholesky(z_a_covar, lower=True)
-                except sla.LinAlgError:
-                    eigval, eigvec = sla.eigh(z_a_covar)
-                    z_a_covar_sqrt = eigvec * np.clip(eigval, 0, None)**0.5
-                norm_smp = self.rng.normal(size=(n_samples, self.dim_z))
-                z_samples_seq[t] = (
-                    z_mean_seq[t][None, :] + norm_smp.dot(z_a_covar_sqrt.T))
-        results = {'z_mean_seq': z_mean_seq, 'z_std_seq': z_std_seq}
+                state_mean, state_covar = self._prediction_update(
+                    model, state_mean, state_covar, s
+                )
+            if s == observation_time_indices[t]:
+                state_mean, state_covar = self._assimilation_update(
+                    model, state_mean, state_covar, observation_sequence[t], s
+                )
+                state_mean_sequence[t] = state_mean
+                state_std_sequence[t] = state_covar.diagonal() ** 0.5
+                if return_covar:
+                    state_covar_sequence[t] = state_covar
+                if num_sample > 0:
+                    try:
+                        sqrt_state_covar = sla.cholesky(state_covar, lower=True)
+                    except sla.LinAlgError:
+                        eigval, eigvec = sla.eigh(state_covar)
+                        sqrt_state_covar = eigvec * np.clip(eigval, 0, None) ** 0.5
+                    state_samples_sequence[t] = (
+                        state_mean[None, :]
+                        + rng.standard_normal((num_sample, model.dim_state))
+                        @ sqrt_state_covar.T
+                    )
+                t += 1
+        results = {
+            "state_mean_sequence": state_mean_sequence,
+            "state_std_sequence": state_std_sequence,
+        }
         if return_covar:
-            results['z_covar_seq'] = z_covar_seq
-        if n_samples is not None and n_samples > 0:
-            results['z_samples_seq'] = z_samples_seq
-            # Also alias under 'z_particles_seq' key for consistency with
+            results["state_covar_sequence"] = state_covar_sequence
+        if num_sample > 0:
+            results["state_samples_sequence"] = state_samples_sequence
+            # Also alias under 'state_particles_sequence' key for consistency with
             # ensemble methods though technically not particle system
-            results['z_particles_seq'] = z_samples_seq
+            results["state_particles_sequence"] = state_samples_sequence
         return results
 
-    def forecast_update(self, z_a_mean_prev, z_a_covar_prev, t):
-        raise NotImplementedError()
-
-    def analysis_update(self, z_f_mean, z_f_covar, x_observed, t):
-        raise NotImplementedError()
-
-
-@inherit_docstrings
-class MatrixKalmanFilter(BaseKalmanFilter):
-    """Exact Kalman filter for linear-Gaussian dynamical systems.
-
-    Assumes the system dynamics are of the form
-
-    z[0] = m + L.dot(u[0])
-    x[0] = H.dot(z[0]) + J.dot(v[0])
-    for t in range(1, T):
-        z[t] = F.dot(z[t-1]) + G.dot(u[t])
-        x[t] = H.dot(z[t]) + J.dot(v[t])
-
-    where
-
-       z[t]: unobserved system state at time index t,
-       x[t]: observed system state at time index t,
-       u[t]: zero-mean identity covariance Gaussian state noise vector at time
-             index t,
-       v[t]: zero-mean identity covariance Gaussian observation noise vector
-             at time index t,
-       m: Initial state distribution mean,
-       L: Lower Cholesky factor of initial state covariance,
-       H: linear observation matrix,
-       J: observation noise transform matrix,
-       F: linear state transition dynamics matrix,
-       G: state noise transform matrix.
-
-    For a model of this form the Kalman filter (forward) updates allow
-    efficient exact calculation of the filtering densities
-
-        p(z[t] = z_ | x[0:t]) = Normal(z_ | z_hat[t], P[t]),
-
-    with the Gaussian form of the filtering densities a result of the
-    linear dynamics and Gaussian noise assumptions.
-
-    References:
-         R. E. Kalman, A new approach to linear filtering and prediction
-         problems, Transactions of the ASME -- Journal of Basic Engineering,
-         Series D, 82 (1960), pp. 35--45.
-    """
-
-    def __init__(self, init_state_mean, init_state_covar, state_trans_matrix,
-                 state_noise_matrix, observation_matrix, obser_noise_matrix,
-                 use_joseph_form=True, rng=None):
-        """
-        Args:
-            init_state_mean (array): Mean of initial state distribution.
-            init_state_covar (array): Covariance matrix of initial state
-                distribution.
-            state_trans_matrix (array): Matrix defining linear state
-                transition dynamics.
-            state_noise_matrix (array): Matrix defining transformation of
-                additive state noise.
-            observation_matrix (array): Matrix defining linear obervation
-                operator.
-            obser_noise_matrix (array): Matrix defining transformation of
-                additive observation noise.
-            use_joseph_form (boolean): Whether to use more numerically stable
-                but also more expensive Joseph's form for the covariance
-                analysis update.
-            rng (RandomState): Numpy RandomState random number generator.
-                Only needs to be specified if samples to be computed during
-                filtering.
-        """
-        super().__init__(
-            init_state_mean, init_state_covar,
-            state_noise_matrix, obser_noise_matrix, rng)
-        self.state_trans_matrix = state_trans_matrix
-        self.observation_matrix = observation_matrix
-        self.use_joseph_form = use_joseph_form
-
-    def forecast_update(self, z_a_mean_prev, z_a_covar_prev, t):
-        z_f_mean = self.state_trans_matrix.dot(z_a_mean_prev)
-        z_f_covar = (
-            self.state_trans_matrix.dot(z_a_covar_prev).dot(
-                self.state_trans_matrix.T) + self.state_noise_covar)
-        return z_f_mean, z_f_covar
-
-    def analysis_update(self, z_f_mean, z_f_covar, x_observed, t):
-        x_f_mean = self.observation_matrix.dot(z_f_mean)
-        x_f_covar = (
-            self.observation_matrix.dot(z_f_covar).dot(
-                self.observation_matrix.T) + self.obser_noise_covar)
-        x_z_f_covar = z_f_covar.dot(self.observation_matrix.T)
-        k_gain = nla.solve(x_f_covar, x_z_f_covar.T).T
-        z_a_mean = z_f_mean + k_gain.dot(x_observed - x_f_mean)
-        if self.use_joseph_form:
-            # use more numerically stable but more expensive Joseph's form
-            # for covariance update
-            covar_trans = (
-                np.eye(self.dim_z) - k_gain.dot(self.observation_matrix))
-            z_a_covar = (
-                covar_trans.dot(z_f_covar).dot(covar_trans.T) +
-                k_gain.dot(self.obser_noise_covar).dot(k_gain.T))
-        else:
-            z_a_covar = z_f_covar - k_gain.dot(x_z_f_covar.T)
-        return z_a_mean, z_a_covar
-
-
-@inherit_docstrings
-class FunctionKalmanFilter(BaseKalmanFilter):
-    """Exact Kalman filter for linear-Gaussian dynamical systems.
-
-    Assumes the linear transition and observation operators are specified
-    as functions rather than explicit matrices, which can be more efficient
-    for some forms of sparse operators.
-
-    Assumes the system dynamics are of the form
-
-    z[0] = m + L.dot(u[0])
-    x[0] = H(z[0]) + J.dot(v[0])
-    for t in range(1, T):
-        z[t] = F(z[t-1]) + G.dot(u[t])
-        x[t] = H(z[t]) + J.dot(v[t])
-
-    where
-
-       z[t]: unobserved system state at time index t,
-       x[t]: observed system state at time index t,
-       u[t]: zero-mean identity covariance Gaussian state noise vector at time
-             index t,
-       v[t]: zero-mean identity covariance Gaussian observation noise vector
-             at time index t,
-       m: Initial state distribution mean,
-       L: Lower Cholesky factor of initial state covariance,
-       H: linear observation operator (specified via observation_func),
-       J: observation noise transform matrix,
-       F: linear state transition dynamics operator (specified via
-             next_state_func),
-       G: state noise transform matrix.
-
-    For a model of this form the Kalman filter (forward) updates allow
-    efficient exact calculation of the filtering densities
-
-        p(z[t] = z_ | x[0:t]) = Normal(z_ | z_hat[t], P[t]),
-
-    with the Gaussian form of the filtering densities a result of the
-    linear dynamics and Gaussian noise assumptions.
-
-    References:
-         R. E. Kalman, A new approach to linear filtering and prediction
-         problems, Transactions of the ASME -- Journal of Basic Engineering,
-         Series D, 82 (1960), pp. 35--45.
-    """
-
-    def __init__(self, init_state_mean, init_state_covar,
-                 next_state_func, state_noise_matrix, observation_func,
-                 obser_noise_matrix, use_joseph_form=True, rng=None):
-        """
-        Args:
-            init_state_mean (array): Mean of initial state distribution.
-            init_state_covar (array): Covariance matrix of initial state
-                distribution.
-            next_state_func (function): Function defining linear state
-                transition dynamics at a given time index.
-            state_noise_matrix (array): Matrix defining transformation of
-                additive state noise.
-            observation_func (function): Matrix defining linear obervation
-                operator at given time index.
-            obser_noise_matrix (array): Matrix defining transformation of
-                additive observation noise.
-            use_joseph_form (boolean): Whether to use more numerically stable
-                but also more expensive Joseph's form for the covariance
-                analysis update.
-            rng (RandomState): Numpy RandomState random number generator.
-                Only needs to be specified if samples to be computed during
-                filtering.
-        """
-        super().__init__(
-            init_state_mean, init_state_covar,
-            state_noise_matrix, obser_noise_matrix, rng)
-        self.next_state_func = next_state_func
-        self.observation_func = observation_func
-        self.use_joseph_form = use_joseph_form
-
-    def forecast_update(self, z_a_mean_prev, z_a_covar_prev, t):
-        z_f_mean = self.next_state_func(z_a_mean_prev, t)
-        z_f_covar = (
-            self.next_state_func(
-                self.next_state_func(z_a_covar_prev, t).T, t) +
-            self.state_noise_covar)
-        return z_f_mean, z_f_covar
-
-    def analysis_update(self, z_f_mean, z_f_covar, x_observed, t):
-        x_f_mean = self.observation_func(z_f_mean, t)
-        x_f_covar = (
-            self.observation_func(
-                self.observation_func(z_f_covar, t).T, t) +
-            self.obser_noise_covar)
-        x_z_f_covar = self.observation_func(z_f_covar, t)
-        k_gain = nla.solve(x_f_covar, x_z_f_covar.T).T
-        z_a_mean = z_f_mean + k_gain.dot(x_observed - x_f_mean)
-        if self.use_joseph_form:
-            # use more numerically stable but more expensive Joseph's form
-            # for covariance update
-            observation_matrix = self.observation_func(np.eye(self.dim_z), t).T
-            covar_trans = (
-                np.eye(self.dim_z) - k_gain.dot(observation_matrix))
-            z_a_covar = (
-                covar_trans.dot(z_f_covar).dot(covar_trans.T) +
-                k_gain.dot(self.obser_noise_covar).dot(k_gain.T))
-        else:
-            z_a_covar = z_f_covar - k_gain.dot(x_z_f_covar.T)
-        return z_a_mean, z_a_covar
-
-
-class SquareRootKalmanFilter(object):
-    """Exact square-root Kalman filter for linear-Gaussian dynamical systems.
-
-    Parameterises covariance of state under filtering distribution via its
-    matrix square root rather than the full covariance matrix which can
-    improve numerical stability.
-    """
-
-    def __init__(self, init_state_mean, init_state_covar,
-                 next_state_func, state_noise_matrix, observation_func,
-                 obser_noise_matrix, init_state_covar_sqrt=None, rng=None):
-        """
-        Args:
-            init_state_mean (array): Mean of initial state distribution.
-            init_state_covar (array): Covariance matrix of initial state
-                distribution.
-            next_state_func (function): Function defining linear state
-                transition dynamics at a given time index.
-            state_noise_matrix (array): Matrix defining transformation of
-                additive state noise.
-            observation_func (function): Matrix defining linear obervation
-                operator at given time index.
-            obser_noise_matrix (array): Matrix defining transformation of
-                additive observation noise.
-            rng (RandomState): Numpy RandomState random number generator.
-                Only needs to be specified if samples to be computed during
-                filtering.
-        """
-        self.init_state_mean = init_state_mean
-        self.dim_z = init_state_mean.shape[0]
-        self.init_state_covar = init_state_covar
-        self.init_state_covar_sqrt = init_state_covar_sqrt
-        self.next_state_func = next_state_func
-        self.state_noise_matrix = state_noise_matrix
-        self.observation_func = observation_func
-        self.obser_noise_matrix = obser_noise_matrix
-        self.obser_noise_covar = obser_noise_matrix.dot(obser_noise_matrix.T)
-        self.rng = rng
-
-    def filter(self, x_observed, n_samples=None, return_covar=False):
-        """Compute filtering density parameters.
+    def _add_matrices(
+        self, matrix: np.ndarray, scalar_or_vector_or_matrix: Union[Number, np.ndarray]
+    ):
+        """Increment matrix by another which may be represented as a scalar or vector.
 
         Args:
-            x_observed (array): Observed state sequence with shape
-                `(n_steps, dim_x)` where `n_steps` is number of time steps in
-                sequence and `dim_x` is dimensionality of observations.
-            n_samples (int): Number of samples from per-time step filtering
-                distributions to return in addition to filtering distribution
-                parameters.
-            return_covar (bool): Whether to return full covariance matrices
-                for each time steps filtering distribution in addition to
-                standard deviations which are always returned.
+            matrix: First matrix to be summed, a 2D array.
+            scalar_or_vector_or_matrix: Second matrix to be summed, either a scalar,
+                vector (1D array) or matrix (2D array). If a scalar the matrix to be
+                added is assumed to be the identity matrix of the same shape as `matrix`
+                multiplied by the scalar. If a vector the matrix to be added is assumed
+                to be a diagonal matrix with the values of the vector along its
+                diagonal.
+
         Returns:
-            Dictionary containing arrays of filtering density parameters -
-                z_mean_seq: Array of filtering distribution means at all time
-                    steps.
-                z_std_seq: Array of filtering distribution standard deviations
-                    at all time steps.
-                z_covar_seq: Array of filtering distribution full covariances
-                    at all time steps (only returned if return_covar=True).
-                z_samples: Array of samples from filtering distributions at
-                    all time steps (only returned if n_samples != None).
+            Computed matrix sum.
         """
-        n_steps, dim_x = x_observed.shape
-        z_mean_seq = np.full((n_steps, self.dim_z), np.nan)
-        z_std_seq = np.full((n_steps, self.dim_z), np.nan)
-        if return_covar:
-            z_covar_seq = np.full(
-                (n_steps, self.dim_z, self.dim_z), np.nan)
-        if n_samples is not None and n_samples > 0:
-            z_samples_seq = np.full((n_steps, n_samples, self.dim_z), np.nan)
-        for t in tqdm.trange(n_steps, desc='Filtering', unit='observation'):
-            # forecast update
-            if t == 0:
-                z_f_mean = self.init_state_mean
-                if self.init_state_covar_sqrt is not None:
-                    z_f_covar_sqrt = self.init_state_covar_sqrt
-                else:
-                    eigval_c, eigvec_c = sla.eigh(self.init_state_covar)
-                    if np.any(eigval_c < -1e-8):
-                        warnings.warn(
-                            'Negative eigenvalue(s) in init_state_covar. '
-                            'Minimum eigenvalue: {0}.'.format(eigval_c.min()))
-                    z_f_covar_sqrt = eigvec_c * np.clip(eigval_c, 0, None)**0.5
+        if (
+            isinstance(scalar_or_vector_or_matrix, np.ndarray)
+            and scalar_or_vector_or_matrix.ndim == 2
+        ):
+            matrix += scalar_or_vector_or_matrix
+            return matrix
+        elif (
+            isinstance(scalar_or_vector_or_matrix, np.ndarray)
+            and scalar_or_vector_or_matrix.ndim == 1
+        ) or isinstance(scalar_or_vector_or_matrix, Number):
+            matrix_diagonal = np.einsum("ii->i", matrix)
+            matrix_diagonal += scalar_or_vector_or_matrix
+            return matrix
+        else:
+            raise ValueError(
+                f"Second argument is of unrecognised type: "
+                f"{type(scalar_or_vector_or_matrix)}."
+            )
+
+    @abc.abstractmethod
+    def _prediction_update(
+        self,
+        model: AbstractLinearGaussianModel,
+        prev_state_mean: np.ndarray,
+        prev_state_covar: np.ndarray,
+        time_index: int,
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        """Predict state mean and covariance from values at previous time index.
+
+        The prediction update only account for the free model dynamics without any
+        adjustment for the observations.
+
+        Args:
+            prev_state_mean: State mean at previous time index `time_index - 1`.
+            prev_state_covar: State covariance at previous time index `time_index - 1`.
+            time_index: Current time index to compute the predicted statistics for.
+
+        Returns:
+            state_mean: Predicted state mean at current time index.
+            state_covar: Predicted state covariance of state at current time index.
+        """
+
+    @abc.abstractmethod
+    def _assimilation_update(
+        self,
+        model: AbstractLinearGaussianModel,
+        state_mean: np.ndarray,
+        state_covar: np.ndarray,
+        observation: np.ndarray,
+        time_index: int,
+    ) -> Tuple[np.ndarray]:
+        """Adjust state mean and covariance for observations at current time index.
+
+        The assimilation update adjust the state mean and covariance from their prior
+        predicted values to their posterior values given the observations at the current
+        time index.
+
+        Args:
+            state_mean: Predicted state mean at current time index `time_index`.
+            state_covar: Predicted state covariance at current time index `time_index`.
+            observation: Observations at current time index `time_index`.
+            time_index: Current time index to assimilate the observations for.
+
+        Returns:
+            post_state_mean: Posterior state mean at current time index.
+            post_state_covar: Posterior state covariance of state at current time index.
+        """
+
+
+class MatrixKalmanFilter(AbstractKalmanFilter):
+    """Exact Kalman filter for linear-Gaussian dynamical systems with matrix operators.
+
+    This variant assumes the linear state transition and observation operators are
+    specified by matrices (NumPy arrays) `state_transition_matrix` and
+    `observation_matrix`.
+
+    Assumes the model dynamics are of the form
+
+        for s in range(num_step + 1):
+            if s == 0:
+                state_sequence[0] = (
+                    model.initial_state_mean +
+                    chol(model.initial_state_covar) @
+                    rng.standard_normal(model.dim_state)
+                )
+                t = 0
             else:
-                z_f_mean = self.next_state_func(z_mean_seq[t-1], t)
-                z_covar_sqrt_ft = self.next_state_func(
-                    z_a_covar_sqrt, t)
-                z_f_covar_sqrt = nla.qr(
-                    np.vstack([z_covar_sqrt_ft, self.state_noise_matrix.T]),
-                    mode='r')
-            # analysis update
-            x_f_mean = self.observation_func(z_f_mean, t)
-            z_f_covar_sqrt_ht = self.observation_func(z_f_covar_sqrt, t)
-            x_f_covar = (
-                z_f_covar_sqrt_ht.T.dot(z_f_covar_sqrt_ht) +
-                self.obser_noise_covar)
-            l_matrix = nla.solve(x_f_covar, z_f_covar_sqrt_ht.T).T
-            z_mean_seq[t] = z_f_mean + z_f_covar_sqrt.T.dot(
-                l_matrix.dot(x_observed[t] - x_f_mean))
-            m_matrix = l_matrix.dot(z_f_covar_sqrt_ht.T)
-            eigval_m, eigvec_m = nla.eigh(m_matrix)
-            if np.any(eigval_m > 1.):
-                warnings.warn('Negative eigenvalue(s) in covariance sqrt'
-                              'root transformation matrix. Min eigenvalue: {0}'
-                              .format(eigval_m.max()))
-            sqrt_trans = (
-                eigvec_m * abs(1 - np.clip(eigval_m, -np.inf, 1.))**0.5
-            ).dot(eigvec_m.T)
-            z_a_covar_sqrt = sqrt_trans.dot(z_f_covar_sqrt)
-            z_std_seq[t] = np.einsum(
-                'ij,ij->i', z_a_covar_sqrt, z_a_covar_sqrt)**0.5
-            if return_covar:
-                z_covar_seq[t] = z_a_covar_sqrt.T.dot(z_a_covar_sqrt)
-            if n_samples is not None and n_samples > 0:
-                norm_smp = self.rng.normal(size=(n_samples, self.dim_z))
-                z_samples_seq[t] = (
-                    z_mean_seq[t][None, :] + norm_smp.dot(z_a_covar_sqrt.T))
-        results = {'z_mean_seq': z_mean_seq, 'z_std_seq': z_std_seq}
-        if return_covar:
-            results['z_covar_seq'] = z_covar_seq
-        if n_samples is not None and n_samples > 0:
-            results['z_samples_seq'] = z_samples_seq
-        return results
+                state_sequence[s] = (
+                    model.state_transition_matrix @ state_sequence[s - 1] +
+                    chol(model.state_noise_covar) @ rng.standard_normal(model.dim_state)
+                )
+            if s == observation_time_indices[t]:
+                observation_sequence[t] = (
+                    model.observation_matrix  @ state_sequence[s]) +
+                    chol(model.observation_noise_covar) @
+                    rng.standard_normal(model.dim_observation)
+                )
+                t += 1
+
+    where `observation_time_indices` is a sequence of integer time indices specifying
+    the observation times, `num_step = max(observation_time_indices)`, `rng` is
+    a random number generator used to generate the required random variates and `chol`
+    is a function computing the lower-triangular Cholesky factor of a positive-definite
+    matrix.
+    """
+
+    def __init__(
+        self, use_joseph_form: bool = True,
+    ):
+        """
+        Args:
+            use_joseph_form: Whether to use more numerically stable but more expensive
+                Joseph's form for the covariance assimilation update.
+        """
+        self.use_joseph_form = use_joseph_form
+
+    def _prediction_update(
+        self,
+        model: AbstractLinearGaussianModel,
+        state_mean: np.ndarray,
+        state_covar: np.ndarray,
+        time_index: int,
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        state_mean = model.state_transition_matrix @ state_mean
+        state_covar = self._add_matrices(
+            model.state_transition_matrix
+            @ state_covar
+            @ model.state_transition_matrix.T,
+            model.state_noise_covar,
+        )
+        return state_mean, state_covar
+
+    def _assimilation_update(
+        self,
+        model: AbstractLinearGaussianModel,
+        state_mean: np.ndarray,
+        state_covar: np.ndarray,
+        observation: np.ndarray,
+        time_index: int,
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        observation_mean = model.observation_matrix @ state_mean
+        observation_covar = self._add_matrices(
+            model.observation_matrix @ state_covar @ model.observation_matrix.T,
+            model.observation_noise_covar,
+        )
+        observation_matrix_state_covar = model.observation_matrix @ state_covar
+        kalman_gain = nla.solve(observation_covar, observation_matrix_state_covar).T
+        state_mean = state_mean + kalman_gain @ (observation - observation_mean)
+        if self.use_joseph_form:
+            # use more numerically stable but more expensive Joseph's form
+            # for covariance update
+            covar_transform = (
+                np.identity(model.dim_state) - kalman_gain @ model.observation_matrix
+            )
+            state_covar = covar_transform @ state_covar @ covar_transform.T
+            if (
+                isinstance(model.observation_noise_covar, np.ndarray)
+                and model.observation_noise_covar.ndim == 2
+            ):
+                state_covar += (
+                    kalman_gain @ model.observation_noise_covar @ kalman_gain.T
+                )
+            else:
+                state_covar += (
+                    kalman_gain * model.observation_noise_covar
+                ) @ kalman_gain.T
+
+        else:
+            state_covar = state_covar - kalman_gain @ observation_matrix_state_covar
+        return state_mean, state_covar
+
+
+class FunctionKalmanFilter(AbstractKalmanFilter):
+    """Exact Kalman filter for linear-Gaussian dynamical systems with function operators
+
+    This variant assumes the linear state transition and observation operators are
+    specified by functions `next_state_mean` and `observation_mean` respectively rather
+    than explicit matrices which can be more efficient when corresponding matrices are
+    sparse and also allows for time-dependent operators.
+
+    Assumes the model dynamics are of the form
+
+        for s in range(num_step + 1):
+            if s == 0:
+                state_sequence[0] = (
+                    model.initial_state_mean +
+                    chol(model.initial_state_covar) @
+                    rng.standard_normal(model.dim_state)
+                )
+                t = 0
+            else:
+                state_sequence[s] = (
+                    model.next_state_mean(state_sequence[s - 1], s - 1) +
+                    chol(model.state_noise_covar) @ rng.standard_normal(model.dim_state)
+                )
+            if s == observation_time_indices[t]:
+                observation_sequence[t] = (
+                    model.observation_mean(state_sequence[s], s) +
+                    chol(model.observation_noise_covar) @
+                    rng.standard_normal(model.dim_observation)
+                )
+                t += 1
+
+    where `observation_time_indices` is a sequence of integer time indices specifying
+    the observation times, `num_step = max(observation_time_indices)`, `rng` is
+    a random number generator used to generate the required random variates and `chol`
+    is a function computing the lower-triangular Cholesky factor of a positive-definite
+    matrix.
+    """
+
+    def _prediction_update(
+        self,
+        model: AbstractLinearGaussianModel,
+        state_mean: np.ndarray,
+        state_covar: np.ndarray,
+        time_index: int,
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        state_mean = model.next_state_mean(state_mean, time_index)
+        state_covar = self._add_matrices(
+            model.next_state_mean(
+                model.next_state_mean(state_covar, time_index).T, time_index,
+            ),
+            model.state_noise_covar,
+        )
+        return state_mean, state_covar
+
+    def _assimilation_update(
+        self,
+        model: AbstractLinearGaussianModel,
+        state_mean: np.ndarray,
+        state_covar: np.ndarray,
+        observation: np.ndarray,
+        time_index: int,
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        observation_mean = model.observation_mean(state_mean, time_index)
+        observation_covar = self._add_matrices(
+            model.observation_mean(
+                model.observation_mean(state_covar, time_index).T, time_index
+            ),
+            model.observation_noise_covar,
+        )
+        observation_matrix_state_covar = model.observation_mean(
+            state_covar, time_index
+        ).T
+        kalman_gain = nla.solve(observation_covar, observation_matrix_state_covar).T
+        state_mean = state_mean + kalman_gain @ (observation - observation_mean)
+        state_covar = state_covar - kalman_gain @ observation_matrix_state_covar
+        # Symmetrize covariance to improve numerical stability
+        # https://stats.stackexchange.com/a/476713
+        state_covar = (state_covar + state_covar.T) / 2
+        return state_mean, state_covar
