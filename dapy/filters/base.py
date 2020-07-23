@@ -1,224 +1,123 @@
 """Base classes for ensemble filters implementing common interface."""
 
+import abc
+from typing import Sequence, Dict
 import numpy as np
-from dapy.utils.doc import inherit_docstrings
+from numpy.random import Generator
+from dapy.models.base import AbstractModel
 import tqdm.auto as tqdm
 
 
-class AbstractEnsembleFilter(object):
+class AbstractEnsembleFilter(abc.ABC):
     """Abstract base class for ensemble filters defining standard interface."""
 
-    def __init__(self, init_state_sampler, next_state_sampler, rng=None):
-        """
-        Args:
-            init_state_sampler (function): Function returning sample(s) from
-                initial state distribution. Takes number of particles to sample
-                as argument.
-            next_state_sampler (function): Function returning sample(s) from
-                distribution on next state given current state(s). Takes array
-                of current state(s) and current time index as arguments.
-            rng (RandomState): Numpy RandomState random number generator.
-        """
-        self.init_state_sampler = init_state_sampler
-        self.next_state_sampler = next_state_sampler
-        if rng is not None:
-            self.rng = rng
-        else:
-            self.rng = np.random.RandomState()
+    @abc.abstractmethod
+    def _assimilation_update(
+        self,
+        model: AbstractModel,
+        rng: Generator,
+        state_particles: np.ndarray,
+        observation: np.ndarray,
+        time_index: int,
+    ) -> np.ndarray:
+        """Adjust state particle ensemble for observations at current time index.
 
-    def analysis_update(self, z_forecast, x_observed, time_index):
-        """Perform analysis update to forecasted states given observations.
+        The assimilation update transforms the prior predicted empirical distribution
+        represented by the state particle ensemble to a particle ensemble corresponding
+        to an empricial estimate of the posterior (filtering) distribution given the
+        observations at the current time index.
 
         Args:
-            z_forecast (array): Two-dimensional array of shape
-                `(n_particle, dim_z)` with each row a state particle generated
+            model: Model to perform assimilation update with.
+            rng: NumPy random number geneator.
+            state_particles: Two-dimensional array of shape
+                `(num_particle, dim_state)` with each row a state particle generated
                 by simulating model dynamics forward from analysis ensemble at
                 previous time step.
-            x_observed (array): One-dimensional array of shape `(dim_x, )`
-                corresponding to current observations vector.
-            time_index (integer): Current time index.
+            observation: Observations at current time index `time_index`.
+            time_index: Current time index to assimilate the observations for.
 
         Returns:
-            z_analysis (array): Two-dimensional array of shape
+            post_state_particles (array): Two-dimensional array of shape
                 `(n_particle, dim_z)` with each row a state particle in
                 analysis ensemble.
-            z_analysis_mean (array): One-dimensional array of shape `(dim_z, )`
+            post_state_mean (array): One-dimensional array of shape `(dim_z, )`
                 corresponding to estimated mean of state analysis distribution.
-            z_analysis_std (array): One-dimensional array of shape `(dim_z, )`
+            post_state_std (array): One-dimensional array of shape `(dim_z, )`
                 corresponding to estimated per-dimension standard deviations
                 of analysis distribution.
         """
-        raise NotImplementedError()
 
-    def filter(self, x_observed_seq, n_particles, return_particles=False):
-        """Compute filtering distribution approximations.
+    def filter(
+        self,
+        model: AbstractModel,
+        observation_sequence: np.ndarray,
+        observation_time_indices: Sequence[int],
+        num_particle: int,
+        rng: Generator,
+        return_particles: bool = False,
+    ) -> Dict[str, np.ndarray]:
+        """Compute particle ensemble approximations of filtering distributions.
 
         Args:
-            x_observed_seq (array): Observed state sequence with shape
-                `(n_steps, dim_x)` where `n_steps` is number of time steps in
-                sequence and `dim_x` is dimensionality of observations.
-            n_particles (integer): Number of particles to use to represent
-                filtering distribution at each time step.
-            return_particles (boolean): Whether to return two-dimensional
-                array of shape `(n_steps, n_particles, dim_z)` containing all
-                state particles at each time step. Potentially memory-heavy
-                for system with large state dimensions.
-
+            model: Generative model for observations.
+            observation_sequence: Observation sequence with shape
+                `(num_observation_time, dim_observation)` where `num_observation_time`
+                is the number of observed time indices in the sequence and
+                `dim_observation` is dimensionality of the observations.
+            observation_time_indices: Sequence of time (step) indices at which state is
+                observed. The sequence elements must be integers. The length of the
+                sequence must correspond to the number of observation times
+                `num_observation_time` represented in the `observation_sequences_array`.
+            num_particle: Number of particles to use in ensembles used to approximate
+                filtering distributions at each time index.
+            rng: NumPy random number generator object.
+            return_particles: Whether to return two-dimensional array of shape
+                `(num_observation_time, num_particle, dim_state)` containing all state
+                particles at each observation time index. Potentially memory-heavy for
+                for models with large state dimensions.
         Returns:
-            Dictionary containing arrays of filtering density parameters -
-                z_mean_seq: Array of filtering density mean for each
-                    dimension at all time steps.
-                z_std_seq: Array of filtering density standard deviation for
-                    each dimension at all time steps.
-                z_particles_seq: Array of particles representing filtering
-                    distribution at each time step (if return_particles==True).
+            Dictionary containing arrays of filtering distribution parameters -
+                state_mean_sequence: Array of filtering distribution means at all
+                    observation time indices. Shape `(num_observation_time, dim_state)`.
+                state_std_sequence: Array of filtering distribution standard deviations
+                    at all at all observation time indices. Shape
+                    `(num_observation_time, dim_state)`.
+                state_particles_sequence: Array of state particle ensemble
+                    approximations to filtering distributions at at all observation time
+                    indices. Only returned if `return_particles == True`. Shape
+                    `(num_observation_time, num_particle, dim_state)`.
         """
-        n_steps, dim_x = x_observed_seq.shape
-        z_forecast = self.init_state_sampler(n_particles)
-        dim_z = z_forecast.shape[1]
-        z_mean_seq, z_std_seq = np.full((2, n_steps, dim_z), np.nan)
+        num_obs_time, dim_observation = observation_sequence.shape
+        observation_time_indices = np.sort(observation_time_indices)
+        num_observation_time = len(observation_time_indices)
+        assert observation_sequence.shape[0] == num_observation_time
+        num_step = observation_time_indices[-1]
+        state_mean_sequence = np.full((num_observation_time, model.dim_state), np.nan)
+        state_std_sequence = np.full((num_observation_time, model.dim_state), np.nan)
         if return_particles:
-            z_particles_seq = np.full((n_steps, n_particles, dim_z), np.nan)
-        for t in tqdm.trange(n_steps, desc='Filtering', unit='observation'):
-            # Forecast update.
-            if t > 0:
-                z_forecast = self.next_state_sampler(z_analysis, t-1)
-            # Analysis update.
-            z_analysis, z_analysis_mean, z_analysis_std = self.analysis_update(
-                z_forecast, x_observed_seq[t], t)
-            # Record updated ensemble statistics.
-            z_mean_seq[t] = z_analysis_mean
-            z_std_seq[t] = z_analysis_std
-            if return_particles:
-                z_particles_seq[t] = z_analysis
-        results = {'z_mean_seq': z_mean_seq, 'z_std_seq': z_std_seq}
+            state_particles_sequence = np.full(
+                (num_obs_time, num_particle, model.dim_state), np.nan
+            )
+        for s in tqdm.trange(num_step + 1, desc="Filtering", unit="time steps"):
+            if s == 0:
+                state_particles = model.sample_initial_state(rng, num_particle)
+                t = 0
+            else:
+                state_particles = model.sample_state_transition(rng, state_particles, s)
+            if s == observation_time_indices[t]:
+                state_particles, state_mean, state_std = self._assimilation_update(
+                    model, rng, state_particles, observation_sequence[t], s
+                )
+                state_mean_sequence[t] = state_mean
+                state_std_sequence[t] = state_std
+                if return_particles:
+                    state_particles_sequence[t] = state_particles
+                t += 1
+        results = {
+            "state_mean_sequence": state_mean_sequence,
+            "state_std_sequence": state_std_sequence,
+        }
         if return_particles:
-            results['z_particles_seq'] = z_particles_seq
+            results["state_particles_sequence"] = state_particles_sequence
         return results
-
-
-@inherit_docstrings
-class AbstractLocalEnsembleFilter(AbstractEnsembleFilter):
-    """Localised ensemble filter base class for spatially extended models.
-
-    Assumes system state and observations are defined over a fixed set of
-    points in a spatial domain and that dependencies between state values at a
-    point and observations are signficant only for observations in a localised
-    region around the state location. It is further assumed here that the
-    observations at a time point are conditionally independent given the state
-    with a diagonal covariance Gaussian conditional distribution. Under these
-    assumptions, when performing the analysis update to the forecasted state
-    ensemble to take in to account the observations at a given time index, the
-    ensemble state values at each grid point can each be updated independently
-    based only a local subset of the observations.
-    """
-
-    def __init__(self, init_state_sampler, next_state_sampler,
-                 observation_func, obser_noise_std, n_grid, localisation_func,
-                 rng=None):
-        """
-        Args:
-            init_state_sampler (function): Function returning sample(s) from
-                initial state distribution. Takes number of particles to sample
-                as argument.
-            next_state_sampler (function): Function returning sample(s) from
-                distribution on next state given current state(s). Takes array
-                of current state(s) and current time index as
-                arguments.
-            observation_func (function): Function returning pre-noise
-                observations given current state(s). Takes array of current
-                state(s) and current time index as arguments.
-            obser_noise_std (array): One-dimensional array defining standard
-                deviations of additive Gaussian observation noise on each
-                dimension with it assumed that the noise is independent across
-                dimensions i.e. a diagonal observation noise covariance matrix.
-            n_grid (integer): Number of spatial points over which state is
-                defined. Typically points will be on a rectilinear grid though
-                this is not actually required. It is assumed that if `z` is a
-                state vector of size `dim_z` then `dim_z % n_grid == 0` and
-                that `z` is ordered such that iterating over the last
-                dimension of a reshaped array
-                    z_grid = z.reshape((dim_z // n_grid, n_grid))
-                will correspond to iterating over the state component values
-                across the different spatial (grid) locations.
-            localisation_func (function): Function (or callable object) which
-                given an index corresponding to a spatial grid point (i.e.
-                the iteration index over the last dimension of a reshaped
-                array `z_grid` as described above) will return an array of
-                integer indices into an observation vector and corresponding
-                array of weight coefficients specifying the observation vector
-                entries 'local' to state grid point described by the index and
-                there corresponding weights (with closer observations
-                potentially given larger weights).
-            rng (RandomState): Numpy RandomState random number generator.
-        """
-        super(AbstractLocalEnsembleFilter, self).__init__(
-                init_state_sampler=init_state_sampler,
-                next_state_sampler=next_state_sampler, rng=rng
-        )
-        self.observation_func = observation_func
-        self.obser_noise_std = obser_noise_std
-        self.n_grid = n_grid
-        self.localisation_func = localisation_func
-
-    def analysis_update(self, z_forecast, x_observed, time_index):
-        n_particles = z_forecast.shape[0]
-        z_forecast_grid = z_forecast.reshape((n_particles, -1, self.n_grid))
-        x_forecast = self.observation_func(z_forecast, time_index)
-        z_analysis_grid = np.empty(z_forecast_grid.shape)
-        for grid_index in range(self.n_grid):
-            obs_indices, obs_weights = self.localisation_func(grid_index)
-            z_forecast_local = z_forecast_grid[:, :, grid_index]
-            x_forecast_local = x_forecast[:, obs_indices]
-            x_observed_local = x_observed[obs_indices]
-            obs_noise_std_local = self.obser_noise_std[obs_indices]
-            z_analysis_grid[:, :, grid_index] = self.local_analysis_update(
-                z_forecast_local, x_forecast_local, x_observed_local,
-                obs_noise_std_local, obs_weights)
-        z_analysis = z_analysis_grid.reshape((n_particles, -1))
-        return z_analysis, z_analysis.mean(0), z_analysis.std(0)
-
-    def local_analysis_update(self, z_forecast, x_forecast, x_observed,
-                              obs_noise_std, localisation_weights):
-        """Perform a local analysis update for the state at a grid point.
-
-        Args:
-            z_forecast (array): Two-dimensional array of shape
-                `(n_particles, dim_z_local)` where `n_particles` is the number
-                of particles in the ensemble and `dim_z_local` is the dimension
-                of the local state at each spatial location / grid point, with
-                each row the local state values of an ensemble member.
-            x_forecast (array): Two-dimensional array of shape
-                `(n_particles, dim_x_local)` where `n_particles` is the number
-                of particles in the ensemble and `dim_x_local` is the dimension
-                of the vector of observations local to the current state
-                spatial location / grid point, with each row the forecasted
-                local observation values for an ensemble member.
-            x_observed (array): One-dimensional array of shape `(dim_x_local)`
-                where `dim_x_local` is the dimension of the vector of
-                observations local to the current state spatial location /
-                grid point, with entries corresponding to the local values of
-                the observations at the current time point.
-            obs_noise_std (array): One-dimensional array of shape
-                `(dim_x_local)` where `dim_x_local` is the dimension of the
-                vector of observations local to the current state spatial
-                location / grid point, with entries corresponding to the
-                standard deviations of each local observed variable given the
-                current state variable values.
-            localisation_weights (array): One-dimensional array of shape
-                `(dim_x_local)` where `dim_x_local` is the dimension of the
-                vector of observations local to the current state spatial
-                location / grid point, with entries corresponding to weights
-                for each local observed variable in [0, 1] to modulate the
-                strength of the effect of each local observation on the
-                updated state values based on the distance between the state
-                spatial location / grid point and observation point.
-
-        Returns:
-            Two-dimensional array of shape `(n_particles, dim_z_local)` where
-            `n_particles` is the number of particles in the ensemble and
-            `dim_z_local` is the dimension of the local state at each spatial
-            location / grid point, with each row the local updated analysis
-            state values of each ensemble member.
-        """
-        raise NotImplementedError()
