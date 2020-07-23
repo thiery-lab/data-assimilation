@@ -107,7 +107,7 @@ if args.use_cython:
 
 packages = [
     'dapy',
-    'dapy.inference',
+    'dapy.filters',
     'dapy.integrators',
     'dapy.models',
     'dapy.ot',
