@@ -1,15 +1,18 @@
 """Data assimilation inference methods."""
 
-from dapy.inference.enkf import (
-    EnsembleKalmanFilter, EnsembleSquareRootFilter,
-    WoodburyEnsembleSquareRootFilter, LocalEnsembleTransformKalmanFilter)
-from dapy.inference.kf import (
-    MatrixKalmanFilter, FunctionKalmanFilter, SquareRootKalmanFilter)
-from dapy.inference.pf import (
-    BootstrapParticleFilter, EnsembleTransformParticleFilter,
+from dapy.filters.ensemble_kalman import (
+    EnsembleKalmanFilter,
+    EnsembleSquareRootFilter,
+    WoodburyEnsembleSquareRootFilter,
+    LocalEnsembleTransformKalmanFilter,
+)
+from dapy.filters.kalman import MatrixKalmanFilter, FunctionKalmanFilter
+from dapy.filters.particle import (
+    BootstrapParticleFilter,
+    EnsembleTransformParticleFilter,
     LocalEnsembleTransformParticleFilter,
-    ScalableLocalEnsembleTransportParticleFilter)
+    ScalableLocalEnsembleTransportParticleFilter,
+)
 
-__all__ = ['enkf', 'kf', 'pf']
-__authors__ = 'Matt Graham'
-__license__ = 'MIT'
+__authors__ = "Matt Graham"
+__license__ = "MIT"
