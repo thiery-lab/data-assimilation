@@ -1,15 +1,17 @@
-"""Data assimilation inference methods."""
+"""Filters for sequential inference in state-space models."""
 
 from dapy.filters.ensemble_kalman import (
     EnsembleKalmanFilter,
     EnsembleSquareRootFilter,
     WoodburyEnsembleSquareRootFilter,
-    LocalEnsembleTransformKalmanFilter,
 )
 from dapy.filters.kalman import MatrixKalmanFilter, FunctionKalmanFilter
 from dapy.filters.particle import (
     BootstrapParticleFilter,
     EnsembleTransformParticleFilter,
+)
+from dapy.filters.local import (
+    LocalEnsembleTransformKalmanFilter,
     LocalEnsembleTransformParticleFilter,
     ScalableLocalEnsembleTransportParticleFilter,
 )
