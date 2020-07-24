@@ -9,11 +9,11 @@ Model originally proposed in:
 
 from typing import Optional, Union, Callable
 import numpy as np
-from dapy.models.base import DiagonalGaussianModel, IntegratorModel
+from dapy.models.base import AbstractDiagonalGaussianModel, AbstractIntegratorModel
 from dapy.integrators.lorenz_1996 import Lorenz1996Integrator
 
 
-class Lorenz1996Model(IntegratorModel, DiagonalGaussianModel):
+class Lorenz1996Model(AbstractIntegratorModel, AbstractDiagonalGaussianModel):
     """Model on periodic one-dimensional spatial domain and chaotic non-linear dynamics.
 
     Model dynamics defined by the system of ODEs
@@ -63,7 +63,7 @@ class Lorenz1996Model(IntegratorModel, DiagonalGaussianModel):
                 points in the discretization of the spatial domain.
             init_state_mean: Initial state distribution mean. Either a scalar or an
                 array of shape `(dim_state,)`.
-            init_state_std: Initial state distribution standard deviation. Either a 
+            init_state_std: Initial state distribution standard deviation. Either a
                 scalar or an array of shape `(dim_state,)`.
             state_noise_std: Standard deviation of additive Gaussian noise in state
                 update. Either a scalar or an array of shape `(dim_state,)`. Noise in

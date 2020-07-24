@@ -8,10 +8,10 @@ Model originally proposed in:
 """
 
 import numpy as np
-from dapy.models.base import DiagonalGaussianModel
+from dapy.models.base import AbstractDiagonalGaussianModel
 
 
-class NettoGimenoMendesModel(DiagonalGaussianModel):
+class NettoGimenoMendesModel(AbstractDiagonalGaussianModel):
     """One-dimensional model with non-linear dynamics and observation operator.
 
     State update defined as
@@ -34,7 +34,7 @@ class NettoGimenoMendesModel(DiagonalGaussianModel):
 
     References:
 
-        1. M. L. A. Netto, L. Gimeno, and M. J. Mendes.  
+        1. M. L. A. Netto, L. Gimeno, and M. J. Mendes.
            A new spline algorithm for non-linear filtering of discrete time
            systems. Proceedings of the 7th Triennial World Congress, 1979.
     """

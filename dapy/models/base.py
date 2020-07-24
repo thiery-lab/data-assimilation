@@ -1,8 +1,11 @@
-"""Base classes for models."""
+"""Base classes for state-space models."""
 
 import abc
 from typing import Optional, Union, Sequence
+from numbers import Number
 import numpy as np
+import numpy.linalg as nla
+import scipy.linalg as sla
 from numpy.random import Generator
 import tqdm.auto as tqdm
 
@@ -17,7 +20,7 @@ class DensityNotDefinedError(Exception):
 
 
 class AbstractModel(abc.ABC):
-    """Abstract dynamical model base class.
+    """Abstract state space model base class.
 
     The modelled system dynamics are of the form
 
@@ -89,7 +92,7 @@ class AbstractModel(abc.ABC):
         """
 
     def sample_state_transition(
-        self, rng: Generator, states: np.ndarray, t: int
+        self, rng: Generator, states: np.ndarray, time_index: int
     ) -> np.ndarray:
         """Independently sample next state(s) given current state(s).
 
@@ -97,7 +100,7 @@ class AbstractModel(abc.ABC):
             states: Array of model state(s) at time index `t`. Either of shape
                 `(num_state, dim_state)` if multiple states are to be propagated or
                 shape `(dim_state,)` if a single state is to be propagated.
-            t: Current time index.
+            time_index: Current time index.
 
         Returns:
             Array containing samples of state(s) at time index `t+1`. Either of shape
@@ -109,7 +112,7 @@ class AbstractModel(abc.ABC):
             states_was_one_dimensional = True
         else:
             states_was_one_dimensional = False
-        next_states = self._sample_state_transition(rng, states, t)
+        next_states = self._sample_state_transition(rng, states, time_index)
         if states_was_one_dimensional:
             return next_states[0]
         else:
@@ -117,7 +120,7 @@ class AbstractModel(abc.ABC):
 
     @abc.abstractmethod
     def _sample_state_transition(
-        self, rng: Generator, states: np.ndarray, t: int
+        self, rng: Generator, states: np.ndarray, time_index: int
     ) -> np.ndarray:
         """Internal implementation of `sample_state_transition` method.
 
@@ -126,7 +129,7 @@ class AbstractModel(abc.ABC):
         Args:
             states: Array of model states at time index `t`  of shape
                 `(num_state, dim_state)`.
-            t: Current time index.
+            time_index: Current time index.
 
         Returns:
             Array containing samples of states at time index `t+1` of shape
@@ -134,7 +137,7 @@ class AbstractModel(abc.ABC):
         """
 
     def sample_observation_given_state(
-        self, rng: Generator, states: np.ndarray, t: int
+        self, rng: Generator, states: np.ndarray, time_index: int
     ) -> np.ndarray:
         """Independently sample observation(s) given current state(s).
 
@@ -142,7 +145,7 @@ class AbstractModel(abc.ABC):
             states: Array of model state(s) at time index `t`. Either of shape
             `(num_state, dim_state)` if multiple observations are to be generated or
             shape `(dim_state,)` if a single observation is to be generated.
-            t: Current time index.
+            time_index: Current time index.
 
         Returns:
             Array containing samples of state(s) at time index `t+1`. Either of
@@ -154,7 +157,7 @@ class AbstractModel(abc.ABC):
             states_was_one_dimensional = True
         else:
             states_was_one_dimensional = False
-        observations = self._sample_observation_given_state(rng, states, t)
+        observations = self._sample_observation_given_state(rng, states, time_index)
         if states_was_one_dimensional:
             return observations[0]
         else:
@@ -162,7 +165,7 @@ class AbstractModel(abc.ABC):
 
     @abc.abstractmethod
     def _sample_observation_given_state(
-        self, rng: Generator, states: np.ndarray, t: int
+        self, rng: Generator, states: np.ndarray, time_index: int
     ) -> np.ndarray:
         """Internal implementation of `sample_observation_given_state` method.
 
@@ -171,7 +174,7 @@ class AbstractModel(abc.ABC):
         Args:
             states: Array of model states at time index `t` of shape
                 `(num_state, dim_state)`.
-            t: Current time index.
+            time_index: Current time index.
 
         Returns:
             Array containing samples of states at time index `t+1` of shape
@@ -263,7 +266,7 @@ class AbstractModel(abc.ABC):
 
     @abc.abstractmethod
     def log_density_state_transition(
-        self, next_states: np.ndarray, states: np.ndarray, t: int
+        self, next_states: np.ndarray, states: np.ndarray, time_index: int
     ) -> np.ndarray:
         """Calculate log probability density of a transition between states.
 
@@ -276,7 +279,7 @@ class AbstractModel(abc.ABC):
                 `(num_state, dim_state)` if the density is to be evalulated at multiple
                 state pairs or shape `(dim_state,)` if density is to be evaluated for a
                 single state pair.
-            t: Current time index.
+            time_index: Current time index.
 
         Returns:
             Array of log conditional probability densities of next state given current
@@ -286,7 +289,7 @@ class AbstractModel(abc.ABC):
 
     @abc.abstractmethod
     def log_density_observation_given_state(
-        self, observations: np.ndarray, states: np.ndarray, t: int
+        self, observations: np.ndarray, states: np.ndarray, time_index: int
     ) -> np.ndarray:
         """Calculate log probability density of observation(s) given state(s).
 
@@ -299,7 +302,7 @@ class AbstractModel(abc.ABC):
                 `(num_state, dim_state)` if the density is to be evalulated at multiple
                 observations or shape `(dim_state,)` if density is to be evaluated for
                 a single observation.
-            t: Current time index.
+            time_index: Current time index.
 
         Returns:
             Array of log conditional probability densities of observation given state
@@ -378,7 +381,209 @@ class AbstractModel(abc.ABC):
         return log_density
 
 
-class DiagonalGaussianObservationModel(AbstractModel):
+def _increment_matrix(
+    matrix: np.ndarray, scalar_or_vector_or_matrix: Union[Number, np.ndarray]
+) -> np.ndarray:
+    """Increment matrix by another which may be represented as a scalar or vector.
+
+    Args:
+        matrix: Matrix to be incremented, a 2D array. Updated in-place where possible.
+        scalar_or_vector_or_matrix: Representation of second matrix to add to `matrix`.
+            Either a scalar, vector (1D array) or matrix (2D array). If a scalar the
+            matrix to be added is assumed to be the identity matrix of the same shape as
+            `matrix` multiplied by the scalar. If a vector the matrix to be added is
+            assumed to be a diagonal matrix with the values of the vector along its
+            diagonal.
+
+    Returns:
+        Computed matrix sum.
+    """
+    if (
+        isinstance(scalar_or_vector_or_matrix, np.ndarray)
+        and scalar_or_vector_or_matrix.ndim == 2
+    ):
+        matrix += scalar_or_vector_or_matrix
+        return matrix
+    elif (
+        isinstance(scalar_or_vector_or_matrix, np.ndarray)
+        and scalar_or_vector_or_matrix.ndim == 1
+    ) or isinstance(scalar_or_vector_or_matrix, Number):
+        matrix_diagonal = np.einsum("ii->i", matrix)
+        matrix_diagonal += scalar_or_vector_or_matrix
+        return matrix
+    else:
+        raise ValueError(
+            f"Second argument is of unrecognised type: "
+            f"{type(scalar_or_vector_or_matrix)}."
+        )
+
+
+def _postmultiply_matrix(
+    matrix: np.ndarray, scalar_or_vector_or_matrix: Union[Number, np.ndarray]
+) -> np.ndarray:
+    """Postmultiply matrix by another which may be represented as a scalar or vector.
+
+    Args:
+        matrix: Matrix to be multiplied, a 2D array.
+        scalar_or_vector_or_matrix: Representation of second matrix to Postmultiply
+            `matrix` by. Either a scalar, vector (1D array) or matrix (2D array). If a
+            scalar the matrix to be postmultiplied by is assumed to be the identity
+            matrix of the same shape as `matrix` multiplied by the scalar. If a vector
+            the matrix to be postmultiplied by is assumed to be a diagonal matrix with
+            the values of the vector along its diagonal.
+
+    Returns:
+        Computed matrix product.
+    """
+    if (
+        isinstance(scalar_or_vector_or_matrix, np.ndarray)
+        and scalar_or_vector_or_matrix.ndim == 2
+    ):
+        return matrix @ scalar_or_vector_or_matrix
+    elif (
+        isinstance(scalar_or_vector_or_matrix, np.ndarray)
+        and scalar_or_vector_or_matrix.ndim == 1
+    ) or isinstance(scalar_or_vector_or_matrix, Number):
+        return matrix * scalar_or_vector_or_matrix
+    else:
+        raise ValueError(
+            f"Second argument is of unrecognised type: "
+            f"{type(scalar_or_vector_or_matrix)}."
+        )
+
+
+class AbstractGaussianObservationModel(AbstractModel):
+    """Abstract model base class with Gaussian observation noise distributions.
+
+    The modelled system dynamics are of the form
+
+        for s in range(num_step):
+            if s == 0:
+                state_sequence[0] = model.sample_initial_state(rng)
+                t = 0
+            else:
+                state_sequence[s] = model.sample_state_transition(
+                    rng, state_sequence[s - 1], s - 1)
+            if s == observation_time_indices[t]:
+                observation_sequence[t] = (
+                    model.observation_mean(state_sequence[t], t)
+                    + chol(model.observation_noise_covar) @
+                    rng.standard_normal(model.dim_observation)
+                )
+                t += 1
+
+    This corresponds to assuming the conditional distribution of the current observation
+    given current state takes the form of a multivariate Gaussian distribution.
+    """
+
+    def __init__(
+        self,
+        dim_state: int,
+        dim_observation: int,
+        observation_noise_covar: Union[Number, np.ndarray],
+        **kwargs,
+    ):
+        """
+        Args:
+            dim_state: Dimension of model state vector.
+            dim_observation: Dimension of observation vector.
+            observation_noise_covar: Covariance of additive Gaussian noise in
+                observations. Either a scalar, 1D array of shape `(dim_observation,)` or
+                2D array of shape `(dim_observation, dim_observation)`.. If a scalar the
+                covariance matrix will assume to be the identity scaled by this value.
+                If a 1D array the covariance matrix will be assumed to be diagonal with
+                the array specifying the diagonal values. If a 2D array the covariance
+                will be assumed to be specified directly by the array.
+        """
+        self._observation_noise_covar = observation_noise_covar
+        super().__init__(dim_state=dim_state, dim_observation=dim_observation, **kwargs)
+
+    def increment_by_observation_noise_covar(self, matrix: np.ndarray) -> np.ndarray:
+        """Adds observation noise covariance to another matrix.
+
+        Args:
+            matrix: Matrix to be incremented, a 2D array. Updated in-place where
+                possible.
+
+        Returns:
+            Computed matrix sum.
+        """
+        return _increment_matrix(matrix, self._observation_noise_covar)
+
+    def postmultiply_by_observation_noise_covar(self, matrix: np.ndarray) -> np.ndarray:
+        """Postmultiply another matrix by observation noise covariance matrix.
+
+        Args:
+            matrix: Matrix to be postmultiplied, a 2D array.
+
+        Returns:
+            Computed matrix product `matrix @ observation_noise_covar`.
+        """
+        return _postmultiply_matrix(matrix, self._observation_noise_covar)
+
+    def premultiply_by_inv_observation_noise_covar(
+        self, matrix: np.ndarray
+    ) -> np.ndarray:
+        """Premultiply another matrix by inverse of observation noise covariance matrix.
+
+        Args:
+            matrix: Matrix to be premultiplied, a 2D array.
+
+        Returns:
+            Computed matrix product `inv(observation_noise_covar) @ matrix`.
+        """
+        if isinstance(self._observation_noise_covar, Number) or (
+            isinstance(self._observation_noise_covar, np.ndarray)
+            and self._observation_noise_covar.ndim == 1
+        ):
+            return matrix / self._observation_noise_covar
+        else:
+            if not hasattr(self, "_chol_observation_noise_covar"):
+                self._chol_observation_noise_covar = nla.cholesky(
+                    self._observation_noise_covar
+                )
+            return sla.cho_solve((self._chol_observation_noise_covar, True), matrix)
+
+    def observation_mean(self, states: np.ndarray, time_index: int) -> np.ndarray:
+        """Computes mean of observation(s) given state(s) at time index `t`.
+
+        Args:
+            states: Array of model state(s) at time index `t`. Either of shape
+                `(num_state, dim_state)` if the mean is to be evalulated for multiple
+                observations or shape `(dim_state,)` if mean is to be evaluated for
+                a single observation.
+            time_index: Current time index.
+
+        Returns:
+            Array corresponding to mean of observations at time index `t`, of shape
+            `(num_state, dim_observation)` if a 2D `states` array is passed or of shape
+            `(dim_observation,`) otherwise.
+        """
+        return self._observation_mean(states, time_index)
+
+    @abc.abstractmethod
+    def _observation_mean(self, states: np.ndarray, time_index: int) -> np.ndarray:
+        """Internal implementation of `observation_mean` method.
+
+        Should be called in preference to `observation_mean` internally by other
+        methods to allow use of mix-ins to change behaviour of `observation_mean`
+        without affecting internal use.
+
+        Args:
+            states: Array of model state(s) at time index `t` of shape
+                `(num_state, dim_state)` if the mean is to be evalulated for multiple
+                observations or shape `(dim_state,)` if mean is to be evaluated for
+                a single observation.
+            time_index: Current time index.
+
+        Returns:
+            Array corresponding to mean of observations at time index `t`, of shape
+            `(num_state, dim_observation)` if a 2D `states` array is passed or of shape
+            `(dim_observation,`) otherwise.
+        """
+
+
+class AbstractDiagonalGaussianObservationModel(AbstractGaussianObservationModel):
     """Abstract model base class with diagonal Gaussian observation noise distributions.
 
     The modelled system dynamics are of the form
@@ -407,8 +612,8 @@ class DiagonalGaussianObservationModel(AbstractModel):
         self,
         dim_state: int,
         dim_observation: int,
-        observation_noise_std: Union[float, np.ndarray],
-        **kwargs
+        observation_noise_std: Union[Number, np.ndarray],
+        **kwargs,
     ):
         """
         Args:
@@ -419,62 +624,29 @@ class DiagonalGaussianObservationModel(AbstractModel):
                 each dimension assumed to be independent i.e. diagonal noise covariance.
         """
         self._observation_noise_std = observation_noise_std
-        super().__init__(dim_state=dim_state, dim_observation=dim_observation, **kwargs)
-
-    def observation_mean(self, states: np.ndarray, t: int) -> np.ndarray:
-        """Computes mean of observation(s) given state(s) at time index `t`.
-
-        Args:
-            states: Array of model state(s) at time index `t`. Either of shape
-                `(num_state, dim_state)` if the mean is to be evalulated for multiple
-                observations or shape `(dim_state,)` if mean is to be evaluated for
-                a single observation.
-            t: Current time index.
-
-        Returns:
-            Array corresponding to mean of observations at time index `t`, of shape
-            `(num_state, dim_observation)` if a 2D `states` array is passed or of shape
-            `(dim_observation,`) otherwise.
-        """
-        return self._observation_mean(states, t)
-
-    @abc.abstractmethod
-    def _observation_mean(self, states: np.ndarray, t: int) -> np.ndarray:
-        """Internal implementation of `observation_mean` method.
-
-        Should be called in preference to `observation_mean` internally by other
-        methods to allow use of mix-ins to change behaviour of `observation_mean`
-        without affecting internal use.
-
-        Args:
-            states: Array of model state(s) at time index `t` of shape
-                `(num_state, dim_state)` if the mean is to be evalulated for multiple
-                observations or shape `(dim_state,)` if mean is to be evaluated for
-                a single observation.
-            t: Current time index.
-
-        Returns:
-            Array corresponding to mean of observations at time index `t`, of shape
-            `(num_state, dim_observation)` if a 2D `states` array is passed or of shape
-            `(dim_observation,`) otherwise.
-        """
+        super().__init__(
+            dim_state=dim_state,
+            dim_observation=dim_observation,
+            observation_noise_covar=observation_noise_std ** 2,
+            **kwargs,
+        )
 
     def _sample_observation_given_state(
-        self, rng: Generator, states: np.ndarray, t: int
+        self, rng: Generator, states: np.ndarray, time_index: int
     ) -> np.ndarray:
         return self._observation_mean(
-            states, t
+            states, time_index
         ) + self._observation_noise_std * rng.standard_normal(
             (states.shape[0], self.dim_observation)
         )
 
     def log_density_observation_given_state(
-        self, observations: np.ndarray, states: np.ndarray, t: int
+        self, observations: np.ndarray, states: np.ndarray, time_index: int
     ) -> np.ndarray:
         return -(
             0.5
             * (
-                (observations - self._observation_mean(states, t))
+                (observations - self._observation_mean(states, time_index))
                 / self._observation_noise_std
             )
             ** 2
@@ -483,7 +655,161 @@ class DiagonalGaussianObservationModel(AbstractModel):
         ).sum(-1)
 
 
-class DiagonalGaussianStateNoiseModel(AbstractModel):
+class AbstractGaussianStateModel(AbstractModel):
+    """Abstract model base class with Gaussian state distributions.
+
+    The modelled system dynamics are of the form
+
+        for s in range(num_step):
+            if s == 0:
+                state_sequence[0] = rng.multivariate_normal(
+                    model.initial_state_mean, model.initial_state_covar)
+                t = 0
+            else:
+                state_sequence[s] = (
+                    model.next_state_mean(state_sequence[s - 1], s - 1)
+                    + rng.multivariate_normal(
+                        np.zeros(model.dim_state), model.state_noise_covar)
+                )
+            if s == observation_time_indices[t]:
+                observation_sequence[t] = model.sample_observation_given_state(
+                    rng, state_sequence[s], s)
+                t += 1
+
+    This corresponds to assuming the initial state distribution and conditional
+    distribution of the next state given current take the form of multivariate Gaussian
+    distributions. In the case of deterministic state updates, i.e. zero state noise,
+    the conditional distribution of the next state given the current state will be a
+    Dirac measure with all mass located at the forward map of the current state through
+    the state dynamics function and so will not have a density with respect to the
+    Lebesgue measure.
+    """
+
+    def __init__(
+        self,
+        dim_state: int,
+        dim_observation: int,
+        initial_state_mean: Union[Number, np.ndarray],
+        initial_state_covar: Union[Number, np.ndarray],
+        state_noise_covar: Union[Number, np.ndarray],
+        **kwargs,
+    ):
+        """
+        Args:
+            dim_state: Dimension of model state vector.
+            dim_obs: Dimension of observation vector.
+            initial_state_mean: Initial state distribution mean. Either a scalar or
+                array of shape `(dim_state,)`. If a scalar the mean will be assumed to
+                be the scalar multiplied by a vector of ones.
+            initial_state_covar: Covariance of Gaussian initial state distribution.
+                Either a scalar, 1D array of shape `(dim_state,)` or 2D array of shape
+                `(dim_state, dim_state)`. If a scalar the covariance matrix will assume
+                to be the identity scaled by this value. If a 1D array the covariance
+                matrix will be assumed to be diagonal with the array specifying the
+                diagonal values. If a 2D array the covariance will be assumed to be
+                specified directly by the array.
+            state_noise_covar: Covariance of Gaussian state noise distribution. Either
+                a scalar, 1D array of shape `(dim_state,)` or 2D array of shape
+                `(dim_state, dim_state)`. If a scalar the covariance matrix will assume
+                to be the identity scaled by this value. If a 1D array the covariance
+                matrix will be assumed to be diagonal with the array specifying the
+                diagonal values. If a 2D array the covariance will be assumed to be
+                specified directly by the array.
+        """
+        self._initial_state_mean = initial_state_mean
+        self._initial_state_covar = initial_state_covar
+        if np.all(state_noise_covar == 0.0):
+            self._deterministic_state_update = True
+        else:
+            self._deterministic_state_update = False
+        self._state_noise_covar = state_noise_covar
+        super().__init__(dim_state=dim_state, dim_observation=dim_observation, **kwargs)
+
+    def increment_by_state_noise_covar(self, matrix: np.ndarray) -> np.ndarray:
+        """Adds state noise covariance to another matrix.
+
+        Args:
+            matrix: Matrix to be incremented, a 2D array. Updated in-place where
+                possible.
+
+        Returns:
+            Computed matrix sum.
+        """
+        return _increment_matrix(matrix, self._state_noise_covar)
+
+    @property
+    def initial_state_mean(self) -> np.ndarray:
+        """Mean of initial state distribution."""
+        if isinstance(self._initial_state_mean, np.ndarray):
+            return self._initial_state_mean
+        elif isinstance(self._initial_state_mean, Number):
+            return self._initial_state_mean * np.ones(self.dim_state)
+        else:
+            raise NotImplementedError()
+
+    @property
+    def initial_state_covar(self) -> np.ndarray:
+        """Covariance of initial state distribution."""
+        if (
+            isinstance(self._initial_state_covar, np.ndarray)
+            and self._initial_state_covar.ndim == 2
+        ):
+            return self._initial_state_covar
+        elif (
+            isinstance(self._initial_state_covar, np.ndarray)
+            and self._initial_state_covar.ndim == 1
+        ):
+            return np.diag(self._initial_state_covar)
+        elif isinstance(self._initial_state_mean, Number):
+            return self._initial_state_covar * np.identity(self.dim_state)
+        else:
+            raise NotImplementedError()
+
+    def next_state_mean(self, states: np.ndarray, time_index: int) -> np.ndarray:
+        """Computes mean of next state(s) given current state(s).
+
+        Implements determinstic component of state update dynamics with new state
+        calculated by output of this function plus additive zero-mean Gaussian noise.
+        For models with fully-determinstic state dynamics no noise is added so this
+        function exactly calculates the next state.
+
+        Args:
+            states: Array of model state(s) at time index `t`. Either of shape
+                `(num_state, dim_state)` if the mean is to be evalulated for multiple
+                states or shape `(dim_state,)` if mean is to be evaluated for a single
+                state.
+            time_index: Current time index.
+
+        Returns:
+            Array corresponding to mean of states at time index `t + 1`, of shape
+            `(num_state, dim_state)` if a 2D `states` array is passed or of shape
+            `(dim_state,`) otherwise.
+        """
+        return self._next_state_mean(states, time_index)
+
+    @abc.abstractmethod
+    def _next_state_mean(self, states: np.ndarray, time_index: int) -> np.ndarray:
+        """Internal implementation of `next_state_mean` method.
+
+        Should be called in preference to `next_state_mean` internally by other
+        methods to allow use of mix-ins to change behaviour of `next_state_mean`
+        without affecting internal use.
+
+        Args:
+            states: Array of model state(s) at time index `t`. Either of shape
+                `(num_state, dim_state)` if the mean is to be evalulated for multiple
+                states or shape `(dim_state,)` if mean is to be evaluated for a single
+                state.
+            time_index: Current time index.
+
+        Returns:
+            Array corresponding to mean of states at time index `t + 1`, of shape
+            `(num_state, dim_state)` if a 2D `states` array is passed or of shape
+            `(dim_state,`) otherwise.
+        """
+
+
+class AbstractDiagonalGaussianStateModel(AbstractGaussianStateModel):
     """Abstract model base class with diagonal Gaussian state distributions.
 
     The modelled system dynamics are of the form
@@ -507,11 +833,11 @@ class DiagonalGaussianStateNoiseModel(AbstractModel):
 
     This corresponds to assuming the initial state distribution and conditional
     distribution of the next state given current take the form of multivariate Gaussian
-    distributions with diagonal covariances. In the case of deterministic state update
-    dynamics the conditional distribution of the next state given the current state will
-    be a Dirac measure with all mass located at the forward map of the current state
-    through the state dynamics function and so will not have a density with respect to
-    the Lebesgue measure.
+    distributions with diagonal covariances. In the case of deterministic state updates,
+    i.e. zero state noise, the conditional distribution of the next state given the
+    current state will be a Dirac measure with all mass located at the forward map of
+    the current state through the state dynamics function and so will not have a density
+    with respect to the Lebesgue measure.
     """
 
     def __init__(
@@ -520,8 +846,8 @@ class DiagonalGaussianStateNoiseModel(AbstractModel):
         dim_observation: int,
         initial_state_mean: Union[float, np.ndarray],
         initial_state_std: Union[float, np.ndarray],
-        state_noise_std: Optional[Union[float, np.ndarray]] = None,
-        **kwargs
+        state_noise_std: Union[float, np.ndarray] = 0,
+        **kwargs,
     ):
         """
         Args:
@@ -535,16 +861,19 @@ class DiagonalGaussianStateNoiseModel(AbstractModel):
             state_noise_std: Standard deviation of additive Gaussian noise in state
                 update. Either a scalar or array of shape `(dim_state,)` or `None`.
                 Noise in each dimension assumed to be independent i.e. a diagonal noise
-                covariance. If zero or `None` deterministic dynamics are assumed.
+                covariance. If zero deterministic dynamics are assumed.
         """
         self._initial_state_mean = initial_state_mean
         self._initial_state_std = initial_state_std
-        if state_noise_std is None or np.all(state_noise_std == 0.0):
-            self._deterministic_state_update = True
-        else:
-            self._deterministic_state_update = False
-            self._state_noise_std = state_noise_std
-        super().__init__(dim_state=dim_state, dim_observation=dim_observation, **kwargs)
+        self._state_noise_std = state_noise_std
+        super().__init__(
+            dim_state=dim_state,
+            dim_observation=dim_observation,
+            initial_state_mean=initial_state_mean,
+            initial_state_covar=initial_state_std ** 2,
+            state_noise_covar=state_noise_std ** 2,
+            **kwargs,
+        )
 
     def _sample_initial_state(self, rng: Generator, num_state: int) -> np.ndarray:
         return (
@@ -552,57 +881,14 @@ class DiagonalGaussianStateNoiseModel(AbstractModel):
             + rng.standard_normal((num_state, self.dim_state)) * self._initial_state_std
         )
 
-    def next_state_mean(self, states: np.ndarray, t: int) -> np.ndarray:
-        """Computes mean of next state(s) given current state(s).
-
-        Implements determinstic component of state update dynamics with new state
-        calculated by output of this function plus additive zero-mean Gaussian noise.
-        For models with fully-determinstic state dynamics no noise is added so this
-        function exactly calculates the next state.
-
-        Args:
-            states: Array of model state(s) at time index `t`. Either of shape
-                `(num_state, dim_state)` if the mean is to be evalulated for multiple
-                states or shape `(dim_state,)` if mean is to be evaluated for a single
-                state.
-            t: Current time index.
-
-        Returns:
-            Array corresponding to mean of states at time index `t + 1`, of shape
-            `(num_state, dim_state)` if a 2D `states` array is passed or of shape
-            `(dim_state,`) otherwise.
-        """
-        return self._next_state_mean(states, t)
-
-    @abc.abstractmethod
-    def _next_state_mean(self, states: np.ndarray, t: int) -> np.ndarray:
-        """Internal implementation of `next_state_mean` method.
-
-        Should be called in preference to `next_state_mean` internally by other
-        methods to allow use of mix-ins to change behaviour of `next_state_mean`
-        without affecting internal use.
-
-        Args:
-            states: Array of model state(s) at time index `t`. Either of shape
-                `(num_state, dim_state)` if the mean is to be evalulated for multiple
-                states or shape `(dim_state,)` if mean is to be evaluated for a single
-                state.
-            t: Current time index.
-
-        Returns:
-            Array corresponding to mean of states at time index `t + 1`, of shape
-            `(num_state, dim_state)` if a 2D `states` array is passed or of shape
-            `(dim_state,`) otherwise.
-        """
-
     def _sample_state_transition(
-        self, rng: Generator, states: np.ndarray, t: int
+        self, rng: Generator, states: np.ndarray, time_index: int
     ) -> np.ndarray:
         if self._deterministic_state_update:
-            return self._next_state_mean(states, t)
+            return self._next_state_mean(states, time_index)
         else:
             return self._next_state_mean(
-                states, t
+                states, time_index
             ) + self._state_noise_std * rng.standard_normal(states.shape)
 
     def log_density_initial_state(self, states: np.ndarray) -> np.ndarray:
@@ -613,7 +899,7 @@ class DiagonalGaussianStateNoiseModel(AbstractModel):
         ).sum(-1)
 
     def log_density_state_transition(
-        self, next_states: np.ndarray, states: np.ndarray, t: int
+        self, next_states: np.ndarray, states: np.ndarray, time_index: int
     ) -> np.ndarray:
         if self._deterministic_state_update:
             raise DensityNotDefinedError("Deterministic state transition.")
@@ -621,7 +907,7 @@ class DiagonalGaussianStateNoiseModel(AbstractModel):
             return -(
                 0.5
                 * (
-                    (next_states - self._next_state_mean(states, t))
+                    (next_states - self._next_state_mean(states, time_index))
                     / self._state_noise_std
                 )
                 ** 2
@@ -630,8 +916,8 @@ class DiagonalGaussianStateNoiseModel(AbstractModel):
             ).sum(-1)
 
 
-class DiagonalGaussianModel(
-    DiagonalGaussianObservationModel, DiagonalGaussianStateNoiseModel
+class AbstractDiagonalGaussianModel(
+    AbstractDiagonalGaussianObservationModel, AbstractDiagonalGaussianStateModel
 ):
     """Abstract model base class with diagonal Gaussian noise distributions.
 
@@ -675,7 +961,7 @@ class DiagonalGaussianModel(
         initial_state_mean: Union[float, np.ndarray],
         initial_state_std: Union[float, np.ndarray],
         state_noise_std: Optional[Union[float, np.ndarray]] = None,
-        **kwargs
+        **kwargs,
     ):
         """
         Args:
@@ -702,12 +988,31 @@ class DiagonalGaussianModel(
             initial_state_mean=initial_state_mean,
             initial_state_std=initial_state_std,
             state_noise_std=state_noise_std,
-            **kwargs
+            **kwargs,
         )
 
 
-class IntegratorModel(AbstractModel):
-    """Model using integrator to perform determinstic state updates."""
+class AbstractIntegratorModel(AbstractModel):
+    """Abstract base class for models using integrator to perform state updates.
+
+    The modelled system dynamics are of the form
+
+        for s in range(num_step):
+            if s == 0:
+                state_sequence[0] = model.sample_initial_state(rng)
+                t = 0
+            else:
+                state_sequence[s] = model.integrate.forward_integrate(
+                    state_sequence[s-1], s-1, num_step) + model.sample_state_noise(rng)
+            if s == observation_time_indices[t]:
+                observation_sequence[t] = model.sample_observation_given_state(
+                    rng, state_sequence[s], s)
+                t += 1
+
+    Where `model.integrator.forward_integrate` integrates the deterministic model
+    dynamics forward `num_step` integrator time steps, and `model.sample_state_noise`
+    samples the additive state noise.
+    """
 
     def __init__(
         self,
@@ -715,7 +1020,7 @@ class IntegratorModel(AbstractModel):
         dim_observation: int,
         integrator,
         num_integrator_step_per_update: int = 1,
-        **kwargs
+        **kwargs,
     ):
         """
         Args:
@@ -739,7 +1044,7 @@ class IntegratorModel(AbstractModel):
         self.num_integrator_step_per_update = num_integrator_step_per_update
         super().__init__(dim_state=dim_state, dim_observation=dim_observation, **kwargs)
 
-    def _next_state_mean(self, states: np.ndarray, t: int) -> np.ndarray:
+    def _next_state_mean(self, states: np.ndarray, time_index: int) -> np.ndarray:
         """Computes mean of next state(s) given current state(s).
 
         Implements determinstic component of state update dynamics with new state
@@ -752,7 +1057,7 @@ class IntegratorModel(AbstractModel):
                 `(num_state, dim_state)` if the mean is to be evalulated for multiple
                 states or shape `(dim_state,)` if mean is to be evaluated for a single
                 state.
-            t: Current time index.
+            time_index: Current time index.
 
         Returns:
             Array corresponding to mean of states at time index `t + 1`, of shape
@@ -761,9 +1066,9 @@ class IntegratorModel(AbstractModel):
         """
         if states.ndim == 1:
             return self.integrator.forward_integrate(
-                states[None], t, self.num_integrator_step_per_update
+                states[None], time_index, self.num_integrator_step_per_update
             )[0]
         else:
             return self.integrator.forward_integrate(
-                states, t, self.num_integrator_step_per_update
+                states, time_index, self.num_integrator_step_per_update
             )

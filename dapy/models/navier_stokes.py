@@ -2,7 +2,7 @@
 
 from typing import Optional, Tuple, Callable
 import numpy as np
-from dapy.models.base import DiagonalGaussianModel
+from dapy.models.base import AbstractDiagonalGaussianModel
 from dapy.integrators.navier_stokes import FourierNavierStokesIntegrator
 from dapy.models.transforms import (
     TwoDimensionalFourierTransformedDiagonalGaussianModelMixIn,
@@ -12,7 +12,7 @@ from dapy.models.transforms import (
 )
 
 
-class FourierIncompressibleFluidModel(DiagonalGaussianModel):
+class FourierIncompressibleFluidModel(AbstractDiagonalGaussianModel):
     """Incompressible Navier-Stokes fluid simulation on two-dimensional periodic domain.
 
     This model class represents the 2D state field by its the Fourier coefficients

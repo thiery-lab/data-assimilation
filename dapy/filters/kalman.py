@@ -92,10 +92,7 @@ class AbstractKalmanFilter(abc.ABC):
         for s in tqdm.trange(num_step + 1, desc="Filtering", unit="time steps"):
             if s == 0:
                 state_mean = model.initial_state_mean
-                state_covar = self._add_matrices(
-                    np.zeros((model.dim_state, model.dim_state)),
-                    model.initial_state_covar,
-                )
+                state_covar = model.initial_state_covar
                 t = 0
             else:
                 state_mean, state_covar = self._prediction_update(
@@ -133,42 +130,6 @@ class AbstractKalmanFilter(abc.ABC):
             # ensemble methods though technically not particle system
             results["state_particles_sequence"] = state_samples_sequence
         return results
-
-    def _add_matrices(
-        self, matrix: np.ndarray, scalar_or_vector_or_matrix: Union[Number, np.ndarray]
-    ):
-        """Increment matrix by another which may be represented as a scalar or vector.
-
-        Args:
-            matrix: First matrix to be summed, a 2D array.
-            scalar_or_vector_or_matrix: Second matrix to be summed, either a scalar,
-                vector (1D array) or matrix (2D array). If a scalar the matrix to be
-                added is assumed to be the identity matrix of the same shape as `matrix`
-                multiplied by the scalar. If a vector the matrix to be added is assumed
-                to be a diagonal matrix with the values of the vector along its
-                diagonal.
-
-        Returns:
-            Computed matrix sum.
-        """
-        if (
-            isinstance(scalar_or_vector_or_matrix, np.ndarray)
-            and scalar_or_vector_or_matrix.ndim == 2
-        ):
-            matrix += scalar_or_vector_or_matrix
-            return matrix
-        elif (
-            isinstance(scalar_or_vector_or_matrix, np.ndarray)
-            and scalar_or_vector_or_matrix.ndim == 1
-        ) or isinstance(scalar_or_vector_or_matrix, Number):
-            matrix_diagonal = np.einsum("ii->i", matrix)
-            matrix_diagonal += scalar_or_vector_or_matrix
-            return matrix
-        else:
-            raise ValueError(
-                f"Second argument is of unrecognised type: "
-                f"{type(scalar_or_vector_or_matrix)}."
-            )
 
     @abc.abstractmethod
     def _prediction_update(
@@ -275,11 +236,10 @@ class MatrixKalmanFilter(AbstractKalmanFilter):
         time_index: int,
     ) -> Tuple[np.ndarray, np.ndarray]:
         state_mean = model.state_transition_matrix @ state_mean
-        state_covar = self._add_matrices(
+        state_covar = model.increment_by_state_noise_covar(
             model.state_transition_matrix
             @ state_covar
-            @ model.state_transition_matrix.T,
-            model.state_noise_covar,
+            @ model.state_transition_matrix.T
         )
         return state_mean, state_covar
 
@@ -292,9 +252,8 @@ class MatrixKalmanFilter(AbstractKalmanFilter):
         time_index: int,
     ) -> Tuple[np.ndarray, np.ndarray]:
         observation_mean = model.observation_matrix @ state_mean
-        observation_covar = self._add_matrices(
-            model.observation_matrix @ state_covar @ model.observation_matrix.T,
-            model.observation_noise_covar,
+        observation_covar = model.increment_by_observation_noise_covar(
+            model.observation_matrix @ state_covar @ model.observation_matrix.T
         )
         observation_matrix_state_covar = model.observation_matrix @ state_covar
         kalman_gain = nla.solve(observation_covar, observation_matrix_state_covar).T
@@ -305,19 +264,11 @@ class MatrixKalmanFilter(AbstractKalmanFilter):
             covar_transform = (
                 np.identity(model.dim_state) - kalman_gain @ model.observation_matrix
             )
-            state_covar = covar_transform @ state_covar @ covar_transform.T
-            if (
-                isinstance(model.observation_noise_covar, np.ndarray)
-                and model.observation_noise_covar.ndim == 2
-            ):
-                state_covar += (
-                    kalman_gain @ model.observation_noise_covar @ kalman_gain.T
-                )
-            else:
-                state_covar += (
-                    kalman_gain * model.observation_noise_covar
-                ) @ kalman_gain.T
-
+            state_covar = (
+                covar_transform @ state_covar @ covar_transform.T
+                + model.postmultiply_by_observation_noise_covar(kalman_gain)
+                @ kalman_gain.T
+            )
         else:
             state_covar = state_covar - kalman_gain @ observation_matrix_state_covar
         return state_mean, state_covar
@@ -369,11 +320,10 @@ class FunctionKalmanFilter(AbstractKalmanFilter):
         time_index: int,
     ) -> Tuple[np.ndarray, np.ndarray]:
         state_mean = model.next_state_mean(state_mean, time_index)
-        state_covar = self._add_matrices(
+        state_covar = model.increment_by_state_noise_covar(
             model.next_state_mean(
                 model.next_state_mean(state_covar, time_index).T, time_index,
             ),
-            model.state_noise_covar,
         )
         return state_mean, state_covar
 
@@ -386,11 +336,10 @@ class FunctionKalmanFilter(AbstractKalmanFilter):
         time_index: int,
     ) -> Tuple[np.ndarray, np.ndarray]:
         observation_mean = model.observation_mean(state_mean, time_index)
-        observation_covar = self._add_matrices(
+        observation_covar = model.increment_by_observation_noise_covar(
             model.observation_mean(
                 model.observation_mean(state_covar, time_index).T, time_index
-            ),
-            model.observation_noise_covar,
+            )
         )
         observation_matrix_state_covar = model.observation_mean(
             state_covar, time_index

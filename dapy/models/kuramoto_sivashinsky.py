@@ -15,7 +15,7 @@ References:
 
 from typing import Union, Optional, Sequence, Callable
 import numpy as np
-from dapy.models.base import DiagonalGaussianModel
+from dapy.models.base import AbstractDiagonalGaussianModel
 from dapy.integrators.etdrk4 import FourierETDRK4Integrator
 from dapy.models.transforms import (
     OneDimensionalFourierTransformedDiagonalGaussianModelMixIn,
@@ -25,7 +25,7 @@ from dapy.models.transforms import (
 )
 
 
-class FourierLaminarFlameModel(DiagonalGaussianModel):
+class FourierLaminarFlameModel(AbstractDiagonalGaussianModel):
     """Non-linear SPDE model on a periodic 1D spatial domain for laminar flame fronts.
 
     This model class represents the state field by its the Fourier coefficients rather

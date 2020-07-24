@@ -9,11 +9,11 @@ Model originally proposed in:
 
 from typing import Union, Optional, Callable
 import numpy as np
-from dapy.models.base import DiagonalGaussianModel, IntegratorModel
+from dapy.models.base import AbstractDiagonalGaussianModel, AbstractIntegratorModel
 from dapy.integrators.lorenz_1963 import Lorenz1963Integrator
 
 
-class Lorenz1963Model(IntegratorModel, DiagonalGaussianModel):
+class Lorenz1963Model(AbstractIntegratorModel, AbstractDiagonalGaussianModel):
     """Three-dimensional model with chaotic non-linear dynamics
 
     Model dynamics defined by the system of ODEs
@@ -58,7 +58,7 @@ class Lorenz1963Model(IntegratorModel, DiagonalGaussianModel):
         Args:
             init_state_mean: Initial state distribution mean. Either a scalar or an
                 array of shape `(3,)`.
-            init_state_std: Initial state distribution standard deviation. Either a 
+            init_state_std: Initial state distribution standard deviation. Either a
                 scalar or an array of shape `(3,)`.
             state_noise_std: Standard deviation of additive Gaussian noise in state
                 update. Either a scalar or an array of shape `(3,)`. Noise in

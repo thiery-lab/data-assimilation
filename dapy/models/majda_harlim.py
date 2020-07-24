@@ -11,8 +11,8 @@ References:
 from typing import Union, Sequence
 import numpy as np
 
-from dapy.models.base import DiagonalGaussianModel
-from dapy.models.linear_gaussian import AbstractLinearGaussianModel
+from dapy.models.base import AbstractDiagonalGaussianModel
+from dapy.models.linear_gaussian import AbstractLinearModel
 from dapy.models.transforms import (
     OneDimensionalFourierTransformedDiagonalGaussianModelMixIn,
     fft,
@@ -22,7 +22,7 @@ from dapy.models.transforms import (
 
 
 class FourierStochasticTurbulenceModel(
-    DiagonalGaussianModel, AbstractLinearGaussianModel
+    AbstractDiagonalGaussianModel, AbstractLinearModel
 ):
     """Linear SPDE model on a periodic 1D spatial domain for turbulent signals.
 
