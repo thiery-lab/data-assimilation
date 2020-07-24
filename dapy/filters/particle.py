@@ -1,10 +1,11 @@
 """Particle filters for inference in state space models."""
 
 import abc
-from typing import Tuple
+from typing import Tuple, Dict, Callable, Any, Optional
 import numpy as np
 from numpy.random import Generator
 from scipy.special import logsumexp
+from scipy.sparse import csr_matrix
 from dapy.filters.base import AbstractEnsembleFilter
 from dapy.models.base import AbstractModel
 import dapy.ot as optimal_transport
@@ -99,37 +100,73 @@ class EnsembleTransformParticleFilter(AbstractParticleFilter):
 
     def __init__(
         self,
-        ot_solver=optimal_transport.solve_optimal_transport_exact,
-        ot_solver_kwargs=None,
+        optimal_transport_solver: Callable[
+            [np.ndarray, np.ndarray, np.ndarray], np.ndarray
+        ] = optimal_transport.solve_optimal_transport_exact,
+        optimal_transport_solver_kwargs: Optional[Dict[str, Any]] = None,
+        transport_cost: Callable[
+            [np.ndarray, np.ndarray], np.ndarray
+        ] = optimal_transport.pairwise_euclidean_distance,
+        weight_threshold: float = 1e-8,
+        use_sparse_matrix_multiply: bool = False,
     ):
         """
         Args:
-            ot_solver (function): Optimal transport solver function with
-                call signature
-                    ot_solver(source_dist, target_dist, cost_matrix,
-                              **ot_solver_params)
-                where source_dist and target_dist are the source and target
-                distribution weights respectively as 1D arrays, cost_matrix is
-                a 2D array of the distances between particles and
-                ot_solver_params is any additional keyword parameter values
-                for the solver.
-            ot_solver_kwargs (dict): Any additional keyword parameters values
-                for the optimal transport solver.
+            optimal_transport_solver: Optimal transport solver function with signature
+
+                    transport_matrix = optimal_transport_solver(
+                        source_dist, target_dist, cost_matrix,
+                        **optimal_transport_solver_kwargs)
+
+                where `source_dist` and `target_dist` are the source and target
+                distribution weights respectively as 1D arrays, `cost_matrix` is a 2D
+                array of the transport costs for each particle pair.
+            optimal_transport_solver: Any additional keyword parameters values for the
+                optimal transport solver.
+            transport_cost: Function calculating transport cost matrix with signature
+
+                    cost_matrix = transport_cost(source_particles, target_particles)
+
+                where `source_particles` are the particles values of the source and
+                target empirical distributions respecitively.
+            weight_threshold: Threshold below which to set any particle weights to zero
+                prior to solving the optimal transport problem. Using a small non-zero
+                value can both improve the numerical stability of the optimal transport
+                solves, with problems with many small weights sometimes failing to
+                convergence, and also improve performance as some solvers (including)
+                the default network simplex based algorithm) are able to exploit
+                sparsity in the source / target distributions.
+            use_sparse_matrix_multiply: Whether to conver the optimal transport based
+                transform matrix used in the assimilation update to a sparse CSR format
+                before multiplying by the state particle ensemble matrix. This may
+                improve performance when the computed transport plan is sparse and the
+                number of particles is large.
         """
-        self.ot_solver = ot_solver
-        self.ot_solver_kwargs = {} if ot_solver_kwargs is None else ot_solver_kwargs
+        self.optimal_transport_solver = optimal_transport_solver
+        self.optimal_transport_solver_kwargs = (
+            {}
+            if optimal_transport_solver_kwargs is None
+            else optimal_transport_solver_kwargs
+        )
+        self.transport_cost = transport_cost
+        self.weight_threshold = weight_threshold
+        self.use_sparse_matrix_multiply = use_sparse_matrix_multiply
 
     def _assimilation_transform(self, rng, state_particles, weights):
         """Solve optimal transport problem and transform ensemble."""
         num_particle = state_particles.shape[0]
         source_dist = np.ones(num_particle) / num_particle
         target_dist = weights
-        target_dist /= target_dist.sum()
-        # Cost matrix entries Euclidean distance between particles
-        cost_matrix = optimal_transport.pairwise_euclidean_distance(
-            state_particles, state_particles
+        if self.weight_threshold > 0:
+            target_dist[target_dist < self.weight_threshold] = 0
+            target_dist /= target_dist.sum()
+        cost_matrix = self.transport_cost(state_particles, state_particles)
+        transform_matrix = num_particle * self.optimal_transport_solver(
+            source_dist,
+            target_dist,
+            cost_matrix,
+            **self.optimal_transport_solver_kwargs
         )
-        transform_matrix = num_particle * self.ot_solver(
-            source_dist, target_dist, cost_matrix, **self.ot_solver_kwargs
-        )
+        if self.use_sparse_matrix_multiply:
+            transform_matrix = csr_matrix(transform_matrix)
         return transform_matrix @ state_particles
