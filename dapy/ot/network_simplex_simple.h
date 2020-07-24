@@ -34,7 +34,11 @@
 #endif
 
 
-#define EPSILON 2.2204460492503131e-15
+// Use larger tolerance here than previous value of 2.2204460492503131e-15
+// as this tended to result in problems with many small weights being flagged as
+// infeasible despite being non-negative / summing to the same value -- M. Graham
+#define EPSILON 1e-13
+
 #define _EPSILON 1e-8
 #define MAX_DEBUG_ITER 100000
 

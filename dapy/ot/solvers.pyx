@@ -72,6 +72,8 @@ cdef enum ProblemType:
     OPTIMAL  # The algorithm converged to an optimal solution
     UNBOUNDED  # The objective function of the problem is unbounded
     MAX_ITER_REACHED  # The maximum number of iterations has been reached
+    SUM_DIFF_ABOVE_TOL  # Differences of sums of source and target dists above tolerance
+    NEGATIVE_WEIGHT  # One or more source / target weights are negative
 
 
 def get_result_code_strings(result_code):
@@ -100,6 +102,13 @@ def get_result_code_strings(result_code):
                 'The maximum number of iterations was reached in the solver '
                 'before convergence. Computed transport matrix and cost may '
                 'be non-optimal.')
+    elif result_code == SUM_DIFF_ABOVE_TOL:
+        return ('Infeasible',
+                'The difference between the sums of the source and target distributions'
+                ' is above the tolerance.')
+    elif result_code == NEGATIVE_WEIGHT:
+        return ('Infeasible',
+                'One or more source or target distribution weights are negative.')
 
 
 # Wrapper for external C++ code setting up optimal transport problems and
@@ -128,12 +137,12 @@ cdef int _solve_optimal_transport_network_simplex(
     # Compute the number of non-zero entries in source and target arrays,
     # check all entries are non-negative and compute difference of sums
     for i in range(n_source):
-        val = source_dist[i];
+        val = source_dist[i]
         if val > 0:
             sum_diff += val
             n_nonzero_source += 1
         elif val < 0:
-            return INFEASIBLE
+            return NEGATIVE_WEIGHT
 
     for i in range(n_target):
         val = target_dist[i]
@@ -141,11 +150,11 @@ cdef int _solve_optimal_transport_network_simplex(
             sum_diff -= val
             n_nonzero_target += 1
         elif val < 0:
-            return INFEASIBLE
+            return NEGATIVE_WEIGHT
 
     # check difference of sums of source and target arrays within threshhold
     if sum_diff > sum_diff_tolerance or sum_diff < -sum_diff_tolerance:
-        return INFEASIBLE
+        return SUM_DIFF_ABOVE_TOL
 
     # Construct the flow graph on the stack
     cdef Digraph graph = Digraph(n_nonzero_source, n_nonzero_target)
@@ -181,7 +190,7 @@ cdef int _solve_optimal_transport_network_simplex(
         # Set supply and demand, not accounting for zero values for efficiency
         j = 0
         for i in range(n_source):
-            val = source_dist[i];
+            val = source_dist[i]
             if val > 0:
                 weights_source[j] = val
                 indices_source[j] = i
