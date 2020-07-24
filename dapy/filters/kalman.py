@@ -1,14 +1,13 @@
 """Exact Kalman filter for inference in linear-Gaussian dynamical systems."""
 
 import abc
-from typing import Union, Optional, Sequence, Tuple, Dict
-from numbers import Number
+from typing import Optional, Sequence, Tuple, Dict
 import numpy as np
 from numpy.random import Generator
 import numpy.linalg as nla
 import scipy.linalg as sla
 from dapy.models.linear_gaussian import AbstractLinearGaussianModel
-import tqdm.auto as tqdm
+from dapy.utils.progressbar import ProgressBar
 
 
 class AbstractKalmanFilter(abc.ABC):
@@ -89,35 +88,36 @@ class AbstractKalmanFilter(abc.ABC):
             state_samples_sequence = np.full(
                 (num_observation_time, num_sample, model.dim_state), np.nan
             )
-        for s in tqdm.trange(num_step + 1, desc="Filtering", unit="time steps"):
-            if s == 0:
-                state_mean = model.initial_state_mean
-                state_covar = model.initial_state_covar
-                t = 0
-            else:
-                state_mean, state_covar = self._prediction_update(
-                    model, state_mean, state_covar, s
-                )
-            if s == observation_time_indices[t]:
-                state_mean, state_covar = self._assimilation_update(
-                    model, state_mean, state_covar, observation_sequence[t], s
-                )
-                state_mean_sequence[t] = state_mean
-                state_std_sequence[t] = state_covar.diagonal() ** 0.5
-                if return_covar:
-                    state_covar_sequence[t] = state_covar
-                if num_sample > 0:
-                    try:
-                        sqrt_state_covar = sla.cholesky(state_covar, lower=True)
-                    except sla.LinAlgError:
-                        eigval, eigvec = sla.eigh(state_covar)
-                        sqrt_state_covar = eigvec * np.clip(eigval, 0, None) ** 0.5
-                    state_samples_sequence[t] = (
-                        state_mean[None, :]
-                        + rng.standard_normal((num_sample, model.dim_state))
-                        @ sqrt_state_covar.T
+        with ProgressBar(range(num_step + 1), "Filtering", unit="time-steps") as pb:
+            for s in pb:
+                if s == 0:
+                    state_mean = model.initial_state_mean
+                    state_covar = model.initial_state_covar
+                    t = 0
+                else:
+                    state_mean, state_covar = self._prediction_update(
+                        model, state_mean, state_covar, s
                     )
-                t += 1
+                if s == observation_time_indices[t]:
+                    state_mean, state_covar = self._assimilation_update(
+                        model, state_mean, state_covar, observation_sequence[t], s
+                    )
+                    state_mean_sequence[t] = state_mean
+                    state_std_sequence[t] = state_covar.diagonal() ** 0.5
+                    if return_covar:
+                        state_covar_sequence[t] = state_covar
+                    if num_sample > 0:
+                        try:
+                            sqrt_state_covar = sla.cholesky(state_covar, lower=True)
+                        except sla.LinAlgError:
+                            eigval, eigvec = sla.eigh(state_covar)
+                            sqrt_state_covar = eigvec * np.clip(eigval, 0, None) ** 0.5
+                        state_samples_sequence[t] = (
+                            state_mean[None, :]
+                            + rng.standard_normal((num_sample, model.dim_state))
+                            @ sqrt_state_covar.T
+                        )
+                    t += 1
         results = {
             "state_mean_sequence": state_mean_sequence,
             "state_std_sequence": state_std_sequence,

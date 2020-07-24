@@ -5,7 +5,7 @@ from typing import Sequence, Dict
 import numpy as np
 from numpy.random import Generator
 from dapy.models.base import AbstractModel
-import tqdm.auto as tqdm
+from dapy.utils.progressbar import ProgressBar
 
 
 class AbstractEnsembleFilter(abc.ABC):
@@ -99,21 +99,24 @@ class AbstractEnsembleFilter(abc.ABC):
             state_particles_sequence = np.full(
                 (num_obs_time, num_particle, model.dim_state), np.nan
             )
-        for s in tqdm.trange(num_step + 1, desc="Filtering", unit="time steps"):
-            if s == 0:
-                state_particles = model.sample_initial_state(rng, num_particle)
-                t = 0
-            else:
-                state_particles = model.sample_state_transition(rng, state_particles, s)
-            if s == observation_time_indices[t]:
-                state_particles, state_mean, state_std = self._assimilation_update(
-                    model, rng, state_particles, observation_sequence[t], s
-                )
-                state_mean_sequence[t] = state_mean
-                state_std_sequence[t] = state_std
-                if return_particles:
-                    state_particles_sequence[t] = state_particles
-                t += 1
+        with ProgressBar(range(num_step + 1), "Filtering", unit="time-steps") as pb:
+            for s in pb:
+                if s == 0:
+                    state_particles = model.sample_initial_state(rng, num_particle)
+                    t = 0
+                else:
+                    state_particles = model.sample_state_transition(
+                        rng, state_particles, s
+                    )
+                if s == observation_time_indices[t]:
+                    state_particles, state_mean, state_std = self._assimilation_update(
+                        model, rng, state_particles, observation_sequence[t], s
+                    )
+                    state_mean_sequence[t] = state_mean
+                    state_std_sequence[t] = state_std
+                    if return_particles:
+                        state_particles_sequence[t] = state_particles
+                    t += 1
         results = {
             "state_mean_sequence": state_mean_sequence,
             "state_std_sequence": state_std_sequence,

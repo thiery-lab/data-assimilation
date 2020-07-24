@@ -7,7 +7,7 @@ import numpy as np
 import numpy.linalg as nla
 import scipy.linalg as sla
 from numpy.random import Generator
-import tqdm.auto as tqdm
+from dapy.utils.progressbar import ProgressBar
 
 
 class DensityNotDefinedError(Exception):
@@ -232,22 +232,23 @@ class AbstractModel(abc.ABC):
             observation_sequences = np.full(
                 (num_observation_time, num_sample, self.dim_observation), np.nan
             )
-        for s in tqdm.trange(0, num_step + 1, desc="Sampling", unit="time steps"):
-            if s == 0:
-                states = self.sample_initial_state(rng, num_sample)
-                t = 0
-            else:
-                states = self.sample_state_transition(rng, states, s - 1)
-            if return_states_at_all_times:
-                state_sequences[s] = states
-            if s == observation_time_indices[t]:
-                if not return_states_at_all_times:
-                    state_sequences[t] = states
-                observation_sequences[t] = self.sample_observation_given_state(
-                    rng, states, s
-                )
-                t += 1
-        return state_sequences, observation_sequences
+        with ProgressBar(range(num_step + 1), 'Sampling', unit='time-steps') as pb:
+            for s in pb:
+                if s == 0:
+                    states = self.sample_initial_state(rng, num_sample)
+                    t = 0
+                else:
+                    states = self.sample_state_transition(rng, states, s - 1)
+                if return_states_at_all_times:
+                    state_sequences[s] = states
+                if s == observation_time_indices[t]:
+                    if not return_states_at_all_times:
+                        state_sequences[t] = states
+                    observation_sequences[t] = self.sample_observation_given_state(
+                        rng, states, s
+                    )
+                    t += 1
+            return state_sequences, observation_sequences
 
     @abc.abstractmethod
     def log_density_initial_state(self, states: np.ndarray) -> np.ndarray:
