@@ -28,7 +28,7 @@ class AbstractEnsembleFilter(abc.ABC):
         observations at the current time index.
 
         Args:
-            model: Model to perform assimilation update with.
+            model: State-space model to perform assimilation update with.
             rng: NumPy random number geneator.
             state_particles: Two-dimensional array of shape
                 `(num_particle, dim_state)` with each row a state particle generated
@@ -60,7 +60,7 @@ class AbstractEnsembleFilter(abc.ABC):
         """Compute particle ensemble approximations of filtering distributions.
 
         Args:
-            model: Generative model for observations.
+            model: Generative state-space model for observations.
             observation_sequence: Observation sequence with shape
                 `(num_observation_time, dim_observation)` where `num_observation_time`
                 is the number of observed time indices in the sequence and
