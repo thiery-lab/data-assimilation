@@ -1,4 +1,4 @@
-"""Base classes for ensemble filters implementing common interface."""
+"""Abstract base classes for ensemble filters for inference in state space models."""
 
 import abc
 from typing import Sequence, Dict
@@ -9,7 +9,15 @@ from dapy.utils.progressbar import ProgressBar
 
 
 class AbstractEnsembleFilter(abc.ABC):
-    """Abstract base class for ensemble filters defining standard interface."""
+    """Abstract base class for ensemble filters defining standard interface.
+
+    The filtering distribution at each observation time index is approximated by
+    an ensemble of state particles, with the particles sequentially updated by
+    alternating prediction updates propagating the particles forward in time under
+    the model dynamics and assimilation updates which transform particles representing
+    a prior predictive distribution to a posterior filtering distribution given the
+    observations at the current time index.
+    """
 
     @abc.abstractmethod
     def _assimilation_update(
@@ -22,7 +30,7 @@ class AbstractEnsembleFilter(abc.ABC):
     ) -> np.ndarray:
         """Adjust state particle ensemble for observations at current time index.
 
-        The assimilation update transforms the prior predicted empirical distribution
+        The assimilation update transforms the prior predictive empirical distribution
         represented by the state particle ensemble to a particle ensemble corresponding
         to an empricial estimate of the posterior (filtering) distribution given the
         observations at the current time index.
@@ -47,6 +55,9 @@ class AbstractEnsembleFilter(abc.ABC):
                 corresponding to estimated per-dimension standard deviations
                 of analysis distribution.
         """
+
+    def _perform_model_specific_initialization(self, model: AbstractModel):
+        """Hook to allow performing model-specific initialization before filtering."""
 
     def filter(
         self,
@@ -99,6 +110,7 @@ class AbstractEnsembleFilter(abc.ABC):
             state_particles_sequence = np.full(
                 (num_obs_time, num_particle, model.dim_state), np.nan
             )
+        self._perform_model_specific_initialization(model)
         with ProgressBar(range(num_step + 1), "Filtering", unit="time-steps") as pb:
             for s in pb:
                 if s == 0:
