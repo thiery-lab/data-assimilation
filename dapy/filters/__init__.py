@@ -2,7 +2,7 @@
 
 from dapy.filters.ensemble_kalman import (
     EnsembleKalmanFilter,
-    EnsembleSquareRootFilter,
+    EnsembleTransformKalmanFilter,
 )
 from dapy.filters.kalman import MatrixKalmanFilter, FunctionKalmanFilter
 from dapy.filters.particle import (
