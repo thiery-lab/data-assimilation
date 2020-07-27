@@ -4,11 +4,11 @@ import numba as nb
 
 @nb.njit(nb.float64[:, :, :](
             nb.float64[:, :, :], nb.int64, nb.int64, nb.int64), parallel=True)
-def calculate_cost_matrices_1d(z, n_patch, half_overlap, subsample):
+def calculate_cost_matrices_1d(z, num_patch, half_overlap, subsample):
     n_particle, n_field, n_node = z.shape
-    block_width = n_node // n_patch
-    cost_matrices = np.zeros((n_patch, n_particle, n_particle), np.float64)
-    for p in range(n_patch):
+    block_width = n_node // num_patch
+    cost_matrices = np.zeros((num_patch, n_particle, n_particle), np.float64)
+    for p in range(num_patch):
         for i in range(n_particle):
             for j in range(n_particle):
                 for k in range(p * block_width - half_overlap,
@@ -30,10 +30,8 @@ def calculate_cost_matrices_2d(
     h_0, h_1 = half_overlap
     n_particle, n_field, n_node = z.shape
     z_2d = np.reshape(z, (n_particle, n_field,) + mesh_shape)
-    n_patch = pou_shape[0] * pou_shape[1]
-    patch_shape = (mesh_shape[0] // pou_shape[0],
-                   mesh_shape[0] // pou_shape[0])
-    cost_matrices = np.zeros((n_patch, n_particle, n_particle), np.float64)
+    num_patch = pou_shape[0] * pou_shape[1]
+    cost_matrices = np.zeros((num_patch, n_particle, n_particle), np.float64)
     for i in range(pou_shape[0]):
         for j in range(pou_shape[1]):
             b = i * b_1 + j
