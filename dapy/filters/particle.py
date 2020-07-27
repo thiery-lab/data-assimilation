@@ -121,8 +121,8 @@ class EnsembleTransformParticleFilter(AbstractParticleFilter):
                 where `source_dist` and `target_dist` are the source and target
                 distribution weights respectively as 1D arrays, `cost_matrix` is a 2D
                 array of the transport costs for each particle pair.
-            optimal_transport_solver: Any additional keyword parameters values for the
-                optimal transport solver.
+            optimal_transport_solver_kwargs: Any additional keyword parameters values
+                for the optimal transport solver.
             transport_cost: Function calculating transport cost matrix with signature
 
                     cost_matrix = transport_cost(source_particles, target_particles)
