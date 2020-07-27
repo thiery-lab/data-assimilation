@@ -7,13 +7,16 @@ Model originally proposed in:
 > Seminar on Predictability, Vol. I, ECMWF.
 """
 
-from typing import Optional, Union, Callable
+from typing import Optional, Union, Callable, Sequence
 import numpy as np
 from dapy.models.base import AbstractDiagonalGaussianModel, AbstractIntegratorModel
+from dapy.models.spatial import SpatiallyExtendedModelMixIn
 from dapy.integrators.lorenz_1996 import Lorenz1996Integrator
 
 
-class Lorenz1996Model(AbstractIntegratorModel, AbstractDiagonalGaussianModel):
+class Lorenz1996Model(
+    SpatiallyExtendedModelMixIn, AbstractIntegratorModel, AbstractDiagonalGaussianModel
+):
     """Model on periodic one-dimensional spatial domain and chaotic non-linear dynamics.
 
     Model dynamics defined by the system of ODEs
@@ -44,15 +47,16 @@ class Lorenz1996Model(AbstractIntegratorModel, AbstractDiagonalGaussianModel):
     def __init__(
         self,
         dim_state: int = 40,
-        initial_state_mean: Union[float, np.ndarray] = 0.,
-        initial_state_std: Union[float, np.ndarray] = 1.,
-        state_noise_std: Optional[Union[float, np.ndarray]] = None,
+        observation_space_indices: Union[slice, Sequence[int]] = slice(1, None, 2),
         observation_function: Optional[Callable[[np.ndarray, int], np.ndarray]] = None,
-        observation_noise_std: Union[float, np.ndarray] = 5.,
-        delta: float = 1 / 3,
-        force: float = 8.,
         time_step: float = 0.005,
         num_integrator_step_per_update: int = 20,
+        delta: float = 1 / 3,
+        force: float = 8.0,
+        observation_noise_std: Union[float, np.ndarray] = 5.0,
+        initial_state_mean: Union[float, np.ndarray] = 0.0,
+        initial_state_std: Union[float, np.ndarray] = 1.0,
+        state_noise_std: Optional[Union[float, np.ndarray]] = None,
         fixed_point_tol: float = 1e-8,
         max_fixed_point_iter: int = 100,
         num_thread: int = 4,
@@ -61,26 +65,29 @@ class Lorenz1996Model(AbstractIntegratorModel, AbstractDiagonalGaussianModel):
         Args:
             dim_state: Dimension of state vector, here corresponding to number of grid
                 points in the discretization of the spatial domain.
-            init_state_mean: Initial state distribution mean. Either a scalar or an
+            observation_space_indices: Slice or sequence of integers specifying spatial
+                mesh node indices (indices in to state vector) corresponding to
+                observation points.
+            observation_function: Function to apply to subsampled state field to compute
+                mean of observation(s) given state(s) at a given time index. Defaults to
+                identity function in first argument.
+            time_step: Time step for implicit mid-point integrator.
+            num_integrator_step_per_update: Number of integrator time-steps between
+                successive observations and generated states.
+            delta: Spatial mesh spacing parameter for state update.
+            force: Forcing constant in state update.
+            observation_noise_std: Standard deviation of additive Gaussian noise in
+                observations. Either a scalar or an array of shape `(dim_observation,)`.
+                Noise in each dimension assumed to be independent i.e. a diagonal noise
+                covariance.
+            initial_state_mean: Initial state distribution mean. Either a scalar or an
                 array of shape `(dim_state,)`.
-            init_state_std: Initial state distribution standard deviation. Either a
+            initial_state_std: Initial state distribution standard deviation. Either a
                 scalar or an array of shape `(dim_state,)`.
             state_noise_std: Standard deviation of additive Gaussian noise in state
                 update. Either a scalar or an array of shape `(dim_state,)`. Noise in
                 each dimension assumed to be independent i.e. a diagonal noise
                 covariance. If zero or `None` deterministic dynamics are assumed.
-            observation_function: Function computing mean of observation(s) given
-                state(s) at a given time index. Defaults to identity function in first
-                (states) argument.
-            observation_noise_std: Standard deviation of additive Gaussian noise in
-                observations. Either a scalar or an array of shape `(dim_observation,)`.
-                Noise in each dimension assumed to be independent i.e. a diagonal noise
-                covariance.
-            delta: Grid spacing parameter for state update.
-            force: Forcing constant in state update.
-            time_step: Time step for implicit mid-point integrator.
-            num_integrator_step_per_update: Number of integrator time-steps between
-                successive observations and generated states.
             fixed_point_tol: Convergence tolerance for fixed point iteration.
             max_fixed_point_iter: Maximum number of iterations in fixed-point
                 iterative solution of implicit update. `ConvergenceError`
@@ -89,10 +96,13 @@ class Lorenz1996Model(AbstractIntegratorModel, AbstractDiagonalGaussianModel):
             num_thread: Number of threads to parallelise integration of dynamics over.
         """
         self.observation_function = observation_function
+        self.observation_space_indices = observation_space_indices
         if observation_function is None:
-            dim_observation = dim_state
+            dim_observation = np.zeros(dim_state)[observation_space_indices].shape[0]
         else:
-            dim_observation = observation_function(np.zeros(dim_state), 0).shape[-1]
+            dim_observation = observation_function(
+                np.zeros(dim_state)[observation_space_indices], 0
+            ).shape[0]
         integrator = Lorenz1996Integrator(
             dim_state=dim_state,
             force=force,
@@ -111,10 +121,15 @@ class Lorenz1996Model(AbstractIntegratorModel, AbstractDiagonalGaussianModel):
             initial_state_std=initial_state_std,
             state_noise_std=state_noise_std,
             observation_noise_std=observation_noise_std,
+            mesh_shape=(dim_state,),
+            domain_extents=(delta * dim_state,),
+            domain_is_periodic=True,
+            observation_node_indices=observation_space_indices,
         )
 
     def _observation_mean(self, states, t):
+        subsampled_states = states[..., self.observation_space_indices]
         if self.observation_function is None:
-            return states
+            return subsampled_states
         else:
-            return self.observation_function(states, t)
+            return self.observation_function(subsampled_states, t)
