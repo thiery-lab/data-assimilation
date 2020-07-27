@@ -1,14 +1,10 @@
-"""Model with linear dynamics and observations and additive Gaussian noise."""
+"""State-space models with linear dynamics / observations and Gaussian noise distributions."""
 
 from typing import Dict
 import numpy as np
 from numpy.random import Generator
 import scipy.linalg as la
-from dapy.models.base import (
-    AbstractModel,
-    AbstractGaussianStateModel,
-    AbstractGaussianObservationModel,
-)
+from dapy.models.base import AbstractLinearGaussianModel
 
 
 def generate_random_dense_parameters(
@@ -43,72 +39,6 @@ def generate_random_dense_parameters(
     )
     params["observation_noise_covar"] = temp_array @ temp_array.T
     return params
-
-
-class AbstractLinearModel(AbstractModel):
-    """Abstract base class for linear models .
-
-    Here linear models refers to models with linear state transition and observation
-    operators.
-    """
-
-    @property
-    def state_transition_matrix(self) -> np.ndarray:
-        """Matrix representing linear state transition operator."""
-        if hasattr(self, "_state_transition_matrix"):
-            return self._state_transition_matrix
-        elif hasattr(self, "next_state_mean"):
-            self._state_transition_matrix = self.next_state_mean(
-                np.identity(self.dim_state), None
-            ).T
-            return self._state_transition_matrix
-        else:
-            raise NotImplementedError()
-
-    @property
-    def observation_matrix(self) -> np.ndarray:
-        """Matrix representing linear observation operator."""
-        if hasattr(self, "_observation_matrix"):
-            return self._observation_matrix
-        elif hasattr(self, "observation_mean"):
-            self._observation_matrix = self.observation_mean(
-                np.identity(self.dim_state), None
-            ).T
-            return self._observation_matrix
-        else:
-            raise NotImplementedError()
-
-
-class AbstractLinearGaussianModel(
-    AbstractLinearModel, AbstractGaussianStateModel, AbstractGaussianObservationModel
-):
-    """Abstract base class for linear-Gaussian models defining expected interface."""
-
-    @property
-    def state_transition_matrix(self) -> np.ndarray:
-        """Matrix representing linear state transition operator."""
-        if hasattr(self, "_state_transition_matrix"):
-            return self._state_transition_matrix
-        elif hasattr(self, "next_state_mean"):
-            self._state_transition_matrix = self.next_state_mean(
-                np.identity(self.dim_state), None
-            ).T
-            return self._state_transition_matrix
-        else:
-            raise NotImplementedError()
-
-    @property
-    def observation_matrix(self) -> np.ndarray:
-        """Matrix representing linear observation operator."""
-        if hasattr(self, "_observation_matrix"):
-            return self._observation_matrix
-        elif hasattr(self, "observation_mean"):
-            self._observation_matrix = self.observation_mean(
-                np.identity(self.dim_state), None
-            ).T
-            return self._observation_matrix
-        else:
-            raise NotImplementedError()
 
 
 class DenseLinearGaussianModel(AbstractLinearGaussianModel):

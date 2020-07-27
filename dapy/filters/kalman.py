@@ -1,4 +1,4 @@
-"""Exact Kalman filter for inference in linear-Gaussian dynamical systems."""
+"""Kalman filters for exact inference in linear-Gaussian state-space models."""
 
 import abc
 from typing import Optional, Sequence, Tuple, Dict
@@ -6,15 +6,16 @@ import numpy as np
 from numpy.random import Generator
 import numpy.linalg as nla
 import scipy.linalg as sla
-from dapy.models.linear_gaussian import AbstractLinearGaussianModel
+from dapy.models.base import AbstractLinearGaussianModel
 from dapy.utils.progressbar import ProgressBar
 
 
 class AbstractKalmanFilter(abc.ABC):
-    """Abstract base class for exact Kalman filters for linear-Gaussian models.
+    """Abstract base class for Kalman filters for linear-Gaussian state-space models.
 
     For linear-Gaussian models the Kalman filter (forward) updates [1] allow efficient
-    exact calculation of the filtering distributions
+    exact calculation of the mean and covariance parameters of the Gaussian filtering
+    distributions
 
         state_sequence[observation_time_indices[t]] | observation_sequence[0:t] ~
             Normal(state_mean_sequence[t], state_covar_sequence[t])
@@ -182,7 +183,7 @@ class AbstractKalmanFilter(abc.ABC):
 
 
 class MatrixKalmanFilter(AbstractKalmanFilter):
-    """Exact Kalman filter for linear-Gaussian dynamical systems with matrix operators.
+    """Kalman filter for linear-Gaussian state-space models with matrix operators.
 
     This variant assumes the linear state transition and observation operators are
     specified by matrices (NumPy arrays) `state_transition_matrix` and
@@ -275,41 +276,12 @@ class MatrixKalmanFilter(AbstractKalmanFilter):
 
 
 class FunctionKalmanFilter(AbstractKalmanFilter):
-    """Exact Kalman filter for linear-Gaussian dynamical systems with function operators
+    """Kalman filter for linear-Gaussian state-space models with function operators.
 
     This variant assumes the linear state transition and observation operators are
     specified by functions `next_state_mean` and `observation_mean` respectively rather
     than explicit matrices which can be more efficient when corresponding matrices are
     sparse and also allows for time-dependent operators.
-
-    Assumes the model dynamics are of the form
-
-        for s in range(num_step + 1):
-            if s == 0:
-                state_sequence[0] = (
-                    model.initial_state_mean +
-                    chol(model.initial_state_covar) @
-                    rng.standard_normal(model.dim_state)
-                )
-                t = 0
-            else:
-                state_sequence[s] = (
-                    model.next_state_mean(state_sequence[s - 1], s - 1) +
-                    chol(model.state_noise_covar) @ rng.standard_normal(model.dim_state)
-                )
-            if s == observation_time_indices[t]:
-                observation_sequence[t] = (
-                    model.observation_mean(state_sequence[s], s) +
-                    chol(model.observation_noise_covar) @
-                    rng.standard_normal(model.dim_observation)
-                )
-                t += 1
-
-    where `observation_time_indices` is a sequence of integer time indices specifying
-    the observation times, `num_step = max(observation_time_indices)`, `rng` is
-    a random number generator used to generate the required random variates and `chol`
-    is a function computing the lower-triangular Cholesky factor of a positive-definite
-    matrix.
     """
 
     def _prediction_update(
