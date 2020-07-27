@@ -158,7 +158,7 @@ class AbstractLinearTransformedDiagonalGaussianModelMixin(
         if not hasattr(self, "_transform_matrix"):
             self._forward_transform_matrix = self.forward_map(
                 np.identity(self.dim_state)
-            )
+            ).T
         return self._forward_transform_matrix
 
     @property
@@ -176,6 +176,10 @@ class AbstractLinearTransformedDiagonalGaussianModelMixin(
                 self.forward_transform_matrix * self._state_noise_std ** 2
             ) @ self.forward_transform_matrix.T
         return self.__state_noise_covar
+
+    def increment_by_state_noise_covar(self, matrix: np.ndarray) -> np.ndarray:
+        matrix += self.state_noise_covar
+        return matrix
 
 
 def rfft_coeff_to_real_array(
