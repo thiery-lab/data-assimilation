@@ -12,7 +12,7 @@ from dapy.filters.particle import (
 from dapy.filters.local import (
     LocalEnsembleTransformKalmanFilter,
     LocalEnsembleTransformParticleFilter,
-    ScalableLocalEnsembleTransportParticleFilter,
+    ScalableLocalEnsembleTransformParticleFilter,
 )
 
 __authors__ = "Matt Graham"

@@ -367,8 +367,8 @@ class LocalEnsembleTransformKalmanFilter(AbstractLocalEnsembleFilter):
         return node_post_state_mean + self.inflation_factor * node_post_state_deviations
 
 
-class ScalableLocalEnsembleTransportParticleFilter(AbstractEnsembleFilter):
-    """Scalable local ensemble transport particle filter.
+class ScalableLocalEnsembleTransformParticleFilter(AbstractEnsembleFilter):
+    """Scalable local ensemble transform particle filter.
 
     References:
 
