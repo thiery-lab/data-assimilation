@@ -11,8 +11,8 @@ References:
 from typing import Union, Sequence
 import numpy as np
 
-from dapy.models.base import AbstractDiagonalGaussianModel
-from dapy.models.linear_gaussian import AbstractLinearModel
+from dapy.models.base import AbstractDiagonalGaussianModel, AbstractLinearModel
+from dapy.models.spatial import SpatiallyExtendedModelMixIn
 from dapy.models.transforms import (
     OneDimensionalFourierTransformedDiagonalGaussianModelMixIn,
     fft,
@@ -81,13 +81,14 @@ class FourierStochasticTurbulenceModel(
         dim_state: int = 512,
         observation_space_indices: Union[slice, Sequence[int]] = slice(4, None, 8),
         time_step: float = 0.25,
-        domain_size: float = 1.0,
+        domain_extent: float = 1.0,
         damping_coeff: float = 0.1,
         advection_coeff: float = 0.1,
         diffusion_coeff: float = 4e-5,
         observation_noise_std: float = 0.5,
         state_noise_amplitude: float = 0.1,
         state_noise_length_scale: float = 4e-3,
+        **kwargs
     ):
         """
         Args:
@@ -96,7 +97,7 @@ class FourierStochasticTurbulenceModel(
             observation_space_indices: Slice or sequence of integers to be used to
                 subsample spatial dimension of state when computing observations.
             time_step: Integrator time step.
-            domain_size: Size of spatial domain.
+            domain_extent: Extent (size) of spatial domain.
             advection_coeff: Coefficient (`α` in description above) controlling degree
                 of advection in dynamics.
             diffusion_coeff: Coefficient (`β` in description above) controlling degree
@@ -107,9 +108,6 @@ class FourierStochasticTurbulenceModel(
                 observations. Either a scalar or array of shape `(dim_observation,)`.
                 Noise in each dimension assumed to be independent i.e. a diagonal noise
                 covariance.
-            initial_state_amplitude: Amplitude scale parameter for initial random
-                state field. Larger values correspond to larger magnitude values for the
-                initial state.
             state_noise_amplitude: Amplitude scale parameter for additive state noise
                 in model dynamics. Larger values correspond to larger magnitude
                 additive noise in the state field.
@@ -119,13 +117,13 @@ class FourierStochasticTurbulenceModel(
         """
         assert dim_state % 2 == 0, "State dimension `dim_state` must be even"
         self.observation_space_indices = observation_space_indices
-        spatial_freqs = np.arange(dim_state // 2 + 1) * 2 * np.pi / domain_size
+        spatial_freqs = np.arange(dim_state // 2 + 1) * 2 * np.pi / domain_extent
         spatial_freqs_sq = spatial_freqs ** 2
         spatial_freqs[dim_state // 2] = 0
         smoothing_kernel = (
             state_noise_amplitude
             * np.exp(-spatial_freqs_sq * state_noise_length_scale ** 2)
-            * (dim_state / domain_size) ** 0.5
+            * (dim_state / domain_extent) ** 0.5
         )
         psi = diffusion_coeff * spatial_freqs_sq + damping_coeff
         self.state_transition_kernel = np.exp(
@@ -149,6 +147,7 @@ class FourierStochasticTurbulenceModel(
             initial_state_mean=np.zeros(dim_state),
             state_noise_std=state_noise_std,
             observation_noise_std=observation_noise_std,
+            **kwargs
         )
 
     def _next_state_mean(self, states, t):
@@ -163,6 +162,7 @@ class FourierStochasticTurbulenceModel(
 
 
 class SpatialStochasticTurbulenceModel(
+    SpatiallyExtendedModelMixIn,
     OneDimensionalFourierTransformedDiagonalGaussianModelMixIn,
     FourierStochasticTurbulenceModel,
 ):
@@ -172,3 +172,59 @@ class SpatialStochasticTurbulenceModel(
     rather than the corresponding Fourier coefficients. For more details see the
     docstring of `FourierStochasticTurbulenceModel`.
     """
+
+    def __init__(
+        self,
+        dim_state: int = 512,
+        observation_space_indices: Union[slice, Sequence[int]] = slice(4, None, 8),
+        time_step: float = 0.25,
+        domain_extent: float = 1.0,
+        damping_coeff: float = 0.1,
+        advection_coeff: float = 0.1,
+        diffusion_coeff: float = 4e-5,
+        observation_noise_std: float = 0.5,
+        state_noise_amplitude: float = 0.1,
+        state_noise_length_scale: float = 4e-3,
+        **kwargs
+    ):
+        """
+        Args:
+            dim_state: Dimension of state which is equivalent here to number of mesh
+                points in spatial discretization.
+            observation_space_indices: Slice or sequence of integers to be used to
+                subsample spatial dimension of state when computing observations.
+            time_step: Integrator time step.
+            domain_extent: Extent (size) of spatial domain.
+            advection_coeff: Coefficient (`α` in description above) controlling degree
+                of advection in dynamics.
+            diffusion_coeff: Coefficient (`β` in description above) controlling degree
+                of diffusion in dynamics.
+            damping_coeff: Coefficient (`γ` in description above) controlling degree of
+                damping in dynamics.
+            observation_noise_std: Standard deviation of additive Gaussian noise in
+                observations. Either a scalar or array of shape `(dim_observation,)`.
+                Noise in each dimension assumed to be independent i.e. a diagonal noise
+                covariance.
+            state_noise_amplitude: Amplitude scale parameter for additive state noise
+                in model dynamics. Larger values correspond to larger magnitude
+                additive noise in the state field.
+            state_noise_length_scale: Length scale parameter for smoothed noise used to
+                generate initial state and additive state noise fields. Larger values
+                correspond to smoother fields.
+        """
+        super().__init__(
+            dim_state=dim_state,
+            observation_space_indices=observation_space_indices,
+            time_step=time_step,
+            domain_extent=domain_extent,
+            advection_coeff=advection_coeff,
+            diffusion_coeff=diffusion_coeff,
+            damping_coeff=damping_coeff,
+            observation_noise_std=observation_noise_std,
+            state_noise_amplitude=state_noise_amplitude,
+            state_noise_length_scale=state_noise_length_scale,
+            mesh_shape=(dim_state,),
+            domain_extents=(domain_extent,),
+            domain_is_periodic=True,
+            observation_node_indices=observation_space_indices,
+        )

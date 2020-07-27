@@ -16,6 +16,7 @@ References:
 from typing import Union, Optional, Sequence, Callable
 import numpy as np
 from dapy.models.base import AbstractDiagonalGaussianModel
+from dapy.models.spatial import SpatiallyExtendedModelMixIn
 from dapy.integrators.etdrk4 import FourierETDRK4Integrator
 from dapy.models.transforms import (
     OneDimensionalFourierTransformedDiagonalGaussianModelMixIn,
@@ -87,25 +88,27 @@ class FourierLaminarFlameModel(AbstractDiagonalGaussianModel):
         observation_space_indices: Union[slice, Sequence[int]] = slice(4, None, 8),
         observation_function: Optional[Callable[[np.ndarray, int], np.ndarray]] = None,
         time_step: float = 0.25,
-        domain_size: float = 32 * np.pi,
+        domain_extent: float = 32 * np.pi,
         damping_coeff: float = 1.0 / 6,
         observation_noise_std: float = 0.5,
         initial_state_amplitude: float = 1.0,
         state_noise_amplitude: float = 1.0,
         state_noise_length_scale: float = 1.0,
         num_roots_of_unity_etdrk4_integrator: int = 16,
+        **kwargs
     ):
         """
         Args:
             dim_state: Dimension of state which is equivalent here to number of mesh
                 points in spatial discretization.
-            observation_space_indices: Slice or sequence of integers to be used to
-                subsample spatial dimension of state when computing observations.
+            observation_space_indices: Slice or sequence of integers specifying spatial
+                mesh node indices (indices in to state vector) corresponding to
+                observation points.
             observation_function: Function to apply to subsampled state field to compute
                 mean of observation(s) given state(s) at a given time index. Defaults to
                 identity function in first argument.
             time_step: Integrator time step.
-            domain_size: Size of spatial domain.
+            domain_extent: Extent (size) of spatial domain.
             damping_coeff: Coefficient (`γ` in description above) controlling degree of
                 damping in dynamics.
             observation_noise_std: Standard deviation of additive Gaussian noise in
@@ -129,14 +132,14 @@ class FourierLaminarFlameModel(AbstractDiagonalGaussianModel):
         self.time_step = time_step
         self.observation_space_indices = observation_space_indices
         self.observation_function = observation_function
-        spatial_freqs = np.arange(dim_state // 2 + 1) * 2 * np.pi / domain_size
+        spatial_freqs = np.arange(dim_state // 2 + 1) * 2 * np.pi / domain_extent
         spatial_freqs_sq = spatial_freqs ** 2
         spatial_freqs[dim_state // 2] = 0
         state_noise_kernel = (
             (time_step) ** 0.5
             * state_noise_amplitude
             * np.exp(-0.5 * spatial_freqs_sq * state_noise_length_scale ** 2)
-            * (dim_state / domain_size) ** 0.5
+            * (dim_state / domain_extent) ** 0.5
         )
         state_noise_std = rfft_coeff_to_real_array(
             state_noise_kernel + 1j * state_noise_kernel, False
@@ -144,7 +147,7 @@ class FourierLaminarFlameModel(AbstractDiagonalGaussianModel):
         initial_state_kernel = (
             initial_state_amplitude
             * np.exp(-0.5 * spatial_freqs_sq * state_noise_length_scale ** 2)
-            * (dim_state / domain_size) ** 0.5
+            * (dim_state / domain_extent) ** 0.5
         )
         initial_state_std = rfft_coeff_to_real_array(
             initial_state_kernel + 1j * initial_state_kernel, False
@@ -162,7 +165,7 @@ class FourierLaminarFlameModel(AbstractDiagonalGaussianModel):
             linear_operator=linear_operator,
             nonlinear_operator=nonlinear_operator,
             num_mesh_point=dim_state,
-            domain_size=domain_size,
+            domain_size=domain_extent,
             time_step=time_step,
             num_roots_of_unity=num_roots_of_unity_etdrk4_integrator,
         )
@@ -179,6 +182,7 @@ class FourierLaminarFlameModel(AbstractDiagonalGaussianModel):
             initial_state_mean=np.zeros(dim_state),
             state_noise_std=state_noise_std,
             observation_noise_std=observation_noise_std,
+            **kwargs
         )
 
     def _next_state_mean(self, states: np.ndarray, t: int) -> np.ndarray:
@@ -197,7 +201,9 @@ class FourierLaminarFlameModel(AbstractDiagonalGaussianModel):
 
 
 class SpatialLaminarFlameModel(
-    OneDimensionalFourierTransformedDiagonalGaussianModelMixIn, FourierLaminarFlameModel
+    SpatiallyExtendedModelMixIn,
+    OneDimensionalFourierTransformedDiagonalGaussianModelMixIn,
+    FourierLaminarFlameModel,
 ):
     """Non-linear SPDE model on a periodic 1D spatial domain for laminar flame fronts.
 
@@ -205,3 +211,66 @@ class SpatialLaminarFlameModel(
     rather than the corresponding Fourier coefficients. For more details see the
     docstring of `FourierLaminarFlameModel`.
     """
+
+    def __init__(
+        self,
+        dim_state: int = 512,
+        observation_space_indices: Union[slice, Sequence[int]] = slice(4, None, 8),
+        observation_function: Optional[Callable[[np.ndarray, int], np.ndarray]] = None,
+        time_step: float = 0.25,
+        domain_extent: float = 32 * np.pi,
+        damping_coeff: float = 1.0 / 6,
+        observation_noise_std: float = 0.5,
+        initial_state_amplitude: float = 1.0,
+        state_noise_amplitude: float = 1.0,
+        state_noise_length_scale: float = 1.0,
+        num_roots_of_unity_etdrk4_integrator: int = 16,
+    ):
+        """
+        Args:
+            dim_state: Dimension of state which is equivalent here to number of mesh
+                points in spatial discretization.
+            observation_space_indices: Slice or sequence of integers specifying spatial
+                mesh node indices (indices in to state vector) corresponding to
+                observation points.
+            observation_function: Function to apply to subsampled state field to compute
+                mean of observation(s) given state(s) at a given time index. Defaults to
+                identity function in first argument.
+            time_step: Integrator time step.
+            domain_extent: Extent (size) of spatial domain.
+            damping_coeff: Coefficient (`γ` in description above) controlling degree of
+                damping in dynamics.
+            observation_noise_std: Standard deviation of additive Gaussian noise in
+                observations. Either a scalar or array of shape `(dim_observation,)`.
+                Noise in each dimension assumed to be independent i.e. a diagonal noise
+                covariance.
+            initial_state_amplitude: Amplitude scale parameter for initial random
+                state field. Larger values correspond to larger magnitude values for the
+                initial state.
+            state_noise_amplitude: Amplitude scale parameter for additive state noise
+                in model dynamics. Larger values correspond to larger magnitude
+                additive noise in the state field.
+            state_noise_length_scale: Length scale parameter for smoothed noise used to
+                generate initial state and additive state noise fields. Larger values
+                correspond to smoother fields.
+            num_roots_of_unity_etdrk4_integrator: Number of roots of unity to use in
+                approximating contour integrals in exponential time-differencing plus
+                fourth-order Runge Kutta integrator.
+        """
+        super().__init__(
+            dim_state=dim_state,
+            observation_space_indices=observation_space_indices,
+            observation_function=observation_function,
+            time_step=time_step,
+            domain_extent=domain_extent,
+            damping_coeff=damping_coeff,
+            observation_noise_std=observation_noise_std,
+            initial_state_amplitude=initial_state_amplitude,
+            state_noise_amplitude=state_noise_amplitude,
+            state_noise_length_scale=state_noise_length_scale,
+            num_roots_of_unity_etdrk4_integrator=num_roots_of_unity_etdrk4_integrator,
+            mesh_shape=(dim_state,),
+            domain_extents=(domain_extent,),
+            domain_is_periodic=True,
+            observation_node_indices=observation_space_indices,
+        )
