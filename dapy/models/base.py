@@ -1,7 +1,7 @@
 """Abstract base classes for state-space models."""
 
 import abc
-from typing import Optional, Union, Sequence, Tuple
+from typing import Optional, Union, Sequence
 from numbers import Number
 import numpy as np
 import numpy.linalg as nla
@@ -1529,10 +1529,15 @@ class AbstractIntegratorModel(AbstractAdditiveStateNoiseModel):
             `(dim_state,`) otherwise.
         """
         if states.ndim == 1:
-            return self.integrator.forward_integrate(
-                states[None], time_index, self.num_integrator_step_per_update
-            )[0]
-        else:
-            return self.integrator.forward_integrate(
-                states, time_index, self.num_integrator_step_per_update
+            return np.asarray(
+                self.integrator.forward_integrate(
+                    states[None], time_index, self.num_integrator_step_per_update
+                )[0]
             )
+        else:
+            return np.asarray(
+                self.integrator.forward_integrate(
+                    states, time_index, self.num_integrator_step_per_update
+                )
+            )
+
