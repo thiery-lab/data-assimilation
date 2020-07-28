@@ -13,7 +13,7 @@ from dapy.models.base import AbstractDiagonalGaussianObservationModel
 import dapy.ot as optimal_transport
 from dapy.utils.localisation import gaspari_and_cohn_weighting
 from dapy.utils.pou import AbstractPartitionOfUnity, PerMeshNodePartitionOfUnityBasis
-from dapy.utils.cost import calculate_cost_matrices_1d, calculate_cost_matrices_2d
+from dapy.ot.costs import calculate_cost_matrices_1d, calculate_cost_matrices_2d
 
 
 class AbstractLocalEnsembleFilter(AbstractEnsembleFilter):
@@ -391,6 +391,7 @@ class ScalableLocalEnsembleTransformParticleFilter(AbstractEnsembleFilter):
             [np.ndarray, np.ndarray, np.ndarray], np.ndarray
         ] = optimal_transport.solve_optimal_transport_exact_batch,
         optimal_transport_solver_kwargs: Optional[Dict[str, Any]] = None,
+        calculate_cost_matrices_func_kwargs: Optional[Dict[str, Any]] = None,
         weight_threshold: float = 1e-8,
     ):
         """
@@ -401,7 +402,7 @@ class ScalableLocalEnsembleTransformParticleFilter(AbstractEnsembleFilter):
                 distance of the localisation radius of the mesh node will be assigned
                 localisation weights in the range `[0, 1]`.
             partition_of_unity: Object defining partition of unity on spatial domain.
-            calculate_cost_matrices_func: Function return the per-patch optimal
+            calculate_cost_matrices_func: Function returning the per-patch optimal
                 transport cost matrices as a 3D array of shape
                 `(num_patch, num_particle, num_particle)` give a 2D array of meshed
                 state particles of shape `(num_particle, dim_node_state, mesh_size)`
@@ -425,8 +426,10 @@ class ScalableLocalEnsembleTransformParticleFilter(AbstractEnsembleFilter):
                 arrays of shape `(num_patch, num_particle)`, `per_patch_cost_matrices`
                 is a 3D array of shape `(num_patch, num_particle, num_particle)` the
                 per-patch transport costs for each particle pair.
-            optimal_transport_solver_kwargs: Any additional keyword parameters values
+            optimal_transport_solver_kwargs: Any additional keyword argument values
                 for the optimal transport solver.
+            calculate_cost_matrices_func_kwargs: Any additional keyword argument values
+                for the transport cost matrix function.
             weight_threshold: Threshold below which to set any particle weights to zero
                 prior to solving the optimal transport problem. Using a small non-zero
                 value can both improve the numerical stability of the optimal transport
@@ -446,6 +449,11 @@ class ScalableLocalEnsembleTransformParticleFilter(AbstractEnsembleFilter):
         )
         self.weight_threshold = weight_threshold
         self.calculate_cost_matrices_func = calculate_cost_matrices_func
+        self.calculate_cost_matrices_func_kwargs = (
+            {}
+            if calculate_cost_matrices_func_kwargs is None
+            else calculate_cost_matrices_func_kwargs
+        )
 
     def _perform_model_specific_initialization(
         self, model: AbstractDiagonalGaussianObservationModel, num_particle: int,
@@ -458,14 +466,16 @@ class ScalableLocalEnsembleTransformParticleFilter(AbstractEnsembleFilter):
                     calculate_cost_matrices_1d,
                     num_patch=self.partition_of_unity.num_patch,
                     half_overlap=self.partition_of_unity.patch_half_overlap[0],
-                    subsample=1,
                 )
             elif model.spatial_dimension == 2:
                 self.calculate_cost_matrices_func = partial(
                     calculate_cost_matrices_2d,
-                    pou_shape=self.partition_of_unity.shape,
-                    half_overlap=self.partition_of_unity.patch_half_overlap,
-                    subsample=1
+                    mesh_shape_0=model.mesh_shape[0],
+                    mesh_shape_1=model.mesh_shape[1],
+                    pou_shape_0=self.partition_of_unity.shape[0],
+                    pou_shape_1=self.partition_of_unity.shape[1],
+                    half_overlap_0=self.partition_of_unity.patch_half_overlap[0],
+                    half_overlap_1=self.partition_of_unity.patch_half_overlap[1],
                 )
             else:
                 raise NotImplementedError()
@@ -506,7 +516,7 @@ class ScalableLocalEnsembleTransformParticleFilter(AbstractEnsembleFilter):
             (num_particle, -1, model.mesh_size)
         )
         per_patch_cost_matrices = self.calculate_cost_matrices_func(
-            state_particles_mesh
+            state_particles_mesh, **self.calculate_cost_matrices_func_kwargs
         )
         if self.weight_threshold > 0:
             per_patch_target_dists[per_patch_target_dists < self.weight_threshold] = 0
