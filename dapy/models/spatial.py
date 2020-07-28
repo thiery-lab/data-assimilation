@@ -52,7 +52,8 @@ class SpatiallyExtendedModelMixIn:
                         0, domain_extents[d], mesh_shape[d], not domain_is_periodic
                     )
                     for d in range(self.spatial_dimension)
-                )
+                ),
+                indexing='ij'
             ),
             axis=-1,
         ).reshape((self.mesh_size, self.spatial_dimension))
