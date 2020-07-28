@@ -2054,6 +2054,9 @@ static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_dsds_d
 /* ObjectToMemviewSlice.proto */
 static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_dsdsds_double(PyObject *, int writable_flag);
 
+/* ObjectToMemviewSlice.proto */
+static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_int(PyObject *, int writable_flag);
+
 /* CIntToPy.proto */
 static CYTHON_INLINE PyObject* __Pyx_PyInt_From_enum____pyx_t_4dapy_2ot_7solvers_ProblemType(enum __pyx_t_4dapy_2ot_7solvers_ProblemType value);
 
@@ -2101,6 +2104,14 @@ static void __Pyx_CppExn2PyErr() {
   }
 }
 #endif
+
+/* MemviewDtypeToObject.proto */
+static CYTHON_INLINE PyObject *__pyx_memview_get_double(const char *itemp);
+static CYTHON_INLINE int __pyx_memview_set_double(const char *itemp, PyObject *obj);
+
+/* MemviewDtypeToObject.proto */
+static CYTHON_INLINE PyObject *__pyx_memview_get_int(const char *itemp);
+static CYTHON_INLINE int __pyx_memview_set_int(const char *itemp, PyObject *obj);
 
 /* RealImag.proto */
 #if CYTHON_CCOMPLEX
@@ -2221,9 +2232,6 @@ static CYTHON_INLINE PyObject* __Pyx_PyInt_From_long(long value);
 
 /* CIntFromPy.proto */
 static CYTHON_INLINE char __Pyx_PyInt_As_char(PyObject *);
-
-/* ObjectToMemviewSlice.proto */
-static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_int(PyObject *, int writable_flag);
 
 /* CheckBinaryVersion.proto */
 static int __Pyx_check_binary_version(void);
@@ -2369,7 +2377,6 @@ static const char __pyx_k_dtype[] = "dtype";
 static const char __pyx_k_empty[] = "empty";
 static const char __pyx_k_error[] = "error";
 static const char __pyx_k_flags[] = "flags";
-static const char __pyx_k_int32[] = "int32";
 static const char __pyx_k_numpy[] = "numpy";
 static const char __pyx_k_order[] = "order";
 static const char __pyx_k_range[] = "range";
@@ -2389,13 +2396,11 @@ static const char __pyx_k_Optimal[] = "Optimal";
 static const char __pyx_k_fortran[] = "fortran";
 static const char __pyx_k_memview[] = "memview";
 static const char __pyx_k_Ellipsis[] = "Ellipsis";
-static const char __pyx_k_costs_mv[] = "costs_mv";
 static const char __pyx_k_getstate[] = "__getstate__";
 static const char __pyx_k_itemsize[] = "itemsize";
 static const char __pyx_k_max_iter[] = "max_iter";
 static const char __pyx_k_n_source[] = "n_source";
 static const char __pyx_k_n_target[] = "n_target";
-static const char __pyx_k_n_thread[] = "n_thread";
 static const char __pyx_k_pyx_type[] = "__pyx_type";
 static const char __pyx_k_setstate[] = "__setstate__";
 static const char __pyx_k_TypeError[] = "TypeError";
@@ -2407,6 +2412,7 @@ static const char __pyx_k_reduce_ex[] = "__reduce_ex__";
 static const char __pyx_k_IndexError[] = "IndexError";
 static const char __pyx_k_Infeasible[] = "Infeasible";
 static const char __pyx_k_ValueError[] = "ValueError";
+static const char __pyx_k_num_thread[] = "num_thread";
 static const char __pyx_k_pyx_result[] = "__pyx_result";
 static const char __pyx_k_pyx_vtable[] = "__pyx_vtable__";
 static const char __pyx_k_ImportError[] = "ImportError";
@@ -2433,10 +2439,8 @@ static const char __pyx_k_allocate_buffer[] = "allocate_buffer";
 static const char __pyx_k_dapy_ot_solvers[] = "dapy.ot.solvers";
 static const char __pyx_k_dtype_is_object[] = "dtype_is_object";
 static const char __pyx_k_pyx_PickleError[] = "__pyx_PickleError";
-static const char __pyx_k_result_codes_mv[] = "result_codes_mv";
 static const char __pyx_k_setstate_cython[] = "__setstate_cython__";
 static const char __pyx_k_pyx_unpickle_Enum[] = "__pyx_unpickle_Enum";
-static const char __pyx_k_trans_matrices_mv[] = "trans_matrices_mv";
 static const char __pyx_k_cline_in_traceback[] = "cline_in_traceback";
 static const char __pyx_k_strided_and_direct[] = "<strided and direct>";
 static const char __pyx_k_sum_diff_tolerance[] = "sum_diff_tolerance";
@@ -2456,8 +2460,6 @@ static const char __pyx_k_strided_and_direct_or_indirect[] = "<strided and direc
 static const char __pyx_k_The_difference_between_the_sums[] = "The difference between the sums of the source and target distributions is above the tolerance.";
 static const char __pyx_k_numpy_core_multiarray_failed_to[] = "numpy.core.multiarray failed to import";
 static const char __pyx_k_solve_optimal_transport_network[] = "solve_optimal_transport_network_simplex";
-static const char __pyx_k_source_dists_shape_incompatible[] = "source_dists shape incompatible with cost_matrices";
-static const char __pyx_k_target_dists_shape_incompatible[] = "target_dists shape incompatible with cost_matrices";
 static const char __pyx_k_unknown_dtype_code_in_numpy_pxd[] = "unknown dtype code in numpy.pxd (%d)";
 static const char __pyx_k_Buffer_view_does_not_expose_stri[] = "Buffer view does not expose strides";
 static const char __pyx_k_Can_only_create_a_buffer_that_is[] = "Can only create a buffer that is contiguous in memory.";
@@ -2537,7 +2539,6 @@ static PyObject *__pyx_n_s_cost;
 static PyObject *__pyx_n_s_cost_matrices;
 static PyObject *__pyx_n_s_cost_matrix;
 static PyObject *__pyx_n_s_costs;
-static PyObject *__pyx_n_s_costs_mv;
 static PyObject *__pyx_n_s_dapy_ot_solvers;
 static PyObject *__pyx_kp_s_dapy_ot_solvers_pyx;
 static PyObject *__pyx_n_s_dict;
@@ -2557,7 +2558,6 @@ static PyObject *__pyx_n_s_getstate;
 static PyObject *__pyx_kp_s_got_differing_extents_in_dimensi;
 static PyObject *__pyx_n_s_id;
 static PyObject *__pyx_n_s_import;
-static PyObject *__pyx_n_u_int32;
 static PyObject *__pyx_n_s_itemsize;
 static PyObject *__pyx_kp_s_itemsize_0_for_cython_array;
 static PyObject *__pyx_n_s_main;
@@ -2567,7 +2567,6 @@ static PyObject *__pyx_n_s_mode;
 static PyObject *__pyx_n_s_n_problem;
 static PyObject *__pyx_n_s_n_source;
 static PyObject *__pyx_n_s_n_target;
-static PyObject *__pyx_n_s_n_thread;
 static PyObject *__pyx_n_s_name;
 static PyObject *__pyx_n_s_name_2;
 static PyObject *__pyx_kp_u_ndarray_is_not_C_contiguous;
@@ -2576,6 +2575,7 @@ static PyObject *__pyx_n_s_ndim;
 static PyObject *__pyx_n_s_new;
 static PyObject *__pyx_kp_s_no_default___reduce___due_to_non;
 static PyObject *__pyx_n_s_np;
+static PyObject *__pyx_n_s_num_thread;
 static PyObject *__pyx_n_s_numpy;
 static PyObject *__pyx_kp_u_numpy_core_multiarray_failed_to;
 static PyObject *__pyx_kp_u_numpy_core_umath_failed_to_impor;
@@ -2598,7 +2598,6 @@ static PyObject *__pyx_n_s_reduce_cython;
 static PyObject *__pyx_n_s_reduce_ex;
 static PyObject *__pyx_n_s_result_code;
 static PyObject *__pyx_n_s_result_codes;
-static PyObject *__pyx_n_s_result_codes_mv;
 static PyObject *__pyx_n_s_setstate;
 static PyObject *__pyx_n_s_setstate_cython;
 static PyObject *__pyx_n_s_shape;
@@ -2608,7 +2607,6 @@ static PyObject *__pyx_n_s_solve_optimal_transport_network_2;
 static PyObject *__pyx_n_s_source_dist;
 static PyObject *__pyx_kp_u_source_dist_shape_incompatible_w;
 static PyObject *__pyx_n_s_source_dists;
-static PyObject *__pyx_kp_u_source_dists_shape_incompatible;
 static PyObject *__pyx_n_s_start;
 static PyObject *__pyx_n_s_step;
 static PyObject *__pyx_n_s_stop;
@@ -2621,10 +2619,8 @@ static PyObject *__pyx_n_s_sum_diff_tolerance;
 static PyObject *__pyx_n_s_target_dist;
 static PyObject *__pyx_kp_u_target_dist_shape_incompatible_w;
 static PyObject *__pyx_n_s_target_dists;
-static PyObject *__pyx_kp_u_target_dists_shape_incompatible;
 static PyObject *__pyx_n_s_test;
 static PyObject *__pyx_n_s_trans_matrices;
-static PyObject *__pyx_n_s_trans_matrices_mv;
 static PyObject *__pyx_n_s_trans_matrix;
 static PyObject *__pyx_kp_s_unable_to_allocate_array_data;
 static PyObject *__pyx_kp_s_unable_to_allocate_shape_and_str;
@@ -2633,7 +2629,7 @@ static PyObject *__pyx_n_s_unpack;
 static PyObject *__pyx_n_s_update;
 static PyObject *__pyx_pf_4dapy_2ot_7solvers_get_result_code_strings(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_result_code); /* proto */
 static PyObject *__pyx_pf_4dapy_2ot_7solvers_2solve_optimal_transport_network_simplex(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_source_dist, __Pyx_memviewslice __pyx_v_target_dist, __Pyx_memviewslice __pyx_v_cost_matrix, int __pyx_v_max_iter, double __pyx_v_sum_diff_tolerance); /* proto */
-static PyObject *__pyx_pf_4dapy_2ot_7solvers_4solve_optimal_transport_network_simplex_batch(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_source_dists, __Pyx_memviewslice __pyx_v_target_dists, __Pyx_memviewslice __pyx_v_cost_matrices, int __pyx_v_max_iter, double __pyx_v_sum_diff_tolerance, CYTHON_UNUSED int __pyx_v_n_thread); /* proto */
+static PyObject *__pyx_pf_4dapy_2ot_7solvers_4solve_optimal_transport_network_simplex_batch(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_trans_matrices, __Pyx_memviewslice __pyx_v_costs, __Pyx_memviewslice __pyx_v_result_codes, __Pyx_memviewslice __pyx_v_source_dists, __Pyx_memviewslice __pyx_v_target_dists, __Pyx_memviewslice __pyx_v_cost_matrices, int __pyx_v_max_iter, double __pyx_v_sum_diff_tolerance, CYTHON_UNUSED int __pyx_v_num_thread); /* proto */
 static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
 static void __pyx_pf_5numpy_7ndarray_2__releasebuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info); /* proto */
 static int __pyx_array___pyx_pf_15View_dot_MemoryView_5array___cinit__(struct __pyx_array_obj *__pyx_v_self, PyObject *__pyx_v_shape, Py_ssize_t __pyx_v_itemsize, PyObject *__pyx_v_format, PyObject *__pyx_v_mode, int __pyx_v_allocate_buffer); /* proto */
@@ -4412,21 +4408,24 @@ static PyObject *__pyx_pf_4dapy_2ot_7solvers_2solve_optimal_transport_network_si
  * 
  * 
  * def solve_optimal_transport_network_simplex_batch(             # <<<<<<<<<<<<<<
+ *         double[:, :, :] trans_matrices, double[:] costs, int[:] result_codes,
  *         double[:, :] source_dists, double[:, :] target_dists,
- *         double[:, :, :] cost_matrices, int max_iter=DEFAULT_MAX_ITER,
  */
 
 /* Python wrapper */
 static PyObject *__pyx_pw_4dapy_2ot_7solvers_5solve_optimal_transport_network_simplex_batch(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_4dapy_2ot_7solvers_4solve_optimal_transport_network_simplex_batch[] = "solve_optimal_transport_network_simplex_batch(double[:, :] source_dists, double[:, :] target_dists, double[:, :, :] cost_matrices, int max_iter=DEFAULT_MAX_ITER, double sum_diff_tolerance=DEFAULT_SUM_DIFF_TOLERANCE, int n_thread=1)\n\n    Solve batch of optimal transport problems using network simplex algorithm.\n\n    Exactly solves multiple discrete optimal transport problems of the form\n\n        for source_dist, target_dist, cost_matrix in zip(\n                source_dists, target_dists, cost_matrices):\n            minimise expected_cost = sum(trans_matrix * cost_matrix)\n            with respect to trans_matrix\n            subject to all(trans_matrix.sum(1) == source_dist))\n                   and all(trans_matrix.sum(0) == target_dist))\n                   and all(trans_matrix >= 0)\n\n    using an implementation of the network simplex algorithm [1,2] from the C++\n    graph template library LEMON [3].\n\n    source_dists and target_dists are 2D arrays of shape (n_problem, n_source)\n    and (n_problem, n_target) respectively with non-negative entries which\n    specify the set of n_problem (equal-dimensioned) source and target\n    distributions to solve optimal transport problems for. For the optimal\n    transport problems to have solutions it is necessary that\n        all(sum(target_dists, 1) == sum(source_dists, 1))\n    i.e. each pair of source and target distributions sum to the same value.\n    Typically both arrays will represent probability distributions and sum to\n    one however technically the only requirement is that the total 'mass' in\n    both arrays is the same such that there exists a valid transport plan to\n    transport all the mass from the sources to targets.\n\n    cost_matrices is a 3D array of shape (n_problem, n_source, n_target) with\n    the entry cost_matrix[p, s, t] specifying the cost of moving the s'th\n    source to the t'th target in the p'th problem. Typically the entries will\n    correspond to some distrance measure"" between the underlying points\n    representing the source and targets.\n\n    Args:\n        source_dists (2D array): Array of source distributions to solve for of\n            shape (n_problem, n_source).\n        target_dists (2D array): Array of target distributions to solve for of\n            shape (n_problem, n_target).\n        cost_matrices (3D array): Array of cost matrices to solve for of shape\n            (n_problem, n_source, n_target).\n        max_iter (int): Maximum number of iterations to run network simplex\n            algorithm instances for.\n        sum_diff_tolerance (double): Tolerance for check on equality of sums of\n            target and source distribution entries for each problem.\n        n_thread (int): Number of parallel threads to distribute solving of\n            independent optimal transport problems over.\n\n    Returns:\n        trans_matrices (3D array): Array of computed optimal transport\n            matrices of shape (n_problem, n_source, n_target).\n        costs (1D array): Array of computed optimal expected transport costs\n            of shape (n_problem,).\n        results_codes (1D array): Array of results codes indicating outcome of\n            running network simplex algorithm on optimal transport problems of\n            shape (n_problem,). The integer codes can be translated to string d\n            descriptions using the get_result_code_strings function. A value\n            of 1 indicates the solver converged to an optimal solution for the\n            problem.\n\n    References:\n        1. James B. Orlin (1997). A polynomial time primal network simplex\n           algorithm for minimum cost flows. Mathematical Programming,\n           78 (2): 109\342\200\223129. doi:10.1007/BF02614365.\n        2. Nicolas Bonneel, Michiel van De Panne, Sylvain Paris and Wolfgang\n           Heidrich (2011). Displacement interpolation using Lagrangian mass\n           transport. ACM Transactions on Graphics, 30 (6): 158:1-15""8:12.\n           doi:10.1145/2070781.2024192.\n        3. Bal\303\241zs Dezs\305\221, Alp\303\241r J\303\274ttner and P\303\251ter Kov\303\241cs (2011). LEMON \342\200\223 an Open\n           Source C++ Graph Template Library. Electronic Notes in Theoretical\n           Computer Science, 264:23-45. http://lemon.cs.elte.hu/trac/lemon\n    ";
+static char __pyx_doc_4dapy_2ot_7solvers_4solve_optimal_transport_network_simplex_batch[] = "solve_optimal_transport_network_simplex_batch(double[:, :, :] trans_matrices, double[:] costs, int[:] result_codes, double[:, :] source_dists, double[:, :] target_dists, double[:, :, :] cost_matrices, int max_iter=DEFAULT_MAX_ITER, double sum_diff_tolerance=DEFAULT_SUM_DIFF_TOLERANCE, int num_thread=1)\n\n    Solve batch of optimal transport problems using network simplex algorithm.\n\n    Exactly solves multiple discrete optimal transport problems of the form\n\n        for source_dist, target_dist, cost_matrix in zip(\n                source_dists, target_dists, cost_matrices):\n            minimise expected_cost = sum(trans_matrix * cost_matrix)\n            with respect to trans_matrix\n            subject to all(trans_matrix.sum(1) == source_dist))\n                   and all(trans_matrix.sum(0) == target_dist))\n                   and all(trans_matrix >= 0)\n\n    using an implementation of the network simplex algorithm [1,2] from the C++\n    graph template library LEMON [3].\n\n    `source_dists` and `target_dists` are 2D arrays of shape `(num_problem, num_source)`\n    and `(num_problem, n_target)` respectively with non-negative entries which\n    specify the set of `num_problem` (equal-dimensioned) source and target\n    distributions to solve optimal transport problems for. For the optimal\n    transport problems to have solutions it is necessary that\n\n        all(sum(target_dists, 1) == sum(source_dists, 1))\n\n    i.e. each pair of source and target distributions sum to the same value.\n    Typically both arrays will represent probability distributions and sum to\n    one however technically the only requirement is that the total 'mass' in\n    both arrays is the same such that there exists a valid transport plan to\n    transport all the mass from the sources to targets.\n\n    `cost_matrices` is a 3D array of shape `(n_problem, n_source, n_target)` with\n    the entry `cost_matrix[p, s, t]` specifying the cost of moving the `s`th\n    source to the ""`t`th target in the `p`th problem. Typically the entries will\n    correspond to some distrance measure between the underlying points\n    representing the source and targets.\n\n    Args:\n        trans_matrices: Array to write computed optimal transport matrices to of shape\n            `(num_problem, num_source, num_target)`.\n        costs: Array to write computed optimal expected transport costs to of shape\n            `(num_problem,)`.\n        results_codes: Array to write results codes to indicating outcome of running\n            network simplex algorithm on optimal transport problems of shape\n            `(num_problem,)`. The integer codes can be translated to string descriptions\n            using the `get_result_code_strings` function. A value of 1 indicates the\n            solver converged to an optimal solution for the problem.\n        source_dists: Array of source distributions to solve for of shape\n            `(num_problem, num_source)`.\n        target_dists: Array of target distributions to solve for of shape\n            `(num_problem, num_target)`.\n        cost_matrices : Array of cost matrices to solve for of shape\n            `(num_problem, num_source, num_target)`.\n        max_iter: Maximum number of iterations to run network simplex algorithm\n            instances for.\n        sum_diff_tolerance: Tolerance for check on equality of sums of target and source\n            distribution entries for each problem.\n        num_thread: Number of parallel threads to distribute solving of independent\n            optimal transport problems over.\n\n    Returns:\n\n    References:\n        1. James B. Orlin (1997). A polynomial time primal network simplex\n           algorithm for minimum cost flows. Mathematical Programming,\n           78 (2): 109\342\200\223129. doi:10.1007/BF02614365.\n        2. Nicolas Bonneel, Michiel van De Panne, Sylvain Paris and Wolfgang\n           Heidrich (2011). Displacement interpolation using Lagrangian mass""\n           transport. ACM Transactions on Graphics, 30 (6): 158:1-158:12.\n           doi:10.1145/2070781.2024192.\n        3. Bal\303\241zs Dezs\305\221, Alp\303\241r J\303\274ttner and P\303\251ter Kov\303\241cs (2011). LEMON \342\200\223 an Open\n           Source C++ Graph Template Library. Electronic Notes in Theoretical\n           Computer Science, 264:23-45. http://lemon.cs.elte.hu/trac/lemon\n    ";
 static PyMethodDef __pyx_mdef_4dapy_2ot_7solvers_5solve_optimal_transport_network_simplex_batch = {"solve_optimal_transport_network_simplex_batch", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_4dapy_2ot_7solvers_5solve_optimal_transport_network_simplex_batch, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4dapy_2ot_7solvers_4solve_optimal_transport_network_simplex_batch};
 static PyObject *__pyx_pw_4dapy_2ot_7solvers_5solve_optimal_transport_network_simplex_batch(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  __Pyx_memviewslice __pyx_v_trans_matrices = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __Pyx_memviewslice __pyx_v_costs = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __Pyx_memviewslice __pyx_v_result_codes = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_source_dists = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_target_dists = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_cost_matrices = { 0, 0, { 0 }, { 0 }, { 0 } };
   int __pyx_v_max_iter;
   double __pyx_v_sum_diff_tolerance;
-  CYTHON_UNUSED int __pyx_v_n_thread;
+  CYTHON_UNUSED int __pyx_v_num_thread;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -4434,12 +4433,18 @@ static PyObject *__pyx_pw_4dapy_2ot_7solvers_5solve_optimal_transport_network_si
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("solve_optimal_transport_network_simplex_batch (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_source_dists,&__pyx_n_s_target_dists,&__pyx_n_s_cost_matrices,&__pyx_n_s_max_iter,&__pyx_n_s_sum_diff_tolerance,&__pyx_n_s_n_thread,0};
-    PyObject* values[6] = {0,0,0,0,0,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_trans_matrices,&__pyx_n_s_costs,&__pyx_n_s_result_codes,&__pyx_n_s_source_dists,&__pyx_n_s_target_dists,&__pyx_n_s_cost_matrices,&__pyx_n_s_max_iter,&__pyx_n_s_sum_diff_tolerance,&__pyx_n_s_num_thread,0};
+    PyObject* values[9] = {0,0,0,0,0,0,0,0,0};
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
       const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
       switch (pos_args) {
+        case  9: values[8] = PyTuple_GET_ITEM(__pyx_args, 8);
+        CYTHON_FALLTHROUGH;
+        case  8: values[7] = PyTuple_GET_ITEM(__pyx_args, 7);
+        CYTHON_FALLTHROUGH;
+        case  7: values[6] = PyTuple_GET_ITEM(__pyx_args, 6);
+        CYTHON_FALLTHROUGH;
         case  6: values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
         CYTHON_FALLTHROUGH;
         case  5: values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
@@ -4458,37 +4463,55 @@ static PyObject *__pyx_pw_4dapy_2ot_7solvers_5solve_optimal_transport_network_si
       kw_args = PyDict_Size(__pyx_kwds);
       switch (pos_args) {
         case  0:
-        if (likely((values[0] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_source_dists)) != 0)) kw_args--;
+        if (likely((values[0] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_trans_matrices)) != 0)) kw_args--;
         else goto __pyx_L5_argtuple_error;
         CYTHON_FALLTHROUGH;
         case  1:
-        if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_target_dists)) != 0)) kw_args--;
+        if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_costs)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("solve_optimal_transport_network_simplex_batch", 0, 3, 6, 1); __PYX_ERR(0, 332, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("solve_optimal_transport_network_simplex_batch", 0, 6, 9, 1); __PYX_ERR(0, 332, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
-        if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_cost_matrices)) != 0)) kw_args--;
+        if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_result_codes)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("solve_optimal_transport_network_simplex_batch", 0, 3, 6, 2); __PYX_ERR(0, 332, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("solve_optimal_transport_network_simplex_batch", 0, 6, 9, 2); __PYX_ERR(0, 332, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
-        if (kw_args > 0) {
-          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_max_iter);
-          if (value) { values[3] = value; kw_args--; }
+        if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_source_dists)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("solve_optimal_transport_network_simplex_batch", 0, 6, 9, 3); __PYX_ERR(0, 332, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  4:
-        if (kw_args > 0) {
-          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_sum_diff_tolerance);
-          if (value) { values[4] = value; kw_args--; }
+        if (likely((values[4] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_target_dists)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("solve_optimal_transport_network_simplex_batch", 0, 6, 9, 4); __PYX_ERR(0, 332, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  5:
+        if (likely((values[5] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_cost_matrices)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("solve_optimal_transport_network_simplex_batch", 0, 6, 9, 5); __PYX_ERR(0, 332, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  6:
         if (kw_args > 0) {
-          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_n_thread);
-          if (value) { values[5] = value; kw_args--; }
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_max_iter);
+          if (value) { values[6] = value; kw_args--; }
+        }
+        CYTHON_FALLTHROUGH;
+        case  7:
+        if (kw_args > 0) {
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_sum_diff_tolerance);
+          if (value) { values[7] = value; kw_args--; }
+        }
+        CYTHON_FALLTHROUGH;
+        case  8:
+        if (kw_args > 0) {
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_num_thread);
+          if (value) { values[8] = value; kw_args--; }
         }
       }
       if (unlikely(kw_args > 0)) {
@@ -4496,111 +4519,85 @@ static PyObject *__pyx_pw_4dapy_2ot_7solvers_5solve_optimal_transport_network_si
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
+        case  9: values[8] = PyTuple_GET_ITEM(__pyx_args, 8);
+        CYTHON_FALLTHROUGH;
+        case  8: values[7] = PyTuple_GET_ITEM(__pyx_args, 7);
+        CYTHON_FALLTHROUGH;
+        case  7: values[6] = PyTuple_GET_ITEM(__pyx_args, 6);
+        CYTHON_FALLTHROUGH;
         case  6: values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
-        CYTHON_FALLTHROUGH;
-        case  5: values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
-        CYTHON_FALLTHROUGH;
-        case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
-        CYTHON_FALLTHROUGH;
-        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+        values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
+        values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
+        values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
         values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
         values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
         break;
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_source_dists = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_source_dists.memview)) __PYX_ERR(0, 333, __pyx_L3_error)
-    __pyx_v_target_dists = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_target_dists.memview)) __PYX_ERR(0, 333, __pyx_L3_error)
-    __pyx_v_cost_matrices = __Pyx_PyObject_to_MemoryviewSlice_dsdsds_double(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_cost_matrices.memview)) __PYX_ERR(0, 334, __pyx_L3_error)
-    if (values[3]) {
-      __pyx_v_max_iter = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_max_iter == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 334, __pyx_L3_error)
+    __pyx_v_trans_matrices = __Pyx_PyObject_to_MemoryviewSlice_dsdsds_double(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_trans_matrices.memview)) __PYX_ERR(0, 333, __pyx_L3_error)
+    __pyx_v_costs = __Pyx_PyObject_to_MemoryviewSlice_ds_double(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_costs.memview)) __PYX_ERR(0, 333, __pyx_L3_error)
+    __pyx_v_result_codes = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_result_codes.memview)) __PYX_ERR(0, 333, __pyx_L3_error)
+    __pyx_v_source_dists = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_source_dists.memview)) __PYX_ERR(0, 334, __pyx_L3_error)
+    __pyx_v_target_dists = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(values[4], PyBUF_WRITABLE); if (unlikely(!__pyx_v_target_dists.memview)) __PYX_ERR(0, 334, __pyx_L3_error)
+    __pyx_v_cost_matrices = __Pyx_PyObject_to_MemoryviewSlice_dsdsds_double(values[5], PyBUF_WRITABLE); if (unlikely(!__pyx_v_cost_matrices.memview)) __PYX_ERR(0, 335, __pyx_L3_error)
+    if (values[6]) {
+      __pyx_v_max_iter = __Pyx_PyInt_As_int(values[6]); if (unlikely((__pyx_v_max_iter == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 335, __pyx_L3_error)
     } else {
       __pyx_v_max_iter = __pyx_k__9;
     }
-    if (values[4]) {
-      __pyx_v_sum_diff_tolerance = __pyx_PyFloat_AsDouble(values[4]); if (unlikely((__pyx_v_sum_diff_tolerance == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 335, __pyx_L3_error)
+    if (values[7]) {
+      __pyx_v_sum_diff_tolerance = __pyx_PyFloat_AsDouble(values[7]); if (unlikely((__pyx_v_sum_diff_tolerance == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 336, __pyx_L3_error)
     } else {
       __pyx_v_sum_diff_tolerance = __pyx_k__10;
     }
-    if (values[5]) {
-      __pyx_v_n_thread = __Pyx_PyInt_As_int(values[5]); if (unlikely((__pyx_v_n_thread == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 335, __pyx_L3_error)
+    if (values[8]) {
+      __pyx_v_num_thread = __Pyx_PyInt_As_int(values[8]); if (unlikely((__pyx_v_num_thread == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 336, __pyx_L3_error)
     } else {
-      __pyx_v_n_thread = ((int)1);
+      __pyx_v_num_thread = ((int)1);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("solve_optimal_transport_network_simplex_batch", 0, 3, 6, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 332, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("solve_optimal_transport_network_simplex_batch", 0, 6, 9, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 332, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("dapy.ot.solvers.solve_optimal_transport_network_simplex_batch", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_4dapy_2ot_7solvers_4solve_optimal_transport_network_simplex_batch(__pyx_self, __pyx_v_source_dists, __pyx_v_target_dists, __pyx_v_cost_matrices, __pyx_v_max_iter, __pyx_v_sum_diff_tolerance, __pyx_v_n_thread);
+  __pyx_r = __pyx_pf_4dapy_2ot_7solvers_4solve_optimal_transport_network_simplex_batch(__pyx_self, __pyx_v_trans_matrices, __pyx_v_costs, __pyx_v_result_codes, __pyx_v_source_dists, __pyx_v_target_dists, __pyx_v_cost_matrices, __pyx_v_max_iter, __pyx_v_sum_diff_tolerance, __pyx_v_num_thread);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4dapy_2ot_7solvers_4solve_optimal_transport_network_simplex_batch(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_source_dists, __Pyx_memviewslice __pyx_v_target_dists, __Pyx_memviewslice __pyx_v_cost_matrices, int __pyx_v_max_iter, double __pyx_v_sum_diff_tolerance, CYTHON_UNUSED int __pyx_v_n_thread) {
-  int __pyx_v_n_problem;
-  int __pyx_v_n_source;
-  int __pyx_v_n_target;
+static PyObject *__pyx_pf_4dapy_2ot_7solvers_4solve_optimal_transport_network_simplex_batch(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_trans_matrices, __Pyx_memviewslice __pyx_v_costs, __Pyx_memviewslice __pyx_v_result_codes, __Pyx_memviewslice __pyx_v_source_dists, __Pyx_memviewslice __pyx_v_target_dists, __Pyx_memviewslice __pyx_v_cost_matrices, int __pyx_v_max_iter, double __pyx_v_sum_diff_tolerance, CYTHON_UNUSED int __pyx_v_num_thread) {
+  CYTHON_UNUSED int __pyx_v_n_problem;
+  CYTHON_UNUSED int __pyx_v_n_source;
+  CYTHON_UNUSED int __pyx_v_n_target;
   int __pyx_v_p;
-  PyArrayObject *__pyx_v_result_codes = 0;
-  PyArrayObject *__pyx_v_costs = 0;
-  PyArrayObject *__pyx_v_trans_matrices = 0;
-  __Pyx_memviewslice __pyx_v_result_codes_mv = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_costs_mv = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_trans_matrices_mv = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_LocalBuf_ND __pyx_pybuffernd_costs;
-  __Pyx_Buffer __pyx_pybuffer_costs;
-  __Pyx_LocalBuf_ND __pyx_pybuffernd_result_codes;
-  __Pyx_Buffer __pyx_pybuffer_result_codes;
-  __Pyx_LocalBuf_ND __pyx_pybuffernd_trans_matrices;
-  __Pyx_Buffer __pyx_pybuffer_trans_matrices;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
   int __pyx_t_2;
-  PyObject *__pyx_t_3 = NULL;
-  PyObject *__pyx_t_4 = NULL;
-  PyObject *__pyx_t_5 = NULL;
-  PyObject *__pyx_t_6 = NULL;
-  PyArrayObject *__pyx_t_7 = NULL;
-  PyArrayObject *__pyx_t_8 = NULL;
-  PyObject *__pyx_t_9 = NULL;
-  PyArrayObject *__pyx_t_10 = NULL;
-  __Pyx_memviewslice __pyx_t_11 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_t_12 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_t_13 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  int __pyx_t_14;
-  int __pyx_t_15;
-  int __pyx_t_16;
-  __Pyx_memviewslice __pyx_t_17 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_t_18 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_t_19 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  Py_ssize_t __pyx_t_20;
-  Py_ssize_t __pyx_t_21;
+  int __pyx_t_3;
+  __Pyx_memviewslice __pyx_t_4 = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __Pyx_memviewslice __pyx_t_5 = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __Pyx_memviewslice __pyx_t_6 = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __Pyx_memviewslice __pyx_t_7 = { 0, 0, { 0 }, { 0 }, { 0 } };
+  Py_ssize_t __pyx_t_8;
+  Py_ssize_t __pyx_t_9;
+  PyObject *__pyx_t_10 = NULL;
+  PyObject *__pyx_t_11 = NULL;
+  PyObject *__pyx_t_12 = NULL;
+  PyObject *__pyx_t_13 = NULL;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("solve_optimal_transport_network_simplex_batch", 0);
-  __pyx_pybuffer_result_codes.pybuffer.buf = NULL;
-  __pyx_pybuffer_result_codes.refcount = 0;
-  __pyx_pybuffernd_result_codes.data = NULL;
-  __pyx_pybuffernd_result_codes.rcbuffer = &__pyx_pybuffer_result_codes;
-  __pyx_pybuffer_costs.pybuffer.buf = NULL;
-  __pyx_pybuffer_costs.refcount = 0;
-  __pyx_pybuffernd_costs.data = NULL;
-  __pyx_pybuffernd_costs.rcbuffer = &__pyx_pybuffer_costs;
-  __pyx_pybuffer_trans_matrices.pybuffer.buf = NULL;
-  __pyx_pybuffer_trans_matrices.refcount = 0;
-  __pyx_pybuffernd_trans_matrices.data = NULL;
-  __pyx_pybuffernd_trans_matrices.rcbuffer = &__pyx_pybuffer_trans_matrices;
 
-  /* "dapy/ot/solvers.pyx":408
+  /* "dapy/ot/solvers.pyx":410
  *            Computer Science, 264:23-45. http://lemon.cs.elte.hu/trac/lemon
  *     """
  *     cdef int n_problem = cost_matrices.shape[0]             # <<<<<<<<<<<<<<
@@ -4609,376 +4606,30 @@ static PyObject *__pyx_pf_4dapy_2ot_7solvers_4solve_optimal_transport_network_si
  */
   __pyx_v_n_problem = (__pyx_v_cost_matrices.shape[0]);
 
-  /* "dapy/ot/solvers.pyx":409
+  /* "dapy/ot/solvers.pyx":411
  *     """
  *     cdef int n_problem = cost_matrices.shape[0]
  *     cdef int n_source = cost_matrices.shape[1]             # <<<<<<<<<<<<<<
  *     cdef int n_target = cost_matrices.shape[2]
- *     cdef int p = 0
+ *     cdef int p
  */
   __pyx_v_n_source = (__pyx_v_cost_matrices.shape[1]);
 
-  /* "dapy/ot/solvers.pyx":410
+  /* "dapy/ot/solvers.pyx":412
  *     cdef int n_problem = cost_matrices.shape[0]
  *     cdef int n_source = cost_matrices.shape[1]
  *     cdef int n_target = cost_matrices.shape[2]             # <<<<<<<<<<<<<<
- *     cdef int p = 0
- * 
+ *     cdef int p
+ *     # Iterate over optimal transport problems, potentially distributing over
  */
   __pyx_v_n_target = (__pyx_v_cost_matrices.shape[2]);
 
-  /* "dapy/ot/solvers.pyx":411
- *     cdef int n_source = cost_matrices.shape[1]
- *     cdef int n_target = cost_matrices.shape[2]
- *     cdef int p = 0             # <<<<<<<<<<<<<<
- * 
- *     # Check input arguments are dimensionally consistent
- */
-  __pyx_v_p = 0;
-
-  /* "dapy/ot/solvers.pyx":414
- * 
- *     # Check input arguments are dimensionally consistent
- *     assert (source_dists.shape[0] == n_problem and             # <<<<<<<<<<<<<<
- *             source_dists.shape[1] == n_source), (
- *             'source_dists shape incompatible with cost_matrices')
- */
-  #ifndef CYTHON_WITHOUT_ASSERTIONS
-  if (unlikely(!Py_OptimizeFlag)) {
-    __pyx_t_2 = (((__pyx_v_source_dists.shape[0]) == __pyx_v_n_problem) != 0);
-    if (__pyx_t_2) {
-    } else {
-      __pyx_t_1 = __pyx_t_2;
-      goto __pyx_L3_bool_binop_done;
-    }
-
-    /* "dapy/ot/solvers.pyx":415
- *     # Check input arguments are dimensionally consistent
- *     assert (source_dists.shape[0] == n_problem and
- *             source_dists.shape[1] == n_source), (             # <<<<<<<<<<<<<<
- *             'source_dists shape incompatible with cost_matrices')
- *     assert (target_dists.shape[0] == n_problem and
- */
-    __pyx_t_2 = (((__pyx_v_source_dists.shape[1]) == __pyx_v_n_source) != 0);
-    __pyx_t_1 = __pyx_t_2;
-    __pyx_L3_bool_binop_done:;
-    if (unlikely(!__pyx_t_1)) {
-      PyErr_SetObject(PyExc_AssertionError, __pyx_kp_u_source_dists_shape_incompatible);
-      __PYX_ERR(0, 414, __pyx_L1_error)
-    }
-  }
-  #endif
-
-  /* "dapy/ot/solvers.pyx":417
- *             source_dists.shape[1] == n_source), (
- *             'source_dists shape incompatible with cost_matrices')
- *     assert (target_dists.shape[0] == n_problem and             # <<<<<<<<<<<<<<
- *             target_dists.shape[1] == n_target), (
- *             'target_dists shape incompatible with cost_matrices')
- */
-  #ifndef CYTHON_WITHOUT_ASSERTIONS
-  if (unlikely(!Py_OptimizeFlag)) {
-    __pyx_t_2 = (((__pyx_v_target_dists.shape[0]) == __pyx_v_n_problem) != 0);
-    if (__pyx_t_2) {
-    } else {
-      __pyx_t_1 = __pyx_t_2;
-      goto __pyx_L5_bool_binop_done;
-    }
-
-    /* "dapy/ot/solvers.pyx":418
- *             'source_dists shape incompatible with cost_matrices')
- *     assert (target_dists.shape[0] == n_problem and
- *             target_dists.shape[1] == n_target), (             # <<<<<<<<<<<<<<
- *             'target_dists shape incompatible with cost_matrices')
- * 
- */
-    __pyx_t_2 = (((__pyx_v_target_dists.shape[1]) == __pyx_v_n_target) != 0);
-    __pyx_t_1 = __pyx_t_2;
-    __pyx_L5_bool_binop_done:;
-    if (unlikely(!__pyx_t_1)) {
-      PyErr_SetObject(PyExc_AssertionError, __pyx_kp_u_target_dists_shape_incompatible);
-      __PYX_ERR(0, 417, __pyx_L1_error)
-    }
-  }
-  #endif
-
-  /* "dapy/ot/solvers.pyx":422
- * 
- *     # Define numpy arrays to store computed results
- *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.empty(             # <<<<<<<<<<<<<<
- *         n_problem, dtype='int32')
- *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.empty(
- */
-  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 422, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_empty); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 422, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-
-  /* "dapy/ot/solvers.pyx":423
- *     # Define numpy arrays to store computed results
- *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.empty(
- *         n_problem, dtype='int32')             # <<<<<<<<<<<<<<
- *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.empty(
- *         n_problem, dtype='double')
- */
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_n_problem); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 423, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-
-  /* "dapy/ot/solvers.pyx":422
- * 
- *     # Define numpy arrays to store computed results
- *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.empty(             # <<<<<<<<<<<<<<
- *         n_problem, dtype='int32')
- *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.empty(
- */
-  __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 422, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_GIVEREF(__pyx_t_3);
-  PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_3);
-  __pyx_t_3 = 0;
-
-  /* "dapy/ot/solvers.pyx":423
- *     # Define numpy arrays to store computed results
- *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.empty(
- *         n_problem, dtype='int32')             # <<<<<<<<<<<<<<
- *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.empty(
- *         n_problem, dtype='double')
- */
-  __pyx_t_3 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 423, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_dtype, __pyx_n_u_int32) < 0) __PYX_ERR(0, 423, __pyx_L1_error)
-
-  /* "dapy/ot/solvers.pyx":422
- * 
- *     # Define numpy arrays to store computed results
- *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.empty(             # <<<<<<<<<<<<<<
- *         n_problem, dtype='int32')
- *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.empty(
- */
-  __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_5, __pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 422, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (!(likely(((__pyx_t_6) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_6, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 422, __pyx_L1_error)
-  __pyx_t_7 = ((PyArrayObject *)__pyx_t_6);
-  {
-    __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_result_codes.rcbuffer->pybuffer, (PyObject*)__pyx_t_7, &__Pyx_TypeInfo_int, PyBUF_FORMAT| PyBUF_C_CONTIGUOUS, 1, 0, __pyx_stack) == -1)) {
-      __pyx_v_result_codes = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_result_codes.rcbuffer->pybuffer.buf = NULL;
-      __PYX_ERR(0, 422, __pyx_L1_error)
-    } else {__pyx_pybuffernd_result_codes.diminfo[0].strides = __pyx_pybuffernd_result_codes.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_result_codes.diminfo[0].shape = __pyx_pybuffernd_result_codes.rcbuffer->pybuffer.shape[0];
-    }
-  }
-  __pyx_t_7 = 0;
-  __pyx_v_result_codes = ((PyArrayObject *)__pyx_t_6);
-  __pyx_t_6 = 0;
-
-  /* "dapy/ot/solvers.pyx":424
- *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.empty(
- *         n_problem, dtype='int32')
- *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.empty(             # <<<<<<<<<<<<<<
- *         n_problem, dtype='double')
- *     cdef np.ndarray[double, ndim=3, mode='c'] trans_matrices = np.empty(
- */
-  __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 424, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_empty); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 424, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-
-  /* "dapy/ot/solvers.pyx":425
- *         n_problem, dtype='int32')
- *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.empty(
- *         n_problem, dtype='double')             # <<<<<<<<<<<<<<
- *     cdef np.ndarray[double, ndim=3, mode='c'] trans_matrices = np.empty(
- *         (n_problem, n_source, n_target), dtype='double', order='C')
- */
-  __pyx_t_6 = __Pyx_PyInt_From_int(__pyx_v_n_problem); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 425, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-
-  /* "dapy/ot/solvers.pyx":424
- *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.empty(
- *         n_problem, dtype='int32')
- *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.empty(             # <<<<<<<<<<<<<<
- *         n_problem, dtype='double')
- *     cdef np.ndarray[double, ndim=3, mode='c'] trans_matrices = np.empty(
- */
-  __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 424, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_GIVEREF(__pyx_t_6);
-  PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_6);
-  __pyx_t_6 = 0;
-
-  /* "dapy/ot/solvers.pyx":425
- *         n_problem, dtype='int32')
- *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.empty(
- *         n_problem, dtype='double')             # <<<<<<<<<<<<<<
- *     cdef np.ndarray[double, ndim=3, mode='c'] trans_matrices = np.empty(
- *         (n_problem, n_source, n_target), dtype='double', order='C')
- */
-  __pyx_t_6 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 425, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_dtype, __pyx_n_u_double) < 0) __PYX_ERR(0, 425, __pyx_L1_error)
-
-  /* "dapy/ot/solvers.pyx":424
- *     cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.empty(
- *         n_problem, dtype='int32')
- *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.empty(             # <<<<<<<<<<<<<<
- *         n_problem, dtype='double')
- *     cdef np.ndarray[double, ndim=3, mode='c'] trans_matrices = np.empty(
- */
-  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, __pyx_t_6); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 424, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  if (!(likely(((__pyx_t_4) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_4, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 424, __pyx_L1_error)
-  __pyx_t_8 = ((PyArrayObject *)__pyx_t_4);
-  {
-    __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_costs.rcbuffer->pybuffer, (PyObject*)__pyx_t_8, &__Pyx_TypeInfo_double, PyBUF_FORMAT| PyBUF_C_CONTIGUOUS, 1, 0, __pyx_stack) == -1)) {
-      __pyx_v_costs = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_costs.rcbuffer->pybuffer.buf = NULL;
-      __PYX_ERR(0, 424, __pyx_L1_error)
-    } else {__pyx_pybuffernd_costs.diminfo[0].strides = __pyx_pybuffernd_costs.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_costs.diminfo[0].shape = __pyx_pybuffernd_costs.rcbuffer->pybuffer.shape[0];
-    }
-  }
-  __pyx_t_8 = 0;
-  __pyx_v_costs = ((PyArrayObject *)__pyx_t_4);
-  __pyx_t_4 = 0;
-
-  /* "dapy/ot/solvers.pyx":426
- *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.empty(
- *         n_problem, dtype='double')
- *     cdef np.ndarray[double, ndim=3, mode='c'] trans_matrices = np.empty(             # <<<<<<<<<<<<<<
- *         (n_problem, n_source, n_target), dtype='double', order='C')
- * 
- */
-  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 426, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_empty); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 426, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-
-  /* "dapy/ot/solvers.pyx":427
- *         n_problem, dtype='double')
- *     cdef np.ndarray[double, ndim=3, mode='c'] trans_matrices = np.empty(
- *         (n_problem, n_source, n_target), dtype='double', order='C')             # <<<<<<<<<<<<<<
- * 
- *     # Define memoryviews of numpy arrays to allow slicing without GIL in
- */
-  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_n_problem); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 427, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_n_source); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 427, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_n_target); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 427, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_9 = PyTuple_New(3); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 427, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_9);
-  __Pyx_GIVEREF(__pyx_t_4);
-  PyTuple_SET_ITEM(__pyx_t_9, 0, __pyx_t_4);
-  __Pyx_GIVEREF(__pyx_t_5);
-  PyTuple_SET_ITEM(__pyx_t_9, 1, __pyx_t_5);
-  __Pyx_GIVEREF(__pyx_t_3);
-  PyTuple_SET_ITEM(__pyx_t_9, 2, __pyx_t_3);
-  __pyx_t_4 = 0;
-  __pyx_t_5 = 0;
-  __pyx_t_3 = 0;
-
-  /* "dapy/ot/solvers.pyx":426
- *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.empty(
- *         n_problem, dtype='double')
- *     cdef np.ndarray[double, ndim=3, mode='c'] trans_matrices = np.empty(             # <<<<<<<<<<<<<<
- *         (n_problem, n_source, n_target), dtype='double', order='C')
- * 
- */
-  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 426, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_GIVEREF(__pyx_t_9);
-  PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_9);
-  __pyx_t_9 = 0;
-
-  /* "dapy/ot/solvers.pyx":427
- *         n_problem, dtype='double')
- *     cdef np.ndarray[double, ndim=3, mode='c'] trans_matrices = np.empty(
- *         (n_problem, n_source, n_target), dtype='double', order='C')             # <<<<<<<<<<<<<<
- * 
- *     # Define memoryviews of numpy arrays to allow slicing without GIL in
- */
-  __pyx_t_9 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 427, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_9);
-  if (PyDict_SetItem(__pyx_t_9, __pyx_n_s_dtype, __pyx_n_u_double) < 0) __PYX_ERR(0, 427, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_9, __pyx_n_s_order, __pyx_n_u_C) < 0) __PYX_ERR(0, 427, __pyx_L1_error)
-
-  /* "dapy/ot/solvers.pyx":426
- *     cdef np.ndarray[double, ndim=1, mode='c'] costs = np.empty(
- *         n_problem, dtype='double')
- *     cdef np.ndarray[double, ndim=3, mode='c'] trans_matrices = np.empty(             # <<<<<<<<<<<<<<
- *         (n_problem, n_source, n_target), dtype='double', order='C')
- * 
- */
-  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_t_3, __pyx_t_9); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 426, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-  if (!(likely(((__pyx_t_5) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_5, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 426, __pyx_L1_error)
-  __pyx_t_10 = ((PyArrayObject *)__pyx_t_5);
-  {
-    __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_trans_matrices.rcbuffer->pybuffer, (PyObject*)__pyx_t_10, &__Pyx_TypeInfo_double, PyBUF_FORMAT| PyBUF_C_CONTIGUOUS, 3, 0, __pyx_stack) == -1)) {
-      __pyx_v_trans_matrices = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_trans_matrices.rcbuffer->pybuffer.buf = NULL;
-      __PYX_ERR(0, 426, __pyx_L1_error)
-    } else {__pyx_pybuffernd_trans_matrices.diminfo[0].strides = __pyx_pybuffernd_trans_matrices.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_trans_matrices.diminfo[0].shape = __pyx_pybuffernd_trans_matrices.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_trans_matrices.diminfo[1].strides = __pyx_pybuffernd_trans_matrices.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_trans_matrices.diminfo[1].shape = __pyx_pybuffernd_trans_matrices.rcbuffer->pybuffer.shape[1]; __pyx_pybuffernd_trans_matrices.diminfo[2].strides = __pyx_pybuffernd_trans_matrices.rcbuffer->pybuffer.strides[2]; __pyx_pybuffernd_trans_matrices.diminfo[2].shape = __pyx_pybuffernd_trans_matrices.rcbuffer->pybuffer.shape[2];
-    }
-  }
-  __pyx_t_10 = 0;
-  __pyx_v_trans_matrices = ((PyArrayObject *)__pyx_t_5);
-  __pyx_t_5 = 0;
-
-  /* "dapy/ot/solvers.pyx":431
- *     # Define memoryviews of numpy arrays to allow slicing without GIL in
- *     # parallel loop
- *     cdef int[:] result_codes_mv = result_codes             # <<<<<<<<<<<<<<
- *     cdef double[:] costs_mv = costs
- *     cdef double[:, :, :] trans_matrices_mv = trans_matrices
- */
-  __pyx_t_11 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(((PyObject *)__pyx_v_result_codes), PyBUF_WRITABLE); if (unlikely(!__pyx_t_11.memview)) __PYX_ERR(0, 431, __pyx_L1_error)
-  __pyx_v_result_codes_mv = __pyx_t_11;
-  __pyx_t_11.memview = NULL;
-  __pyx_t_11.data = NULL;
-
-  /* "dapy/ot/solvers.pyx":432
- *     # parallel loop
- *     cdef int[:] result_codes_mv = result_codes
- *     cdef double[:] costs_mv = costs             # <<<<<<<<<<<<<<
- *     cdef double[:, :, :] trans_matrices_mv = trans_matrices
- * 
- */
-  __pyx_t_12 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(((PyObject *)__pyx_v_costs), PyBUF_WRITABLE); if (unlikely(!__pyx_t_12.memview)) __PYX_ERR(0, 432, __pyx_L1_error)
-  __pyx_v_costs_mv = __pyx_t_12;
-  __pyx_t_12.memview = NULL;
-  __pyx_t_12.data = NULL;
-
-  /* "dapy/ot/solvers.pyx":433
- *     cdef int[:] result_codes_mv = result_codes
- *     cdef double[:] costs_mv = costs
- *     cdef double[:, :, :] trans_matrices_mv = trans_matrices             # <<<<<<<<<<<<<<
- * 
- *     # Iterate over optimal transport problems, potentially distributing over
- */
-  __pyx_t_13 = __Pyx_PyObject_to_MemoryviewSlice_dsdsds_double(((PyObject *)__pyx_v_trans_matrices), PyBUF_WRITABLE); if (unlikely(!__pyx_t_13.memview)) __PYX_ERR(0, 433, __pyx_L1_error)
-  __pyx_v_trans_matrices_mv = __pyx_t_13;
-  __pyx_t_13.memview = NULL;
-  __pyx_t_13.data = NULL;
-
-  /* "dapy/ot/solvers.pyx":437
+  /* "dapy/ot/solvers.pyx":416
  *     # Iterate over optimal transport problems, potentially distributing over
  *     # multiple parallel threads
- *     for p in prange(n_problem, num_threads=n_thread, schedule='static',             # <<<<<<<<<<<<<<
- *                     nogil=True):
- *         result_codes_mv[p] = _solve_optimal_transport_network_simplex(
+ *     for p in prange(n_problem, num_threads=num_thread, schedule='static', nogil=True):             # <<<<<<<<<<<<<<
+ *         result_codes[p] = _solve_optimal_transport_network_simplex(
+ *             source_dists[p], target_dists[p], cost_matrices[p],
  */
   {
       #ifdef WITH_THREAD
@@ -4987,7 +4638,7 @@ static PyObject *__pyx_pf_4dapy_2ot_7solvers_4solve_optimal_transport_network_si
       __Pyx_FastGIL_Remember();
       #endif
       /*try:*/ {
-        __pyx_t_14 = __pyx_v_n_problem;
+        __pyx_t_1 = __pyx_v_n_problem;
         if ((1 == 0)) abort();
         {
             #if ((defined(__APPLE__) || defined(__OSX__)) && (defined(__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && (__GNUC_MINOR__ > 95)))))
@@ -4996,118 +4647,118 @@ static PyObject *__pyx_pf_4dapy_2ot_7solvers_4solve_optimal_transport_network_si
                 #define likely(x)   (x)
                 #define unlikely(x) (x)
             #endif
-            __pyx_t_16 = (__pyx_t_14 - 0 + 1 - 1/abs(1)) / 1;
-            if (__pyx_t_16 > 0)
+            __pyx_t_3 = (__pyx_t_1 - 0 + 1 - 1/abs(1)) / 1;
+            if (__pyx_t_3 > 0)
             {
                 #ifdef _OPENMP
-                #pragma omp parallel num_threads(__pyx_v_n_thread) private(__pyx_t_20, __pyx_t_21) firstprivate(__pyx_t_12, __pyx_t_17, __pyx_t_18, __pyx_t_19)
+                #pragma omp parallel num_threads(__pyx_v_num_thread) private(__pyx_t_8, __pyx_t_9) firstprivate(__pyx_t_4, __pyx_t_5, __pyx_t_6, __pyx_t_7)
                 #endif /* _OPENMP */
                 {
                     #ifdef _OPENMP
                     #pragma omp for firstprivate(__pyx_v_p) lastprivate(__pyx_v_p) schedule(static)
                     #endif /* _OPENMP */
-                    for (__pyx_t_15 = 0; __pyx_t_15 < __pyx_t_16; __pyx_t_15++){
+                    for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_3; __pyx_t_2++){
                         {
-                            __pyx_v_p = (int)(0 + 1 * __pyx_t_15);
+                            __pyx_v_p = (int)(0 + 1 * __pyx_t_2);
 
-                            /* "dapy/ot/solvers.pyx":440
- *                     nogil=True):
- *         result_codes_mv[p] = _solve_optimal_transport_network_simplex(
+                            /* "dapy/ot/solvers.pyx":418
+ *     for p in prange(n_problem, num_threads=num_thread, schedule='static', nogil=True):
+ *         result_codes[p] = _solve_optimal_transport_network_simplex(
  *             source_dists[p], target_dists[p], cost_matrices[p],             # <<<<<<<<<<<<<<
- *             trans_matrices_mv[p], &costs_mv[p], max_iter, sum_diff_tolerance)
+ *             trans_matrices[p], &costs[p], max_iter, sum_diff_tolerance)
  * 
  */
-                            __pyx_t_12.data = __pyx_v_source_dists.data;
-                            __pyx_t_12.memview = __pyx_v_source_dists.memview;
-                            __PYX_INC_MEMVIEW(&__pyx_t_12, 0);
+                            __pyx_t_4.data = __pyx_v_source_dists.data;
+                            __pyx_t_4.memview = __pyx_v_source_dists.memview;
+                            __PYX_INC_MEMVIEW(&__pyx_t_4, 0);
                             {
     Py_ssize_t __pyx_tmp_idx = __pyx_v_p;
     Py_ssize_t __pyx_tmp_stride = __pyx_v_source_dists.strides[0];
-        __pyx_t_12.data += __pyx_tmp_idx * __pyx_tmp_stride;
+        __pyx_t_4.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
 
-__pyx_t_12.shape[0] = __pyx_v_source_dists.shape[1];
-__pyx_t_12.strides[0] = __pyx_v_source_dists.strides[1];
-    __pyx_t_12.suboffsets[0] = -1;
+__pyx_t_4.shape[0] = __pyx_v_source_dists.shape[1];
+__pyx_t_4.strides[0] = __pyx_v_source_dists.strides[1];
+    __pyx_t_4.suboffsets[0] = -1;
 
-__pyx_t_17.data = __pyx_v_target_dists.data;
-                            __pyx_t_17.memview = __pyx_v_target_dists.memview;
-                            __PYX_INC_MEMVIEW(&__pyx_t_17, 0);
+__pyx_t_5.data = __pyx_v_target_dists.data;
+                            __pyx_t_5.memview = __pyx_v_target_dists.memview;
+                            __PYX_INC_MEMVIEW(&__pyx_t_5, 0);
                             {
     Py_ssize_t __pyx_tmp_idx = __pyx_v_p;
     Py_ssize_t __pyx_tmp_stride = __pyx_v_target_dists.strides[0];
-        __pyx_t_17.data += __pyx_tmp_idx * __pyx_tmp_stride;
+        __pyx_t_5.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
 
-__pyx_t_17.shape[0] = __pyx_v_target_dists.shape[1];
-__pyx_t_17.strides[0] = __pyx_v_target_dists.strides[1];
-    __pyx_t_17.suboffsets[0] = -1;
+__pyx_t_5.shape[0] = __pyx_v_target_dists.shape[1];
+__pyx_t_5.strides[0] = __pyx_v_target_dists.strides[1];
+    __pyx_t_5.suboffsets[0] = -1;
 
-__pyx_t_18.data = __pyx_v_cost_matrices.data;
-                            __pyx_t_18.memview = __pyx_v_cost_matrices.memview;
-                            __PYX_INC_MEMVIEW(&__pyx_t_18, 0);
+__pyx_t_6.data = __pyx_v_cost_matrices.data;
+                            __pyx_t_6.memview = __pyx_v_cost_matrices.memview;
+                            __PYX_INC_MEMVIEW(&__pyx_t_6, 0);
                             {
     Py_ssize_t __pyx_tmp_idx = __pyx_v_p;
     Py_ssize_t __pyx_tmp_stride = __pyx_v_cost_matrices.strides[0];
-        __pyx_t_18.data += __pyx_tmp_idx * __pyx_tmp_stride;
+        __pyx_t_6.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
 
-__pyx_t_18.shape[0] = __pyx_v_cost_matrices.shape[1];
-__pyx_t_18.strides[0] = __pyx_v_cost_matrices.strides[1];
-    __pyx_t_18.suboffsets[0] = -1;
+__pyx_t_6.shape[0] = __pyx_v_cost_matrices.shape[1];
+__pyx_t_6.strides[0] = __pyx_v_cost_matrices.strides[1];
+    __pyx_t_6.suboffsets[0] = -1;
 
-__pyx_t_18.shape[1] = __pyx_v_cost_matrices.shape[2];
-__pyx_t_18.strides[1] = __pyx_v_cost_matrices.strides[2];
-    __pyx_t_18.suboffsets[1] = -1;
+__pyx_t_6.shape[1] = __pyx_v_cost_matrices.shape[2];
+__pyx_t_6.strides[1] = __pyx_v_cost_matrices.strides[2];
+    __pyx_t_6.suboffsets[1] = -1;
 
-__pyx_t_19.data = __pyx_v_trans_matrices_mv.data;
+__pyx_t_7.data = __pyx_v_trans_matrices.data;
 
-                            /* "dapy/ot/solvers.pyx":441
- *         result_codes_mv[p] = _solve_optimal_transport_network_simplex(
+                            /* "dapy/ot/solvers.pyx":419
+ *         result_codes[p] = _solve_optimal_transport_network_simplex(
  *             source_dists[p], target_dists[p], cost_matrices[p],
- *             trans_matrices_mv[p], &costs_mv[p], max_iter, sum_diff_tolerance)             # <<<<<<<<<<<<<<
+ *             trans_matrices[p], &costs[p], max_iter, sum_diff_tolerance)             # <<<<<<<<<<<<<<
  * 
  *     return trans_matrices, costs, result_codes
  */
-                            __pyx_t_19.memview = __pyx_v_trans_matrices_mv.memview;
-                            __PYX_INC_MEMVIEW(&__pyx_t_19, 0);
+                            __pyx_t_7.memview = __pyx_v_trans_matrices.memview;
+                            __PYX_INC_MEMVIEW(&__pyx_t_7, 0);
                             {
     Py_ssize_t __pyx_tmp_idx = __pyx_v_p;
-    Py_ssize_t __pyx_tmp_stride = __pyx_v_trans_matrices_mv.strides[0];
-        __pyx_t_19.data += __pyx_tmp_idx * __pyx_tmp_stride;
+    Py_ssize_t __pyx_tmp_stride = __pyx_v_trans_matrices.strides[0];
+        __pyx_t_7.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
 
-__pyx_t_19.shape[0] = __pyx_v_trans_matrices_mv.shape[1];
-__pyx_t_19.strides[0] = __pyx_v_trans_matrices_mv.strides[1];
-    __pyx_t_19.suboffsets[0] = -1;
+__pyx_t_7.shape[0] = __pyx_v_trans_matrices.shape[1];
+__pyx_t_7.strides[0] = __pyx_v_trans_matrices.strides[1];
+    __pyx_t_7.suboffsets[0] = -1;
 
-__pyx_t_19.shape[1] = __pyx_v_trans_matrices_mv.shape[2];
-__pyx_t_19.strides[1] = __pyx_v_trans_matrices_mv.strides[2];
-    __pyx_t_19.suboffsets[1] = -1;
+__pyx_t_7.shape[1] = __pyx_v_trans_matrices.shape[2];
+__pyx_t_7.strides[1] = __pyx_v_trans_matrices.strides[2];
+    __pyx_t_7.suboffsets[1] = -1;
 
-__pyx_t_20 = __pyx_v_p;
+__pyx_t_8 = __pyx_v_p;
 
-                            /* "dapy/ot/solvers.pyx":439
- *     for p in prange(n_problem, num_threads=n_thread, schedule='static',
- *                     nogil=True):
- *         result_codes_mv[p] = _solve_optimal_transport_network_simplex(             # <<<<<<<<<<<<<<
+                            /* "dapy/ot/solvers.pyx":417
+ *     # multiple parallel threads
+ *     for p in prange(n_problem, num_threads=num_thread, schedule='static', nogil=True):
+ *         result_codes[p] = _solve_optimal_transport_network_simplex(             # <<<<<<<<<<<<<<
  *             source_dists[p], target_dists[p], cost_matrices[p],
- *             trans_matrices_mv[p], &costs_mv[p], max_iter, sum_diff_tolerance)
+ *             trans_matrices[p], &costs[p], max_iter, sum_diff_tolerance)
  */
-                            __pyx_t_21 = __pyx_v_p;
-                            *((int *) ( /* dim=0 */ (__pyx_v_result_codes_mv.data + __pyx_t_21 * __pyx_v_result_codes_mv.strides[0]) )) = __pyx_f_4dapy_2ot_7solvers__solve_optimal_transport_network_simplex(__pyx_t_12, __pyx_t_17, __pyx_t_18, __pyx_t_19, (&(*((double *) ( /* dim=0 */ (__pyx_v_costs_mv.data + __pyx_t_20 * __pyx_v_costs_mv.strides[0]) )))), __pyx_v_max_iter, __pyx_v_sum_diff_tolerance);
-                            __PYX_XDEC_MEMVIEW(&__pyx_t_12, 0);
-                            __pyx_t_12.memview = NULL;
-                            __pyx_t_12.data = NULL;
-                            __PYX_XDEC_MEMVIEW(&__pyx_t_17, 0);
-                            __pyx_t_17.memview = NULL;
-                            __pyx_t_17.data = NULL;
-                            __PYX_XDEC_MEMVIEW(&__pyx_t_18, 0);
-                            __pyx_t_18.memview = NULL;
-                            __pyx_t_18.data = NULL;
-                            __PYX_XDEC_MEMVIEW(&__pyx_t_19, 0);
-                            __pyx_t_19.memview = NULL;
-                            __pyx_t_19.data = NULL;
+                            __pyx_t_9 = __pyx_v_p;
+                            *((int *) ( /* dim=0 */ (__pyx_v_result_codes.data + __pyx_t_9 * __pyx_v_result_codes.strides[0]) )) = __pyx_f_4dapy_2ot_7solvers__solve_optimal_transport_network_simplex(__pyx_t_4, __pyx_t_5, __pyx_t_6, __pyx_t_7, (&(*((double *) ( /* dim=0 */ (__pyx_v_costs.data + __pyx_t_8 * __pyx_v_costs.strides[0]) )))), __pyx_v_max_iter, __pyx_v_sum_diff_tolerance);
+                            __PYX_XDEC_MEMVIEW(&__pyx_t_4, 0);
+                            __pyx_t_4.memview = NULL;
+                            __pyx_t_4.data = NULL;
+                            __PYX_XDEC_MEMVIEW(&__pyx_t_5, 0);
+                            __pyx_t_5.memview = NULL;
+                            __pyx_t_5.data = NULL;
+                            __PYX_XDEC_MEMVIEW(&__pyx_t_6, 0);
+                            __pyx_t_6.memview = NULL;
+                            __pyx_t_6.data = NULL;
+                            __PYX_XDEC_MEMVIEW(&__pyx_t_7, 0);
+                            __pyx_t_7.memview = NULL;
+                            __pyx_t_7.data = NULL;
                         }
                     }
                 }
@@ -5121,12 +4772,12 @@ __pyx_t_20 = __pyx_v_p;
         #endif
       }
 
-      /* "dapy/ot/solvers.pyx":437
+      /* "dapy/ot/solvers.pyx":416
  *     # Iterate over optimal transport problems, potentially distributing over
  *     # multiple parallel threads
- *     for p in prange(n_problem, num_threads=n_thread, schedule='static',             # <<<<<<<<<<<<<<
- *                     nogil=True):
- *         result_codes_mv[p] = _solve_optimal_transport_network_simplex(
+ *     for p in prange(n_problem, num_threads=num_thread, schedule='static', nogil=True):             # <<<<<<<<<<<<<<
+ *         result_codes[p] = _solve_optimal_transport_network_simplex(
+ *             source_dists[p], target_dists[p], cost_matrices[p],
  */
       /*finally:*/ {
         /*normal exit:*/{
@@ -5134,76 +4785,63 @@ __pyx_t_20 = __pyx_v_p;
           __Pyx_FastGIL_Forget();
           Py_BLOCK_THREADS
           #endif
-          goto __pyx_L9;
+          goto __pyx_L5;
         }
-        __pyx_L9:;
+        __pyx_L5:;
       }
   }
 
-  /* "dapy/ot/solvers.pyx":443
- *             trans_matrices_mv[p], &costs_mv[p], max_iter, sum_diff_tolerance)
+  /* "dapy/ot/solvers.pyx":421
+ *             trans_matrices[p], &costs[p], max_iter, sum_diff_tolerance)
  * 
  *     return trans_matrices, costs, result_codes             # <<<<<<<<<<<<<<
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_5 = PyTuple_New(3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 443, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_INCREF(((PyObject *)__pyx_v_trans_matrices));
-  __Pyx_GIVEREF(((PyObject *)__pyx_v_trans_matrices));
-  PyTuple_SET_ITEM(__pyx_t_5, 0, ((PyObject *)__pyx_v_trans_matrices));
-  __Pyx_INCREF(((PyObject *)__pyx_v_costs));
-  __Pyx_GIVEREF(((PyObject *)__pyx_v_costs));
-  PyTuple_SET_ITEM(__pyx_t_5, 1, ((PyObject *)__pyx_v_costs));
-  __Pyx_INCREF(((PyObject *)__pyx_v_result_codes));
-  __Pyx_GIVEREF(((PyObject *)__pyx_v_result_codes));
-  PyTuple_SET_ITEM(__pyx_t_5, 2, ((PyObject *)__pyx_v_result_codes));
-  __pyx_r = __pyx_t_5;
-  __pyx_t_5 = 0;
+  __pyx_t_10 = __pyx_memoryview_fromslice(__pyx_v_trans_matrices, 3, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 421, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_10);
+  __pyx_t_11 = __pyx_memoryview_fromslice(__pyx_v_costs, 1, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 421, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_11);
+  __pyx_t_12 = __pyx_memoryview_fromslice(__pyx_v_result_codes, 1, (PyObject *(*)(char *)) __pyx_memview_get_int, (int (*)(char *, PyObject *)) __pyx_memview_set_int, 0);; if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 421, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_12);
+  __pyx_t_13 = PyTuple_New(3); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 421, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_13);
+  __Pyx_GIVEREF(__pyx_t_10);
+  PyTuple_SET_ITEM(__pyx_t_13, 0, __pyx_t_10);
+  __Pyx_GIVEREF(__pyx_t_11);
+  PyTuple_SET_ITEM(__pyx_t_13, 1, __pyx_t_11);
+  __Pyx_GIVEREF(__pyx_t_12);
+  PyTuple_SET_ITEM(__pyx_t_13, 2, __pyx_t_12);
+  __pyx_t_10 = 0;
+  __pyx_t_11 = 0;
+  __pyx_t_12 = 0;
+  __pyx_r = __pyx_t_13;
+  __pyx_t_13 = 0;
   goto __pyx_L0;
 
   /* "dapy/ot/solvers.pyx":332
  * 
  * 
  * def solve_optimal_transport_network_simplex_batch(             # <<<<<<<<<<<<<<
+ *         double[:, :, :] trans_matrices, double[:] costs, int[:] result_codes,
  *         double[:, :] source_dists, double[:, :] target_dists,
- *         double[:, :, :] cost_matrices, int max_iter=DEFAULT_MAX_ITER,
  */
 
   /* function exit code */
   __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_3);
-  __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_XDECREF(__pyx_t_5);
-  __Pyx_XDECREF(__pyx_t_6);
-  __Pyx_XDECREF(__pyx_t_9);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_11, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_12, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_13, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_17, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_18, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_19, 1);
-  { PyObject *__pyx_type, *__pyx_value, *__pyx_tb;
-    __Pyx_PyThreadState_declare
-    __Pyx_PyThreadState_assign
-    __Pyx_ErrFetch(&__pyx_type, &__pyx_value, &__pyx_tb);
-    __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_costs.rcbuffer->pybuffer);
-    __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_result_codes.rcbuffer->pybuffer);
-    __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_trans_matrices.rcbuffer->pybuffer);
-  __Pyx_ErrRestore(__pyx_type, __pyx_value, __pyx_tb);}
+  __PYX_XDEC_MEMVIEW(&__pyx_t_4, 1);
+  __PYX_XDEC_MEMVIEW(&__pyx_t_5, 1);
+  __PYX_XDEC_MEMVIEW(&__pyx_t_6, 1);
+  __PYX_XDEC_MEMVIEW(&__pyx_t_7, 1);
+  __Pyx_XDECREF(__pyx_t_10);
+  __Pyx_XDECREF(__pyx_t_11);
+  __Pyx_XDECREF(__pyx_t_12);
+  __Pyx_XDECREF(__pyx_t_13);
   __Pyx_AddTraceback("dapy.ot.solvers.solve_optimal_transport_network_simplex_batch", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
-  goto __pyx_L2;
   __pyx_L0:;
-  __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_costs.rcbuffer->pybuffer);
-  __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_result_codes.rcbuffer->pybuffer);
-  __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_trans_matrices.rcbuffer->pybuffer);
-  __pyx_L2:;
-  __Pyx_XDECREF((PyObject *)__pyx_v_result_codes);
-  __Pyx_XDECREF((PyObject *)__pyx_v_costs);
-  __Pyx_XDECREF((PyObject *)__pyx_v_trans_matrices);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_result_codes_mv, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_costs_mv, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_trans_matrices_mv, 1);
+  __PYX_XDEC_MEMVIEW(&__pyx_v_trans_matrices, 1);
+  __PYX_XDEC_MEMVIEW(&__pyx_v_costs, 1);
+  __PYX_XDEC_MEMVIEW(&__pyx_v_result_codes, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_v_source_dists, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_v_target_dists, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_v_cost_matrices, 1);
@@ -21490,7 +21128,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_cost_matrices, __pyx_k_cost_matrices, sizeof(__pyx_k_cost_matrices), 0, 0, 1, 1},
   {&__pyx_n_s_cost_matrix, __pyx_k_cost_matrix, sizeof(__pyx_k_cost_matrix), 0, 0, 1, 1},
   {&__pyx_n_s_costs, __pyx_k_costs, sizeof(__pyx_k_costs), 0, 0, 1, 1},
-  {&__pyx_n_s_costs_mv, __pyx_k_costs_mv, sizeof(__pyx_k_costs_mv), 0, 0, 1, 1},
   {&__pyx_n_s_dapy_ot_solvers, __pyx_k_dapy_ot_solvers, sizeof(__pyx_k_dapy_ot_solvers), 0, 0, 1, 1},
   {&__pyx_kp_s_dapy_ot_solvers_pyx, __pyx_k_dapy_ot_solvers_pyx, sizeof(__pyx_k_dapy_ot_solvers_pyx), 0, 0, 1, 0},
   {&__pyx_n_s_dict, __pyx_k_dict, sizeof(__pyx_k_dict), 0, 0, 1, 1},
@@ -21510,7 +21147,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_got_differing_extents_in_dimensi, __pyx_k_got_differing_extents_in_dimensi, sizeof(__pyx_k_got_differing_extents_in_dimensi), 0, 0, 1, 0},
   {&__pyx_n_s_id, __pyx_k_id, sizeof(__pyx_k_id), 0, 0, 1, 1},
   {&__pyx_n_s_import, __pyx_k_import, sizeof(__pyx_k_import), 0, 0, 1, 1},
-  {&__pyx_n_u_int32, __pyx_k_int32, sizeof(__pyx_k_int32), 0, 1, 0, 1},
   {&__pyx_n_s_itemsize, __pyx_k_itemsize, sizeof(__pyx_k_itemsize), 0, 0, 1, 1},
   {&__pyx_kp_s_itemsize_0_for_cython_array, __pyx_k_itemsize_0_for_cython_array, sizeof(__pyx_k_itemsize_0_for_cython_array), 0, 0, 1, 0},
   {&__pyx_n_s_main, __pyx_k_main, sizeof(__pyx_k_main), 0, 0, 1, 1},
@@ -21520,7 +21156,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_n_problem, __pyx_k_n_problem, sizeof(__pyx_k_n_problem), 0, 0, 1, 1},
   {&__pyx_n_s_n_source, __pyx_k_n_source, sizeof(__pyx_k_n_source), 0, 0, 1, 1},
   {&__pyx_n_s_n_target, __pyx_k_n_target, sizeof(__pyx_k_n_target), 0, 0, 1, 1},
-  {&__pyx_n_s_n_thread, __pyx_k_n_thread, sizeof(__pyx_k_n_thread), 0, 0, 1, 1},
   {&__pyx_n_s_name, __pyx_k_name, sizeof(__pyx_k_name), 0, 0, 1, 1},
   {&__pyx_n_s_name_2, __pyx_k_name_2, sizeof(__pyx_k_name_2), 0, 0, 1, 1},
   {&__pyx_kp_u_ndarray_is_not_C_contiguous, __pyx_k_ndarray_is_not_C_contiguous, sizeof(__pyx_k_ndarray_is_not_C_contiguous), 0, 1, 0, 0},
@@ -21529,6 +21164,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_new, __pyx_k_new, sizeof(__pyx_k_new), 0, 0, 1, 1},
   {&__pyx_kp_s_no_default___reduce___due_to_non, __pyx_k_no_default___reduce___due_to_non, sizeof(__pyx_k_no_default___reduce___due_to_non), 0, 0, 1, 0},
   {&__pyx_n_s_np, __pyx_k_np, sizeof(__pyx_k_np), 0, 0, 1, 1},
+  {&__pyx_n_s_num_thread, __pyx_k_num_thread, sizeof(__pyx_k_num_thread), 0, 0, 1, 1},
   {&__pyx_n_s_numpy, __pyx_k_numpy, sizeof(__pyx_k_numpy), 0, 0, 1, 1},
   {&__pyx_kp_u_numpy_core_multiarray_failed_to, __pyx_k_numpy_core_multiarray_failed_to, sizeof(__pyx_k_numpy_core_multiarray_failed_to), 0, 1, 0, 0},
   {&__pyx_kp_u_numpy_core_umath_failed_to_impor, __pyx_k_numpy_core_umath_failed_to_impor, sizeof(__pyx_k_numpy_core_umath_failed_to_impor), 0, 1, 0, 0},
@@ -21551,7 +21187,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_reduce_ex, __pyx_k_reduce_ex, sizeof(__pyx_k_reduce_ex), 0, 0, 1, 1},
   {&__pyx_n_s_result_code, __pyx_k_result_code, sizeof(__pyx_k_result_code), 0, 0, 1, 1},
   {&__pyx_n_s_result_codes, __pyx_k_result_codes, sizeof(__pyx_k_result_codes), 0, 0, 1, 1},
-  {&__pyx_n_s_result_codes_mv, __pyx_k_result_codes_mv, sizeof(__pyx_k_result_codes_mv), 0, 0, 1, 1},
   {&__pyx_n_s_setstate, __pyx_k_setstate, sizeof(__pyx_k_setstate), 0, 0, 1, 1},
   {&__pyx_n_s_setstate_cython, __pyx_k_setstate_cython, sizeof(__pyx_k_setstate_cython), 0, 0, 1, 1},
   {&__pyx_n_s_shape, __pyx_k_shape, sizeof(__pyx_k_shape), 0, 0, 1, 1},
@@ -21561,7 +21196,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_source_dist, __pyx_k_source_dist, sizeof(__pyx_k_source_dist), 0, 0, 1, 1},
   {&__pyx_kp_u_source_dist_shape_incompatible_w, __pyx_k_source_dist_shape_incompatible_w, sizeof(__pyx_k_source_dist_shape_incompatible_w), 0, 1, 0, 0},
   {&__pyx_n_s_source_dists, __pyx_k_source_dists, sizeof(__pyx_k_source_dists), 0, 0, 1, 1},
-  {&__pyx_kp_u_source_dists_shape_incompatible, __pyx_k_source_dists_shape_incompatible, sizeof(__pyx_k_source_dists_shape_incompatible), 0, 1, 0, 0},
   {&__pyx_n_s_start, __pyx_k_start, sizeof(__pyx_k_start), 0, 0, 1, 1},
   {&__pyx_n_s_step, __pyx_k_step, sizeof(__pyx_k_step), 0, 0, 1, 1},
   {&__pyx_n_s_stop, __pyx_k_stop, sizeof(__pyx_k_stop), 0, 0, 1, 1},
@@ -21574,10 +21208,8 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_target_dist, __pyx_k_target_dist, sizeof(__pyx_k_target_dist), 0, 0, 1, 1},
   {&__pyx_kp_u_target_dist_shape_incompatible_w, __pyx_k_target_dist_shape_incompatible_w, sizeof(__pyx_k_target_dist_shape_incompatible_w), 0, 1, 0, 0},
   {&__pyx_n_s_target_dists, __pyx_k_target_dists, sizeof(__pyx_k_target_dists), 0, 0, 1, 1},
-  {&__pyx_kp_u_target_dists_shape_incompatible, __pyx_k_target_dists_shape_incompatible, sizeof(__pyx_k_target_dists_shape_incompatible), 0, 1, 0, 0},
   {&__pyx_n_s_test, __pyx_k_test, sizeof(__pyx_k_test), 0, 0, 1, 1},
   {&__pyx_n_s_trans_matrices, __pyx_k_trans_matrices, sizeof(__pyx_k_trans_matrices), 0, 0, 1, 1},
-  {&__pyx_n_s_trans_matrices_mv, __pyx_k_trans_matrices_mv, sizeof(__pyx_k_trans_matrices_mv), 0, 0, 1, 1},
   {&__pyx_n_s_trans_matrix, __pyx_k_trans_matrix, sizeof(__pyx_k_trans_matrix), 0, 0, 1, 1},
   {&__pyx_kp_s_unable_to_allocate_array_data, __pyx_k_unable_to_allocate_array_data, sizeof(__pyx_k_unable_to_allocate_array_data), 0, 0, 1, 0},
   {&__pyx_kp_s_unable_to_allocate_shape_and_str, __pyx_k_unable_to_allocate_shape_and_str, sizeof(__pyx_k_unable_to_allocate_shape_and_str), 0, 0, 1, 0},
@@ -21969,13 +21601,13 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  * 
  * 
  * def solve_optimal_transport_network_simplex_batch(             # <<<<<<<<<<<<<<
+ *         double[:, :, :] trans_matrices, double[:] costs, int[:] result_codes,
  *         double[:, :] source_dists, double[:, :] target_dists,
- *         double[:, :, :] cost_matrices, int max_iter=DEFAULT_MAX_ITER,
  */
-  __pyx_tuple__40 = PyTuple_Pack(16, __pyx_n_s_source_dists, __pyx_n_s_target_dists, __pyx_n_s_cost_matrices, __pyx_n_s_max_iter, __pyx_n_s_sum_diff_tolerance, __pyx_n_s_n_thread, __pyx_n_s_n_problem, __pyx_n_s_n_source, __pyx_n_s_n_target, __pyx_n_s_p, __pyx_n_s_result_codes, __pyx_n_s_costs, __pyx_n_s_trans_matrices, __pyx_n_s_result_codes_mv, __pyx_n_s_costs_mv, __pyx_n_s_trans_matrices_mv); if (unlikely(!__pyx_tuple__40)) __PYX_ERR(0, 332, __pyx_L1_error)
+  __pyx_tuple__40 = PyTuple_Pack(13, __pyx_n_s_trans_matrices, __pyx_n_s_costs, __pyx_n_s_result_codes, __pyx_n_s_source_dists, __pyx_n_s_target_dists, __pyx_n_s_cost_matrices, __pyx_n_s_max_iter, __pyx_n_s_sum_diff_tolerance, __pyx_n_s_num_thread, __pyx_n_s_n_problem, __pyx_n_s_n_source, __pyx_n_s_n_target, __pyx_n_s_p); if (unlikely(!__pyx_tuple__40)) __PYX_ERR(0, 332, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__40);
   __Pyx_GIVEREF(__pyx_tuple__40);
-  __pyx_codeobj__41 = (PyObject*)__Pyx_PyCode_New(6, 0, 16, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__40, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_dapy_ot_solvers_pyx, __pyx_n_s_solve_optimal_transport_network_2, 332, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__41)) __PYX_ERR(0, 332, __pyx_L1_error)
+  __pyx_codeobj__41 = (PyObject*)__Pyx_PyCode_New(9, 0, 13, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__40, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_dapy_ot_solvers_pyx, __pyx_n_s_solve_optimal_transport_network_2, 332, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__41)) __PYX_ERR(0, 332, __pyx_L1_error)
 
   /* "View.MemoryView":286
  *         return self.name
@@ -22499,19 +22131,19 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_solve_optimal_transport_network, __pyx_t_1) < 0) __PYX_ERR(0, 241, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "dapy/ot/solvers.pyx":334
- * def solve_optimal_transport_network_simplex_batch(
+  /* "dapy/ot/solvers.pyx":335
+ *         double[:, :, :] trans_matrices, double[:] costs, int[:] result_codes,
  *         double[:, :] source_dists, double[:, :] target_dists,
  *         double[:, :, :] cost_matrices, int max_iter=DEFAULT_MAX_ITER,             # <<<<<<<<<<<<<<
- *         double sum_diff_tolerance=DEFAULT_SUM_DIFF_TOLERANCE, int n_thread=1):
+ *         double sum_diff_tolerance=DEFAULT_SUM_DIFF_TOLERANCE, int num_thread=1):
  *     """
  */
   __pyx_k__9 = __pyx_v_4dapy_2ot_7solvers_DEFAULT_MAX_ITER;
 
-  /* "dapy/ot/solvers.pyx":335
+  /* "dapy/ot/solvers.pyx":336
  *         double[:, :] source_dists, double[:, :] target_dists,
  *         double[:, :, :] cost_matrices, int max_iter=DEFAULT_MAX_ITER,
- *         double sum_diff_tolerance=DEFAULT_SUM_DIFF_TOLERANCE, int n_thread=1):             # <<<<<<<<<<<<<<
+ *         double sum_diff_tolerance=DEFAULT_SUM_DIFF_TOLERANCE, int num_thread=1):             # <<<<<<<<<<<<<<
  *     """
  *     Solve batch of optimal transport problems using network simplex algorithm.
  */
@@ -22521,8 +22153,8 @@ if (!__Pyx_RefNanny) {
  * 
  * 
  * def solve_optimal_transport_network_simplex_batch(             # <<<<<<<<<<<<<<
+ *         double[:, :, :] trans_matrices, double[:] costs, int[:] result_codes,
  *         double[:, :] source_dists, double[:, :] target_dists,
- *         double[:, :, :] cost_matrices, int max_iter=DEFAULT_MAX_ITER,
  */
   __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_4dapy_2ot_7solvers_5solve_optimal_transport_network_simplex_batch, NULL, __pyx_n_s_dapy_ot_solvers); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 332, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -25901,6 +25533,29 @@ __pyx_fail:
     return result;
 }
 
+/* ObjectToMemviewSlice */
+  static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_int(PyObject *obj, int writable_flag) {
+    __Pyx_memviewslice result = { 0, 0, { 0 }, { 0 }, { 0 } };
+    __Pyx_BufFmt_StackElem stack[1];
+    int axes_specs[] = { (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_STRIDED) };
+    int retcode;
+    if (obj == Py_None) {
+        result.memview = (struct __pyx_memoryview_obj *) Py_None;
+        return result;
+    }
+    retcode = __Pyx_ValidateAndInit_memviewslice(axes_specs, 0,
+                                                 PyBUF_RECORDS_RO | writable_flag, 1,
+                                                 &__Pyx_TypeInfo_int, stack,
+                                                 &result, obj);
+    if (unlikely(retcode == -1))
+        goto __pyx_fail;
+    return result;
+__pyx_fail:
+    result.memview = NULL;
+    result.data = NULL;
+    return result;
+}
+
 /* CIntToPy */
   static CYTHON_INLINE PyObject* __Pyx_PyInt_From_enum____pyx_t_4dapy_2ot_7solvers_ProblemType(enum __pyx_t_4dapy_2ot_7solvers_ProblemType value) {
     const enum __pyx_t_4dapy_2ot_7solvers_ProblemType neg_one = (enum __pyx_t_4dapy_2ot_7solvers_ProblemType) ((enum __pyx_t_4dapy_2ot_7solvers_ProblemType) 0 - (enum __pyx_t_4dapy_2ot_7solvers_ProblemType) 1), const_zero = (enum __pyx_t_4dapy_2ot_7solvers_ProblemType) 0;
@@ -25961,6 +25616,30 @@ __pyx_fail:
         return _PyLong_FromByteArray(bytes, sizeof(int),
                                      little, !is_unsigned);
     }
+}
+
+/* MemviewDtypeToObject */
+  static CYTHON_INLINE PyObject *__pyx_memview_get_double(const char *itemp) {
+    return (PyObject *) PyFloat_FromDouble(*(double *) itemp);
+}
+static CYTHON_INLINE int __pyx_memview_set_double(const char *itemp, PyObject *obj) {
+    double value = __pyx_PyFloat_AsDouble(obj);
+    if ((value == (double)-1) && PyErr_Occurred())
+        return 0;
+    *(double *) itemp = value;
+    return 1;
+}
+
+/* MemviewDtypeToObject */
+  static CYTHON_INLINE PyObject *__pyx_memview_get_int(const char *itemp) {
+    return (PyObject *) __Pyx_PyInt_From_int(*(int *) itemp);
+}
+static CYTHON_INLINE int __pyx_memview_set_int(const char *itemp, PyObject *obj) {
+    int value = __Pyx_PyInt_As_int(obj);
+    if ((value == (int)-1) && PyErr_Occurred())
+        return 0;
+    *(int *) itemp = value;
+    return 1;
 }
 
 /* Declarations */
@@ -26965,29 +26644,6 @@ raise_neg_overflow:
     PyErr_SetString(PyExc_OverflowError,
         "can't convert negative value to char");
     return (char) -1;
-}
-
-/* ObjectToMemviewSlice */
-  static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_int(PyObject *obj, int writable_flag) {
-    __Pyx_memviewslice result = { 0, 0, { 0 }, { 0 }, { 0 } };
-    __Pyx_BufFmt_StackElem stack[1];
-    int axes_specs[] = { (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_STRIDED) };
-    int retcode;
-    if (obj == Py_None) {
-        result.memview = (struct __pyx_memoryview_obj *) Py_None;
-        return result;
-    }
-    retcode = __Pyx_ValidateAndInit_memviewslice(axes_specs, 0,
-                                                 PyBUF_RECORDS_RO | writable_flag, 1,
-                                                 &__Pyx_TypeInfo_int, stack,
-                                                 &result, obj);
-    if (unlikely(retcode == -1))
-        goto __pyx_fail;
-    return result;
-__pyx_fail:
-    result.memview = NULL;
-    result.data = NULL;
-    return result;
 }
 
 /* CheckBinaryVersion */

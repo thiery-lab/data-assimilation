@@ -330,9 +330,10 @@ def solve_optimal_transport_network_simplex(
 
 
 def solve_optimal_transport_network_simplex_batch(
+        double[:, :, :] trans_matrices, double[:] costs, int[:] result_codes,
         double[:, :] source_dists, double[:, :] target_dists,
         double[:, :, :] cost_matrices, int max_iter=DEFAULT_MAX_ITER,
-        double sum_diff_tolerance=DEFAULT_SUM_DIFF_TOLERANCE, int n_thread=1):
+        double sum_diff_tolerance=DEFAULT_SUM_DIFF_TOLERANCE, int num_thread=1):
     """
     Solve batch of optimal transport problems using network simplex algorithm.
 
@@ -349,49 +350,50 @@ def solve_optimal_transport_network_simplex_batch(
     using an implementation of the network simplex algorithm [1,2] from the C++
     graph template library LEMON [3].
 
-    source_dists and target_dists are 2D arrays of shape (n_problem, n_source)
-    and (n_problem, n_target) respectively with non-negative entries which
-    specify the set of n_problem (equal-dimensioned) source and target
+    `source_dists` and `target_dists` are 2D arrays of shape `(num_problem, num_source)`
+    and `(num_problem, n_target)` respectively with non-negative entries which
+    specify the set of `num_problem` (equal-dimensioned) source and target
     distributions to solve optimal transport problems for. For the optimal
     transport problems to have solutions it is necessary that
+
         all(sum(target_dists, 1) == sum(source_dists, 1))
+
     i.e. each pair of source and target distributions sum to the same value.
     Typically both arrays will represent probability distributions and sum to
     one however technically the only requirement is that the total 'mass' in
     both arrays is the same such that there exists a valid transport plan to
     transport all the mass from the sources to targets.
 
-    cost_matrices is a 3D array of shape (n_problem, n_source, n_target) with
-    the entry cost_matrix[p, s, t] specifying the cost of moving the s'th
-    source to the t'th target in the p'th problem. Typically the entries will
+    `cost_matrices` is a 3D array of shape `(n_problem, n_source, n_target)` with
+    the entry `cost_matrix[p, s, t]` specifying the cost of moving the `s`th
+    source to the `t`th target in the `p`th problem. Typically the entries will
     correspond to some distrance measure between the underlying points
     representing the source and targets.
 
     Args:
-        source_dists (2D array): Array of source distributions to solve for of
-            shape (n_problem, n_source).
-        target_dists (2D array): Array of target distributions to solve for of
-            shape (n_problem, n_target).
-        cost_matrices (3D array): Array of cost matrices to solve for of shape
-            (n_problem, n_source, n_target).
-        max_iter (int): Maximum number of iterations to run network simplex
-            algorithm instances for.
-        sum_diff_tolerance (double): Tolerance for check on equality of sums of
-            target and source distribution entries for each problem.
-        n_thread (int): Number of parallel threads to distribute solving of
-            independent optimal transport problems over.
+        trans_matrices: Array to write computed optimal transport matrices to of shape
+            `(num_problem, num_source, num_target)`.
+        costs: Array to write computed optimal expected transport costs to of shape
+            `(num_problem,)`.
+        results_codes: Array to write results codes to indicating outcome of running
+            network simplex algorithm on optimal transport problems of shape
+            `(num_problem,)`. The integer codes can be translated to string descriptions
+            using the `get_result_code_strings` function. A value of 1 indicates the
+            solver converged to an optimal solution for the problem.
+        source_dists: Array of source distributions to solve for of shape
+            `(num_problem, num_source)`.
+        target_dists: Array of target distributions to solve for of shape
+            `(num_problem, num_target)`.
+        cost_matrices : Array of cost matrices to solve for of shape
+            `(num_problem, num_source, num_target)`.
+        max_iter: Maximum number of iterations to run network simplex algorithm
+            instances for.
+        sum_diff_tolerance: Tolerance for check on equality of sums of target and source
+            distribution entries for each problem.
+        num_thread: Number of parallel threads to distribute solving of independent
+            optimal transport problems over.
 
     Returns:
-        trans_matrices (3D array): Array of computed optimal transport
-            matrices of shape (n_problem, n_source, n_target).
-        costs (1D array): Array of computed optimal expected transport costs
-            of shape (n_problem,).
-        results_codes (1D array): Array of results codes indicating outcome of
-            running network simplex algorithm on optimal transport problems of
-            shape (n_problem,). The integer codes can be translated to string d
-            descriptions using the get_result_code_strings function. A value
-            of 1 indicates the solver converged to an optimal solution for the
-            problem.
 
     References:
         1. James B. Orlin (1997). A polynomial time primal network simplex
@@ -408,36 +410,12 @@ def solve_optimal_transport_network_simplex_batch(
     cdef int n_problem = cost_matrices.shape[0]
     cdef int n_source = cost_matrices.shape[1]
     cdef int n_target = cost_matrices.shape[2]
-    cdef int p = 0
-
-    # Check input arguments are dimensionally consistent
-    assert (source_dists.shape[0] == n_problem and
-            source_dists.shape[1] == n_source), (
-            'source_dists shape incompatible with cost_matrices')
-    assert (target_dists.shape[0] == n_problem and
-            target_dists.shape[1] == n_target), (
-            'target_dists shape incompatible with cost_matrices')
-
-    # Define numpy arrays to store computed results
-    cdef np.ndarray[int, ndim=1, mode='c'] result_codes = np.empty(
-        n_problem, dtype='int32')
-    cdef np.ndarray[double, ndim=1, mode='c'] costs = np.empty(
-        n_problem, dtype='double')
-    cdef np.ndarray[double, ndim=3, mode='c'] trans_matrices = np.empty(
-        (n_problem, n_source, n_target), dtype='double', order='C')
-
-    # Define memoryviews of numpy arrays to allow slicing without GIL in
-    # parallel loop
-    cdef int[:] result_codes_mv = result_codes
-    cdef double[:] costs_mv = costs
-    cdef double[:, :, :] trans_matrices_mv = trans_matrices
-
+    cdef int p
     # Iterate over optimal transport problems, potentially distributing over
     # multiple parallel threads
-    for p in prange(n_problem, num_threads=n_thread, schedule='static',
-                    nogil=True):
-        result_codes_mv[p] = _solve_optimal_transport_network_simplex(
+    for p in prange(n_problem, num_threads=num_thread, schedule='static', nogil=True):
+        result_codes[p] = _solve_optimal_transport_network_simplex(
             source_dists[p], target_dists[p], cost_matrices[p],
-            trans_matrices_mv[p], &costs_mv[p], max_iter, sum_diff_tolerance)
+            trans_matrices[p], &costs[p], max_iter, sum_diff_tolerance)
 
     return trans_matrices, costs, result_codes
