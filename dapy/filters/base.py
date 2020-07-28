@@ -56,7 +56,9 @@ class AbstractEnsembleFilter(abc.ABC):
                 of analysis distribution.
         """
 
-    def _perform_model_specific_initialization(self, model: AbstractModel):
+    def _perform_model_specific_initialization(
+        self, model: AbstractModel, num_particle: int
+    ):
         """Hook to allow performing model-specific initialization before filtering."""
 
     def filter(
@@ -110,7 +112,7 @@ class AbstractEnsembleFilter(abc.ABC):
             state_particles_sequence = np.full(
                 (num_obs_time, num_particle, model.dim_state), np.nan
             )
-        self._perform_model_specific_initialization(model)
+        self._perform_model_specific_initialization(model, num_particle)
         with ProgressBar(range(num_step + 1), "Filtering", unit="time-steps") as pb:
             for s in pb:
                 if s == 0:

@@ -63,7 +63,7 @@ class AbstractLocalEnsembleFilter(AbstractEnsembleFilter):
         self.inflation_factor = inflation_factor
 
     def _perform_model_specific_initialization(
-        self, model: AbstractDiagonalGaussianObservationModel
+        self, model: AbstractDiagonalGaussianObservationModel, num_particle: int,
     ):
         self._observation_indices_and_weights_cache = [None] * model.mesh_size
 
@@ -448,7 +448,7 @@ class ScalableLocalEnsembleTransformParticleFilter(AbstractEnsembleFilter):
         self.calculate_cost_matrices_func = calculate_cost_matrices_func
 
     def _perform_model_specific_initialization(
-        self, model: AbstractDiagonalGaussianObservationModel
+        self, model: AbstractDiagonalGaussianObservationModel, num_particle: int,
     ):
         if self.partition_of_unity is None:
             self.partition_of_unity = PerMeshNodePartitionOfUnityBasis(model)
