@@ -22,7 +22,7 @@ The inference methods implemented include
   * local ensemble transform particle filter (Cheng and Reich, 2015),
   * scalable local ensemble transform particle filter (Graham and Thiery, 2019).
 
-Example usages of the models and inference methods are provided in the [Jupyter](http://jupyter.readthedocs.io/en/latest/install.html) notebooks in the [`notebooks` directory](https://nbviewer.jupyter.org/github/thiery-lab/data-assimilation/tree/master/notebooks/).
+Example usages of the models and inference methods are provided in the [Jupyter](http://jupyter.readthedocs.io/en/latest/install.html) notebooks in the [`notebooks` directory](https://nbviewer.jupyter.org/github/thiery-lab/data-assimilation/tree/master/notebooks/?flush_cache=true).
 
 ## Dependencies
 
@@ -30,7 +30,7 @@ Intended for use with Python 3.6+. Environment with all dependencies can be set 
 
     conda env create -f environment.yml
 
-Alternatively conda or [pip](https://pip.pypa.io/en/stable/) can be used to manually create a Python 3 environment. The minimal requirements for using the inference methods and model classes implemented in the `dapy` package are [NumPy](http://www.numpy.org/), [SciPy](https://www.scipy.org/), (Numba)[http://numba.pydata.org/] and [PyFFTW](http://pyfftw.readthedocs.io/en/latest/) (for efficient FFT computations in models using spectral expansions). To install in a conda environment run
+Alternatively conda or [pip](https://pip.pypa.io/en/stable/) can be used to manually create a Python 3 environment. The minimal requirements for using the inference methods and model classes implemented in the `dapy` package are [NumPy](http://www.numpy.org/), [SciPy](https://www.scipy.org/), [Numba](http://numba.pydata.org/) and [PyFFTW](http://pyfftw.readthedocs.io/en/latest/) (for efficient FFT computations in models using spectral expansions). To install in a conda environment run
 
     conda install numpy scipy numba
     conda install -c conda-forge pyfftw
