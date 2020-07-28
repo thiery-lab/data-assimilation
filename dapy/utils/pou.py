@@ -106,7 +106,7 @@ class SmoothedBlock1dPartitionOfUnityBasis(AbstractPartitionOfUnity):
         self.offset = offset
         kernel = kernel_weighting_function(
             abs(np.arange(-kernel_halfwidth + 1, kernel_halfwidth, dtype=np.float64)),
-            kernel_halfwidth
+            kernel_halfwidth,
         )
         kernel = kernel / kernel.sum()
         self.kernel_width = kernel.shape[0]
@@ -197,14 +197,18 @@ class SmoothedBlock1dPartitionOfUnityBasis(AbstractPartitionOfUnity):
     def patch_distance(self, patch_index, coords):
         lim = self.patch_lims[patch_index]
         coords = coords[:, 0]
-        edge_dist = np.minimum(
-            (lim[0] - coords) % self.model.domain_extents[0],
-            (coords - lim[1]) % self.model.domain_extents[0],
-        )
         if lim[1] > lim[0]:
+            edge_dist = np.minimum(
+                (lim[0] - coords) % self.model.domain_extents[0],
+                (coords - lim[1]) % self.model.domain_extents[0],
+            )
             not_in_patch = (coords < lim[0]) | (coords > lim[1])
             return not_in_patch * edge_dist
         else:
+            edge_dist = np.minimum(
+                (lim[1] - coords) % self.model.domain_extents[0],
+                (coords - lim[0]) % self.model.domain_extents[0],
+            )
             not_in_patch = (coords < lim[0]) & (coords > lim[1])
             return not_in_patch * edge_dist
 
@@ -220,29 +224,34 @@ class SmoothedBlock2dPartitionOfUnityBasis(AbstractPartitionOfUnity):
         kernel_weighting_function: Callable[
             [np.ndarray, float], np.ndarray
         ] = localisation.gaspari_and_cohn_weighting,
+        use_distance_from_patch_center: bool = False,
     ):
         self.model = model
+        self.use_distance_from_patch_center = use_distance_from_patch_center
         self._shape = shape
+        self._num_patch = shape[0] * shape[1]
         self.block_shape = (
             model.mesh_shape[0] // shape[0],
             model.mesh_shape[1] // shape[1],
         )
         kernel = kernel_weighting_function(
-            np.abs(np.arange(-kernel_halfwidth + 1, kernel_halfwidth, dtype=np.float64))
+            abs(np.arange(-kernel_halfwidth + 1, kernel_halfwidth, dtype=np.float64)),
+            kernel_halfwidth,
         )
         self.kernel_width = kernel.shape[0]
         kernel = kernel / kernel.sum()
         self.kernel_0 = np.zeros(model.mesh_shape[0])
-        self.kernel_0[-(self.kernel_width - 1) // 2 :] = kernel[
-            : self.kernel_width // 2
-        ]
-        self.kernel_0[: (self.kernel_width + 1) // 2] = kernel[self.kernel_width // 2 :]
-        self.rfft_kernel_0 = fft.rfft(self.kernel_0)
         self.kernel_1 = np.zeros(model.mesh_shape[1])
-        self.kernel_1[-(self.kernel_width - 1) // 2 :] = kernel[
-            : self.kernel_width // 2
-        ]
+        if self.kernel_width > 1:
+            self.kernel_0[-(self.kernel_width - 1) // 2 :] = kernel[
+                : self.kernel_width // 2
+            ]
+            self.kernel_1[-(self.kernel_width - 1) // 2 :] = kernel[
+                : self.kernel_width // 2
+            ]
+        self.kernel_0[: (self.kernel_width + 1) // 2] = kernel[self.kernel_width // 2 :]
         self.kernel_1[: (self.kernel_width + 1) // 2] = kernel[self.kernel_width // 2 :]
+        self.rfft_kernel_0 = fft.rfft(self.kernel_0)
         self.rfft_kernel_1 = fft.rfft(self.kernel_1)
         block = np.zeros(model.mesh_shape)
         block[
@@ -272,20 +281,59 @@ class SmoothedBlock2dPartitionOfUnityBasis(AbstractPartitionOfUnity):
         )
         self.slice_e_0 = slice(None, (self.kernel_width - 1) // 2)
         self.slice_e_1 = slice(-(self.kernel_width - 1) // 2, None)
-        self.patch_lims = np.full((2, self.num_patch, 2), np.nan)
+        self.patch_lims = np.full((self.num_patch, 2, 2), np.nan)
+        self.patch_centers = np.full((self.num_patch, 2), np.nan)
         half_width = (self.kernel_width - 1) // 2
         for i in range(shape[0]):
             for j in range(shape[1]):
-                self.patch_lims[0, i * shape[0] + j] = (
-                    ((i * self.block_shape[0] - half_width) / self.mesh_shape[0]) % 1.0,
-                    (((i + 1) * self.block_shape[0] + half_width) / self.mesh_shape[0])
-                    % 1.0,
-                ) * model.domain_extents[0]
-                self.patch_lims[1, i * shape[0] + j] = (
-                    ((j * self.block_shape[1] - half_width) / self.mesh_shape[1]) % 1.0,
-                    (((j + 1) * self.block_shape[1] + half_width) / self.mesh_shape[1])
-                    % 1.0,
-                ) * model.domain_extents[1]
+                self.patch_lims[i * shape[0] + j, 0] = (
+                    (
+                        (
+                            (i * self.block_shape[0] - half_width - 0.5)
+                            / model.mesh_shape[0]
+                        )
+                        % 1.0
+                    )
+                    * model.domain_extents[0],
+                    (
+                        (
+                            ((i + 1) * self.block_shape[0] + half_width - 0.5)
+                            / model.mesh_shape[0]
+                        )
+                        % 1.0
+                    )
+                    * model.domain_extents[0],
+                )
+                self.patch_lims[i * shape[0] + j, 1] = (
+                    (
+                        (
+                            (j * self.block_shape[1] - half_width - 0.5)
+                            / model.mesh_shape[1]
+                        )
+                        % 1.0
+                    )
+                    * model.domain_extents[1],
+                    (
+                        (
+                            ((j + 1) * self.block_shape[1] + half_width - 0.5)
+                            / model.mesh_shape[1]
+                        )
+                        % 1.0
+                    )
+                    * model.domain_extents[1],
+                )
+                self.patch_centers[i * shape[0] + j] = (
+                    (
+                        (((i + 0.5) * self.block_shape[0] - 0.5) / model.mesh_shape[0])
+                        % 1.0
+                    )
+                    * model.domain_extents[0],
+                    (
+                        (((j + 0.5) * self.block_shape[1] - 0.5) / model.mesh_shape[1])
+                        % 1.0
+                    )
+                    * model.domain_extents[1],
+                )
 
     @property
     def num_patch(self):
@@ -301,30 +349,33 @@ class SmoothedBlock2dPartitionOfUnityBasis(AbstractPartitionOfUnity):
 
     def split_into_patches_and_scale(self, f):
         f_2d = np.reshape(f, f.shape[:-1] + self.model.mesh_shape)
-        f_padded = np.zeros(
-            f_2d.shape[:-2]
-            + (
-                self.model.mesh_shape[0] + self.kernel_width - 1,
-                self.model.mesh_shape[1] + self.kernel_width - 1,
+        if self.kernel_width > 1:
+            f_padded = np.zeros(
+                f_2d.shape[:-2]
+                + (
+                    self.model.mesh_shape[0] + self.kernel_width - 1,
+                    self.model.mesh_shape[1] + self.kernel_width - 1,
+                )
             )
-        )
-        f_padded[..., self.slice_mid, self.slice_e_0] = f_2d[..., :, self.slice_e_1]
-        f_padded[..., self.slice_mid, self.slice_e_1] = f_2d[..., :, self.slice_e_0]
-        f_padded[..., self.slice_e_0, self.slice_mid] = f_2d[..., self.slice_e_1, :]
-        f_padded[..., self.slice_e_1, self.slice_mid] = f_2d[..., self.slice_e_0, :]
-        f_padded[..., self.slice_e_0, self.slice_e_0] = f_2d[
-            ..., self.slice_e_1, self.slice_e_1
-        ]
-        f_padded[..., self.slice_e_0, self.slice_e_1] = f_2d[
-            ..., self.slice_e_1, self.slice_e_0
-        ]
-        f_padded[..., self.slice_e_1, self.slice_e_0] = f_2d[
-            ..., self.slice_e_0, self.slice_e_1
-        ]
-        f_padded[..., self.slice_e_1, self.slice_e_1] = f_2d[
-            ..., self.slice_e_0, self.slice_e_0
-        ]
-        f_padded[..., self.slice_mid, self.slice_mid] = f_2d
+            f_padded[..., self.slice_mid, self.slice_e_0] = f_2d[..., :, self.slice_e_1]
+            f_padded[..., self.slice_mid, self.slice_e_1] = f_2d[..., :, self.slice_e_0]
+            f_padded[..., self.slice_e_0, self.slice_mid] = f_2d[..., self.slice_e_1, :]
+            f_padded[..., self.slice_e_1, self.slice_mid] = f_2d[..., self.slice_e_0, :]
+            f_padded[..., self.slice_e_0, self.slice_e_0] = f_2d[
+                ..., self.slice_e_1, self.slice_e_1
+            ]
+            f_padded[..., self.slice_e_0, self.slice_e_1] = f_2d[
+                ..., self.slice_e_1, self.slice_e_0
+            ]
+            f_padded[..., self.slice_e_1, self.slice_e_0] = f_2d[
+                ..., self.slice_e_0, self.slice_e_1
+            ]
+            f_padded[..., self.slice_e_1, self.slice_e_1] = f_2d[
+                ..., self.slice_e_0, self.slice_e_0
+            ]
+            f_padded[..., self.slice_mid, self.slice_mid] = f_2d
+        else:
+            f_padded = f_2d
         shape = f_padded.shape[:-2] + self.shape + self.patch_shape
         strides = (
             f_padded.strides[:-2]
@@ -335,28 +386,11 @@ class SmoothedBlock2dPartitionOfUnityBasis(AbstractPartitionOfUnity):
             + f_padded.strides[-2:]
         )
         f_patches = np.lib.stride_tricks.as_strided(f_padded, shape, strides)
-        return (f_patches * self.smoothed_bump).reshape(
-            f.shape[:-1] + (self.num_patch, -1)
-        )
-
-    def integrate_against_bases(self, f):
-        f_2d = np.reshape(f, (-1,) + self.model.mesh_shape)
-        f_2d_smooth = _separable_fft_convolve_2d(
-            f_2d, self.rfft_kernel_0, self.rfft_kernel_1
-        )
-        return (
-            f_2d_smooth.reshape(
-                f.shape[:-1]
-                + (
-                    self.shape[0],
-                    self.block_shape[0],
-                    self.shape[1],
-                    self.block_shape[1],
-                )
-            )
-            .sum((-1, -3))
-            .reshape(f.shape[:-1] + (self.num_patch,))
-        )
+        if self.kernel_width > 1:
+            f_patches = f_patches * self.smoothed_bump
+        else:
+            f_patches = np.ascontiguousarray(f_patches)
+        return f_patches.reshape(f.shape[:-1] + (self.num_patch, -1))
 
     def combine_patches(self, f_patches):
         b0, b1 = self.block_shape
@@ -365,37 +399,66 @@ class SmoothedBlock2dPartitionOfUnityBasis(AbstractPartitionOfUnity):
             f_patches.shape[:-2]
             + (self.model.mesh_shape[0] + k - 1, self.model.mesh_shape[1] + k - 1)
         )
+        f_patches_2d = f_patches.reshape(f_patches.shape[:-1] + self.patch_shape)
         for p in range(self.num_patch):
-            i, j = p // self.shape[0], p % self.shape[0]
+            i, j = p // self.shape[1], p % self.shape[1]
             f_padded[
-                ..., i * b0 : (i + 1) * b0 + (k - 1), j * b1 : (j + 1) * b1 + (k - 1)
-            ] += f_patches[..., p, :].reshape(f_patches.shape[:-2] + self.patch_shape)
-        f_2d = f_padded[..., self.slice_mid, self.slice_mid] * 1.0
-        f_2d[..., :, self.slice_e_0] += f_padded[..., self.slice_mid, self.slice_e_1]
-        f_2d[..., :, self.slice_e_1] += f_padded[..., self.slice_mid, self.slice_e_0]
-        f_2d[..., self.slice_e_0, :] += f_padded[..., self.slice_e_1, self.slice_mid]
-        f_2d[..., self.slice_e_1, :] += f_padded[..., self.slice_e_0, self.slice_mid]
-        f_2d[..., self.slice_e_0, self.slice_e_0] += f_padded[
-            ..., self.slice_e_1, self.slice_e_1
-        ]
-        f_2d[..., self.slice_e_0, self.slice_e_1] += f_padded[
-            ..., self.slice_e_1, self.slice_e_0
-        ]
-        f_2d[..., self.slice_e_1, self.slice_e_0] += f_padded[
-            ..., self.slice_e_0, self.slice_e_1
-        ]
-        f_2d[..., self.slice_e_1, self.slice_e_1] += f_padded[
-            ..., self.slice_e_0, self.slice_e_0
-        ]
+                ..., i * b0 : (i + 1) * b0 + (k - 1), j * b1 : (j + 1) * b1 + (k - 1),
+            ] += f_patches_2d[..., p, :, :]
+        if k > 1:
+            f_2d = f_padded[..., self.slice_mid, self.slice_mid].copy()
+            f_2d[..., :, self.slice_e_0] += f_padded[
+                ..., self.slice_mid, self.slice_e_1
+            ]
+            f_2d[..., :, self.slice_e_1] += f_padded[
+                ..., self.slice_mid, self.slice_e_0
+            ]
+            f_2d[..., self.slice_e_0, :] += f_padded[
+                ..., self.slice_e_1, self.slice_mid
+            ]
+            f_2d[..., self.slice_e_1, :] += f_padded[
+                ..., self.slice_e_0, self.slice_mid
+            ]
+            f_2d[..., self.slice_e_0, self.slice_e_0] += f_padded[
+                ..., self.slice_e_1, self.slice_e_1
+            ]
+            f_2d[..., self.slice_e_0, self.slice_e_1] += f_padded[
+                ..., self.slice_e_1, self.slice_e_0
+            ]
+            f_2d[..., self.slice_e_1, self.slice_e_0] += f_padded[
+                ..., self.slice_e_0, self.slice_e_1
+            ]
+            f_2d[..., self.slice_e_1, self.slice_e_1] += f_padded[
+                ..., self.slice_e_0, self.slice_e_0
+            ]
+        else:
+            f_2d = f_padded
         return f_2d.reshape(f_patches.shape[:-2] + (-1,))
 
     def patch_distance(self, patch_index, coords):
-        lim_0, lim_1 = self.patch_lims[:, patch_index]
-        m_00 = np.maximum(0, lim_0[0] - coords[:, 0])
-        m_01 = np.maximum(0, coords[:, 0] - lim_0[1])
-        m_10 = np.maximum(0, lim_1[0] - coords[:, 1])
-        m_11 = np.maximum(0, coords[:, 1] - lim_1[1])
-        d_0 = np.maximum(m_00, m_01) if lim_0[0] < lim_0[1] else np.minimum(m_00, m_01)
-        d_1 = np.maximum(m_10, m_11) if lim_1[0] < lim_1[1] else np.minimum(m_10, m_11)
-        return (d_0 ** 2 + d_1 ** 2) ** 0.5
+        if self.use_distance_from_patch_center:
+            deltas = np.abs(self.patch_centers[patch_index] - coords)
+            return (np.minimum(deltas, self.model.domain_extents - deltas) ** 2).sum(
+                -1
+            ) ** 0.5
+        lim_0, lim_1 = self.patch_lims[patch_index]
+        deltas_00 = np.abs(lim_0[0] - coords[:, 0])
+        deltas_01 = np.abs(lim_0[1] - coords[:, 0])
+        dists_00 = np.minimum(deltas_00, self.model.domain_extents[0] - deltas_00)
+        dists_01 = np.minimum(deltas_01, self.model.domain_extents[0] - deltas_01)
+        dists_0 = np.minimum(dists_00, dists_01)
+        deltas_10 = np.abs(lim_1[0] - coords[:, 1])
+        deltas_11 = np.abs(lim_1[1] - coords[:, 1])
+        dists_10 = np.minimum(deltas_10, self.model.domain_extents[1] - deltas_10)
+        dists_11 = np.minimum(deltas_11, self.model.domain_extents[1] - deltas_11)
+        dists_1 = np.minimum(dists_10, dists_11)
+        if lim_0[1] > lim_0[0]:
+            not_in_lim_0 = (coords[:, 0] < lim_0[0]) | (coords[:, 0] > lim_0[1])
+        else:
+            not_in_lim_0 = (coords[:, 0] < lim_0[0]) & (coords[:, 0] > lim_0[1])
+        if lim_1[1] > lim_1[0]:
+            not_in_lim_1 = (coords[:, 1] < lim_1[0]) | (coords[:, 1] > lim_1[1])
+        else:
+            not_in_lim_1 = (coords[:, 1] < lim_1[0]) & (coords[:, 1] > lim_1[1])
+        return ((dists_0 * not_in_lim_0) ** 2 + (dists_1 * not_in_lim_1) ** 2) ** 0.5
 
