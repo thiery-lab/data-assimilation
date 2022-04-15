@@ -142,11 +142,10 @@ class AbstractLinearTransformedDiagonalGaussianModelMixin(
 
     Assumes transformation is linear.
 
-    Additionally provides `initial_state_covar` and `state_noise_covar` properties
-    which exploit linearity of transformation to compute covariance matrices from
-    linear transform matrix and base model diagonal covariances.
-    methods so that these methods operate on *transformed* state to allow consistent
-    external use.
+    Additionally provides `initial_state_covar` and `state_noise_covar` properties which
+    exploit linearity of transformation to compute covariance matrices from linear
+    transform matrix and base model diagonal covariances. methods so that these methods
+    operate on *transformed* state to allow consistent external use.
     """
 
     @property
@@ -233,14 +232,14 @@ def real_array_to_rfft_coeff(
             length_array)` if real-mapped coefficients are being provided for multiple
             distinct sequences, with `num_array` being the number of 1D arrays.
         orth_scale: Whether to rescale the complex coefficients such that when composed
-            with `fft.irfft` this function forms an orthogonal linear map, or whether
-            to simply concatenate the the coefficients without rescaling.
+            with `fft.irfft` this function forms an orthogonal linear map, or whether to
+            simply concatenate the the coefficients without rescaling.
 
     Returns:
         A complex-value array of shape `(length_array // 2 + 1,)` if `real_array` is
-        one-dimensional or of shape `(num_array, length_array // 2 + 1)`
-        otherwise, which corresponds to the original complex valued `rfft` coefficients
-        and is scaled such that
+        one-dimensional or of shape `(num_array, length_array // 2 + 1)` otherwise,
+        which corresponds to the original complex valued `rfft` coefficients and is
+        scaled such that
 
             fft.irfft(real_array_to_rfft_coeff(array, orth_scale=True), norm='ortho'))
 
@@ -277,47 +276,71 @@ class OneDimensionalFourierTransformedDiagonalGaussianModelMixIn(
         return 0
 
 
-def rfft2_coeff_to_real_array(rfft2_coeff: np.ndarray, orth_scale=True) -> np.ndarray:
+def rfft2_coeff_to_real_array(
+    rfft2_coeff: np.ndarray, mesh_shape: Tuple[int, int], orth_scale: bool = True
+) -> np.ndarray:
     """Maps a batch of complex `rfft2` coefficients array(s) to a batch of real arrays.
 
     Args:
-        rfft2_coeffs: Array of complex `rfft2` coefficients of real 2D array(s), either a
-           two dimensional array of shape `(dim_0, dim_1 // 2 + 1,)` where
-           `(dim_0, dim_1)` is the shape of the real-valued 2D array(s) `rfft2`
-           was applied to, or a three dimensional array of shape `(num_array,
-           dim_0, dim_1 // 2 + 1)` if coefficients are being provided for multiple
-           distinct 2D arrays, with `num_array` being the number of 2D arrays.
+        rfft2_coeffs: Array of complex `rfft2` coefficients of real 2D array(s), either
+           a two dimensional array of shape `(dim_0, dim_1 // 2 + 1,)` where `(dim_0,
+           dim_1)` is the shape of the real-valued 2D array(s) `rfft2` was applied to,
+           or a three dimensional array of shape `(num_array, dim_0, dim_1 // 2 + 1)` if
+           coefficients are being provided for multiple distinct 2D arrays, with
+           `num_array` being the number of 2D arrays.
+        mesh_shape: Shape of original two-dimensional array(s) fed to `rfft2`,
+            equivalent to `(dim_0, dim_1)` in the description above.
         orth_scale: Whether to rescale the complex coefficients such that when composed
-            with `fft.rfft2` this function forms an orthogonal linear map, or whether
-            to simply concatenate the the coefficients without rescaling.
+            with `fft.rfft2` this function forms an orthogonal linear map, or whether to
+            simply concatenate the the coefficients without rescaling.
 
     Returns:
         An real-value array of shape `(dim_0 * dim_1,)` if `rfft2_coeffs` is
-        one-dimensional or of shape `(num_array, dim_0 * dim_1)`, which
-        concatenates the real and imaginary components of the `rfft2` coefficients and
-        rescales the zero and Nyquist frequence components so that
+        one-dimensional or of shape `(num_array, dim_0 * dim_1)`, which concatenates the
+        real and imaginary components of the `rfft2` coefficients and rescales the zero
+        and Nyquist frequence components so that
 
             rfft2_coeff_to_real_array(
-                fft.rfft2(array.reshape((dim_0, dim_1)), norm='ortho'), orth_scale=True)
+                fft.rfft2(array.reshape((dim_0, dim_1)), norm='ortho'),
+                mesh_shape=(dim_0, dim_1),
+                orth_scale=True
+            )
 
         is an orthogonal linear map on real-valued arrays of length `dim_0 * dim_1`.
     """
-    dim_0 = rfft2_coeff.shape[-2]
+    dim_0, dim_1 = mesh_shape
     multiplier = 2 ** 0.5 if orth_scale else 1
+    flat_shape = rfft2_coeff.shape[:-2] + (-1,)
     return np.concatenate(
         [
             rfft2_coeff[..., 0:1, 0].real,
-            rfft2_coeff[..., 1 : dim_0 // 2, 0].real * multiplier,
-            rfft2_coeff[..., dim_0 // 2 : dim_0 // 2 + 1, 0].real,
-            rfft2_coeff[..., 1 : dim_0 // 2, 0].imag * multiplier,
-            rfft2_coeff[..., :, 1:-1].reshape(rfft2_coeff.shape[:-2] + (-1,)).real
+            rfft2_coeff[..., 1 : (dim_0 - 1) // 2 + 1, 0].real * multiplier,
+            rfft2_coeff[..., (dim_0 - 1) // 2 + 1 : dim_0 // 2 + 1, 0].real,
+            rfft2_coeff[..., 1 : (dim_0 - 1) // 2 + 1, 0].imag * multiplier,
+            rfft2_coeff[..., :, 1 : (dim_1 - 1) // 2 + 1].reshape(flat_shape).real
             * multiplier,
-            rfft2_coeff[..., :, 1:-1].reshape(rfft2_coeff.shape[:-2] + (-1,)).imag
+            rfft2_coeff[..., :, 1 : (dim_1 - 1) // 2 + 1].reshape(flat_shape).imag
             * multiplier,
-            rfft2_coeff[..., 0:1, -1].real,
-            rfft2_coeff[..., 1 : dim_0 // 2, -1].real * multiplier,
-            rfft2_coeff[..., dim_0 // 2 : dim_0 // 2 + 1, -1].real,
-            rfft2_coeff[..., 1 : dim_0 // 2, -1].imag * multiplier,
+            rfft2_coeff[..., 0, (dim_1 - 1) // 2 + 1 : dim_1 // 2 + 1].real,
+            rfft2_coeff[
+                ..., 1 : (dim_0 - 1) // 2 + 1, (dim_1 - 1) // 2 + 1 : dim_1 // 2 + 1
+            ]
+            .reshape(flat_shape)
+            .real
+            * multiplier,
+            rfft2_coeff[
+                ...,
+                (dim_0 - 1) // 2 + 1 : dim_0 // 2 + 1,
+                (dim_1 - 1) // 2 + 1 : dim_1 // 2 + 1,
+            ]
+            .reshape(flat_shape)
+            .real,
+            rfft2_coeff[
+                ..., 1 : (dim_0 - 1) // 2 + 1, (dim_1 - 1) // 2 + 1 : dim_1 // 2 + 1
+            ]
+            .reshape(flat_shape)
+            .imag
+            * multiplier,
         ],
         -1,
     )
@@ -348,34 +371,56 @@ def real_array_to_rfft2_coeff(
         which corresponds to the original complex valued (R)FFT coefficients and is
         scaled such that
 
-            fft.irfft2(real_array_to_rfft2_coeff(
-                array, (dim_0, dim_1), orth_scale=True), norm='ortho'))
+            fft.irfft2(
+                real_array_to_rfft2_coeff(array, (dim_0, dim_1), orth_scale=True),
+                norm='ortho'
+            )
 
         is an orthogonal linear map on real-valued arrays of length `dim_0 * dim_1`.
     """
     dim_0, dim_1 = mesh_shape
-    rfft2_coeff = np.empty(
+    multiplier = 2 ** 0.5 if orth_scale else 1
+    rfft2_coeff = np.zeros(
         real_array.shape[:-1] + (dim_0, dim_1 // 2 + 1), dtype=np.complex128
     )
     rfft2_coeff[..., 0, 0] = real_array[..., 0]
-    rfft2_coeff[..., 1 : dim_0 // 2, 0] = (
-        real_array[..., 1 : dim_0 // 2] + real_array[..., dim_0 // 2 + 1 : dim_0] * 1j
-    ) / 2 ** 0.5
-    rfft2_coeff[..., dim_0 // 2, 0] = real_array[..., dim_0 // 2]
-    rfft2_coeff[..., :, 1:-1] = (
-        real_array[..., dim_0 : dim_0 * dim_1 // 2]
-        + real_array[..., dim_0 * dim_1 // 2 : dim_0 * (dim_1 - 1)] * 1j
-    ).reshape(real_array.shape[:-1] + (dim_0, dim_1 // 2 - 1)) / 2 ** 0.5
-    rfft2_coeff[..., 0, -1] = real_array[..., dim_0 * (dim_1 - 1)]
-    rfft2_coeff[..., 1 : dim_0 // 2, -1] = (
-        real_array[..., dim_0 * (dim_1 - 1) + 1 : dim_0 * (2 * dim_1 - 1) // 2]
-        + real_array[..., dim_0 * (2 * dim_1 - 1) // 2 + 1 :] * 1j
-    ) / 2 ** 0.5
-    rfft2_coeff[..., dim_0 // 2, -1] = real_array[..., dim_0 * (2 * dim_1 - 1) // 2 + 1]
-    rfft2_coeff[..., dim_0 // 2 + 1 :, 0] = rfft2_coeff[..., dim_0 // 2 - 1 : 0 : -1, 0]
-    rfft2_coeff[..., dim_0 // 2 + 1 :, -1] = rfft2_coeff[
-        ..., dim_0 // 2 - 1 : 0 : -1, -1
+    rfft2_coeff[..., 1 : (dim_0 - 1) // 2 + 1, 0] = (
+        real_array[..., 1 : (dim_0 - 1) // 2 + 1]
+        + real_array[..., dim_0 // 2 + 1 : dim_0] * 1j
+    ) / multiplier
+    rfft2_coeff[..., (dim_0 - 1) // 2 + 1 : dim_0 // 2 + 1, 0] = real_array[
+        ..., (dim_0 - 1) // 2 + 1 : dim_0 // 2 + 1
     ]
+    rfft2_coeff[..., :, 1 : (dim_1 - 1) // 2 + 1] = (
+        real_array[..., dim_0 : dim_0 * ((dim_1 - 1) // 2 + 1)]
+        + real_array[
+            ..., dim_0 * ((dim_1 - 1) // 2 + 1) : dim_0 * (2 * ((dim_1 + 1) // 2) - 1)
+        ]
+        * 1j
+    ).reshape(real_array.shape[:-1] + (dim_0, (dim_1 - 1) // 2)) / multiplier
+    rfft2_coeff[..., dim_0 // 2 + 1 : dim_0, 0] = rfft2_coeff[
+        ..., (dim_0 - 1) // 2 : 0 : -1, 0
+    ].conj()
+    if dim_1 % 2 == 0:
+        rfft2_coeff[..., 0, -1] = real_array[..., dim_0 * (dim_1 - 1)]
+        rfft2_coeff[..., 1 : (dim_0 - 1) // 2 + 1, -1] = (
+            real_array[
+                ...,
+                dim_0 * (dim_1 - 1) + 1 : dim_0 * (dim_1 - 1) + (dim_0 - 1) // 2 + 1,
+            ]
+            + real_array[..., dim_0 * (dim_1 - 1) + dim_0 // 2 + 1 :] * 1j
+        ) / multiplier
+        rfft2_coeff[..., (dim_0 - 1) // 2 + 1 : dim_0 // 2 + 1, -1] = real_array[
+            ...,
+            dim_0 * (dim_1 - 1)
+            + (dim_0 - 1) // 2
+            + 1 : dim_0 * (dim_1 - 1)
+            + dim_0 // 2
+            + 1,
+        ]
+        rfft2_coeff[..., dim_0 // 2 + 1 : dim_0, -1] = rfft2_coeff[
+            ..., (dim_0 - 1) // 2 : 0 : -1, -1
+        ].conj()
     return rfft2_coeff
 
 
@@ -398,7 +443,10 @@ class TwoDimensionalFourierTransformedDiagonalGaussianModelMixIn(
 
     def backward_map(self, states: np.ndarray) -> np.ndarray:
         return rfft2_coeff_to_real_array(
-            fft.rfft2(states.reshape(states.shape[:-1] + self.mesh_shape), norm="ortho")
+            fft.rfft2(
+                states.reshape(states.shape[:-1] + self.mesh_shape), norm="ortho"
+            ),
+            self.mesh_shape,
         )
 
     def log_det_jacobian_backward_map(

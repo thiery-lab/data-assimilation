@@ -51,9 +51,9 @@ class FourierIncompressibleFluidModel(AbstractDiagonalGaussianModel):
     ):
         """
         Args:
-            mesh_shape: Mesh dimensions as a 2-tuple `(dim_0, dim_1)`.
+            spatial_mesh_shape: Mesh dimensions as a 2-tuple `(dim_0, dim_1)`.
             time_step: Integrator time-step.
-            domain_size: Spatial domain size a 2-tuple `(size_0, size_1)`.
+            domain_size: Spatial domain size as a 2-tuple `(size_0, size_1)`.
             viscous_diffusion_coeff: Velocity viscous diffusion coefficient.
             state_noise_length_scale: Length scale parameter for random noise used to
                 generate initial vorticity and vorticity additive noise fields. Larger
@@ -104,10 +104,10 @@ class FourierIncompressibleFluidModel(AbstractDiagonalGaussianModel):
         state_noise_kernel = time_step ** 0.5 * state_noise_amplitude * smoothing_kernel
         initial_state_kernel = initial_state_amplitude * smoothing_kernel
         state_noise_std = rfft2_coeff_to_real_array(
-            state_noise_kernel + 1j * state_noise_kernel, False
+            state_noise_kernel + 1j * state_noise_kernel, spatial_mesh_shape, False
         )
         initial_state_std = rfft2_coeff_to_real_array(
-            initial_state_kernel + 1j * initial_state_kernel, False
+            initial_state_kernel + 1j * initial_state_kernel, spatial_mesh_shape, False
         )
         self.observation_subsample = observation_subsample
         self.state_noise_length_scale = state_noise_length_scale
@@ -128,7 +128,8 @@ class FourierIncompressibleFluidModel(AbstractDiagonalGaussianModel):
         return rfft2_coeff_to_real_array(
             self.integrator.step(
                 real_array_to_rfft2_coeff(states, self.spatial_mesh_shape)
-            )
+            ),
+            self.spatial_mesh_shape
         )
 
     def _observation_mean(self, states: np.ndarray, t: int) -> np.ndarray:
