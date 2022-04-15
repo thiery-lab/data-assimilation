@@ -98,10 +98,10 @@ class FourierStochasticTurbulenceModel(
                 subsample spatial dimension of state when computing observations.
             time_step: Integrator time step.
             domain_extent: Extent (size) of spatial domain.
-            advection_coeff: Coefficient (`α` in description above) controlling degree
-                of advection in dynamics.
-            diffusion_coeff: Coefficient (`β` in description above) controlling degree
+            diffusion_coeff: Coefficient (`α` in description above) controlling degree
                 of diffusion in dynamics.
+            advection_coeff: Coefficient (`β` in description above) controlling degree
+                of advection in dynamics.
             damping_coeff: Coefficient (`γ` in description above) controlling degree of
                 damping in dynamics.
             observation_noise_std: Standard deviation of additive Gaussian noise in
