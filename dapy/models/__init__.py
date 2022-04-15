@@ -16,6 +16,10 @@ from dapy.models.navier_stokes import (
     FourierIncompressibleFluidModel,
     SpatialIncompressibleFluidModel,
 )
+from dapy.models.damped_advection import (
+    FourierDampedAdvectionModel,
+    SpatialDampedAdvectionModel,
+)
 
 
 __authors__ = "Matt Graham"
