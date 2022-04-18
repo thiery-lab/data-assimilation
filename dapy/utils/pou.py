@@ -100,6 +100,9 @@ class SmoothedBlock1dPartitionOfUnityBasis(AbstractPartitionOfUnity):
             [np.ndarray, float], np.ndarray
         ] = localisation.gaspari_and_cohn_weighting,
     ):
+        assert (
+            model.mesh_size % num_patch == 0
+        ), "num_patch must be must be factor of model.mesh_size"
         self.model = model
         self._num_patch = num_patch
         self.block_width = model.mesh_size // num_patch
@@ -226,6 +229,12 @@ class SmoothedBlock2dPartitionOfUnityBasis(AbstractPartitionOfUnity):
         ] = localisation.gaspari_and_cohn_weighting,
         use_distance_from_patch_center: bool = False,
     ):
+        assert (
+            model.mesh_shape[0] % shape[0] == 0
+        ), "shape[0] must be must be factor of model.mesh_shape[0]"
+        assert (
+            model.mesh_shape[1] % shape[1] == 0
+        ), "shape[1] must be must be factor of model.mesh_shape[1]"
         self.model = model
         self.use_distance_from_patch_center = use_distance_from_patch_center
         self._shape = shape
