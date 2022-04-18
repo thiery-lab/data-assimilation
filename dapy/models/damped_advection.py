@@ -175,8 +175,8 @@ class FourierDampedAdvectionModel(AbstractDiagonalGaussianModel):
         )
         subsampled_and_flattened_fields = fields[
             ...,
-            self.observation_steps[0] // 2 - 1 :: self.observation_steps[0],
-            self.observation_steps[1] // 2 - 1 :: self.observation_steps[1],
+            self.observation_steps[0] // 2 :: self.observation_steps[0],
+            self.observation_steps[1] // 2 :: self.observation_steps[1],
         ].reshape(states.shape[:-1] + (-1,))
         if self.observation_function is None:
             return subsampled_and_flattened_fields
@@ -234,8 +234,8 @@ class SpatialDampedAdvectionModel(
         observation_space_indices = (
             np.arange(spatial_mesh_shape[0] * spatial_mesh_shape[1])
             .reshape(spatial_mesh_shape)[
-                observation_steps[0] // 2 - 1 :: observation_steps[0],
-                observation_steps[1] // 2 - 1 :: observation_steps[1],
+                observation_steps[0] // 2 :: observation_steps[0],
+                observation_steps[1] // 2 :: observation_steps[1],
             ]
             .flatten()
         )
