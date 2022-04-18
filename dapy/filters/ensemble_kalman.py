@@ -51,7 +51,13 @@ class EnsembleKalmanFilter(AbstractEnsembleFilter):
             + nla.lstsq(observation_deviations.T, observation_errors.T, rcond=None)[0].T
             @ state_deviations
         )
-        return state_particles, state_particles.mean(0), state_particles.std(0)
+        return (
+            state_particles,
+            {
+                "state_mean": state_particles.mean(0),
+                "state_std": state_particles.std(0),
+            },
+        )
 
 
 class EnsembleTransformKalmanFilter(AbstractEnsembleFilter):
@@ -150,6 +156,8 @@ class EnsembleTransformKalmanFilter(AbstractEnsembleFilter):
         post_state_deviations = transform_matrix @ state_deviations
         return (
             post_state_mean + post_state_deviations,
-            post_state_mean,
-            (post_state_deviations ** 2).mean(0) ** 0.5,
+            {
+                "state_mean": post_state_mean,
+                "state_std": (post_state_deviations ** 2).mean(0) ** 0.5,
+            },
         )

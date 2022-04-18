@@ -106,10 +106,9 @@ class AbstractEnsembleFilter(abc.ABC):
         num_observation_time = len(observation_time_indices)
         assert observation_sequence.shape[0] == num_observation_time
         num_step = observation_time_indices[-1]
-        state_mean_sequence = np.full((num_observation_time, model.dim_state), np.nan)
-        state_std_sequence = np.full((num_observation_time, model.dim_state), np.nan)
+        results = {}
         if return_particles:
-            state_particles_sequence = np.full(
+            results["state_particles_sequence"] = np.full(
                 (num_obs_time, num_particle, model.dim_state), np.nan
             )
         self._perform_model_specific_initialization(model, num_particle)
@@ -123,18 +122,16 @@ class AbstractEnsembleFilter(abc.ABC):
                         rng, state_particles, s
                     )
                 if s == observation_time_indices[t]:
-                    state_particles, state_mean, state_std = self._assimilation_update(
+                    state_particles, statistics = self._assimilation_update(
                         model, rng, state_particles, observation_sequence[t], s
                     )
-                    state_mean_sequence[t] = state_mean
-                    state_std_sequence[t] = state_std
+                    for key, statistic_array in statistics.items():
+                        if t == 0:
+                            results[key + "_sequence"] = np.full(
+                                (num_observation_time,) + statistic_array.shape, np.nan
+                            )
+                        results[key + "_sequence"][t] = statistic_array
                     if return_particles:
-                        state_particles_sequence[t] = state_particles
+                        results["state_particles_sequence"][t] = state_particles
                     t += 1
-        results = {
-            "state_mean_sequence": state_mean_sequence,
-            "state_std_sequence": state_std_sequence,
-        }
-        if return_particles:
-            results["state_particles_sequence"] = state_particles_sequence
         return results

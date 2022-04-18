@@ -121,8 +121,10 @@ class AbstractLocalEnsembleFilter(AbstractEnsembleFilter):
         post_state_particles = post_state_particles_mesh.reshape((num_particle, -1))
         return (
             post_state_particles,
-            post_state_particles.mean(0),
-            post_state_particles.std(0),
+            {
+                "state_mean": post_state_particles.mean(0),
+                "state_std": post_state_particles.std(0),
+            },
         )
 
     @abc.abstractmethod
@@ -540,6 +542,9 @@ class ScalableLocalEnsembleTransformParticleFilter(AbstractEnsembleFilter):
         ).reshape((num_particle, model.dim_state))
         return (
             post_state_particles,
-            post_state_particles.mean(0),
-            post_state_particles.std(0),
+            {
+                "state_mean": post_state_particles.mean(0),
+                "state_std": post_state_particles.std(0),
+                "per_patch_estimated_ess": 1 / (per_patch_target_dists ** 2).sum(-1),
+            },
         )

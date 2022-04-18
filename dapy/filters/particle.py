@@ -51,7 +51,14 @@ class AbstractParticleFilter(AbstractEnsembleFilter):
             ** 0.5
         )
         state_particles = self._assimilation_transform(rng, state_particles, weights)
-        return state_particles, state_mean, state_std
+        return (
+            state_particles,
+            {
+                "state_mean": state_mean,
+                "state_std": state_std,
+                "estimated_ess": 1 / (weights ** 2).sum(),
+            },
+        )
 
 
 class BootstrapParticleFilter(AbstractParticleFilter):
