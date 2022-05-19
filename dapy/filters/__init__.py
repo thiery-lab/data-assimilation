@@ -7,6 +7,7 @@ from dapy.filters.ensemble_kalman import (
 from dapy.filters.kalman import MatrixKalmanFilter, FunctionKalmanFilter
 from dapy.filters.particle import (
     BootstrapParticleFilter,
+    OptimalProposalParticleFilter,
     EnsembleTransformParticleFilter,
 )
 from dapy.filters.local import (

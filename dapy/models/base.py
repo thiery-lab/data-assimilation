@@ -1020,7 +1020,7 @@ class AbstractGaussianStateModel(AbstractAdditiveStateNoiseModel):
         )
 
     @property
-    def state_noise(self) -> np.ndarray:
+    def state_noise_covar(self) -> np.ndarray:
         """Covariance of Gaussian state noise.
 
         This will return a 2D array of shape `(dim_state, dim_state)` corresponding to
@@ -1349,9 +1349,103 @@ class AbstractDiagonalGaussianModel(
         )
 
 
-class AbstractLinearModel(
-    AbstractAdditiveObservationNoiseModel, AbstractAdditiveStateNoiseModel
-):
+class AbstractLinearObservationModel(AbstractAdditiveObservationNoiseModel):
+    """Abstract base class for linear observation models.
+
+    Here linear observation model refers to models with linear state observation
+    operators and additive observation noise.
+
+    The modelled system dynamics are of the form
+
+        for s in range(num_step + 1):
+            if s == 0:
+                state_sequence[0] = model.sample_initial_state(rng)
+                t = 0
+            else:
+                state_sequence[s] = model.sample_state_transition(
+                    rng, state_sequence[s - 1], s - 1)
+            if s == observation_time_indices[t]:
+                observation_sequence[t] = (
+                    model.observation_matrix  @ state_sequence[s]) +
+                    model.sample_observation_noise(rng, state_sequence[s - 1], s - 1)
+                )
+                t += 1
+
+    where `observation_matrix` is a matrix representing the linear observation operator.
+    In practice this may be implemented in a functional form via the `observation_mean`
+    method.
+    """
+
+    @property
+    def observation_matrix(self) -> np.ndarray:
+        """Matrix representing linear observation operator.
+
+        This will return a 2D array of shape `(dim_observation, dim_state)`
+        corresponding to the matrix representation of the linear observation operator.
+        Where possible the method `observation_mean` should be used preferentially to
+        this property as they will avoid explicitly constructing the observation matrix
+        if it is of a sparse form.
+        """
+        if hasattr(self, "_observation_matrix"):
+            return self._observation_matrix
+        elif hasattr(self, "observation_mean"):
+            self._observation_matrix = self.observation_mean(
+                np.identity(self.dim_state), None
+            ).T
+            return self._observation_matrix
+        else:
+            raise NotImplementedError()
+
+
+class AbstractLinearStateModel(AbstractAdditiveStateNoiseModel):
+    """Abstract base class for linear state models.
+
+    Here linear state models refers to models with linear state transition and additive
+    state noise.
+
+    The modelled system dynamics are of the form
+
+        for s in range(num_step + 1):
+            if s == 0:
+                state_sequence[0] = model.sample_initial_state(rng)
+                t = 0
+            else:
+                state_sequence[s] = (
+                    model.state_transition_matrix @ state_sequence[s - 1] +
+                    model.sample_state_noise(rng, state_sequence[s - 1], s - 1)
+                )
+            if s == observation_time_indices[t]:
+                observation_sequence[t] = model.sample_observation_given_state(
+                    rng, state_sequence[s], s)
+                t += 1
+
+    where `state_transition_matrix` is a matrix representing the linear state transition
+    operator. In practice this may be implemented in a functional form via the
+    `next_state_mean` method.
+    """
+
+    @property
+    def state_transition_matrix(self) -> np.ndarray:
+        """Matrix representing linear state transition operator.
+
+        This will return a 2D array of shape `(dim_state, dim_state)` corresponding to
+        the matrix representation of the linear state transition operator. Where
+        possible the method `next_state_mean` should be used preferentially to this
+        property as they will avoid explicitly constructing the transition matrix if it
+        is of a sparse form.
+        """
+        if hasattr(self, "_state_transition_matrix"):
+            return self._state_transition_matrix
+        elif hasattr(self, "next_state_mean"):
+            self._state_transition_matrix = self.next_state_mean(
+                np.identity(self.dim_state), None
+            ).T
+            return self._state_transition_matrix
+        else:
+            raise NotImplementedError()
+
+
+class AbstractLinearModel(AbstractLinearObservationModel, AbstractLinearStateModel):
     """Abstract base class for linear models.
 
     Here linear models refers to models with linear state transition and observation
@@ -1381,77 +1475,82 @@ class AbstractLinearModel(
     `observation_mean` methods.
     """
 
-    @property
-    def state_transition_matrix(self) -> np.ndarray:
-        """Matrix representing linear state transition operator.
 
-        This will return a 2D array of shape `(dim_state, dim_state)` corresponding to
-        the matrix representation of the linear state transition operator. Where
-        possible the method `next_state_mean` should be used preferentially to this
-        property as they will avoid explicitly constructing the transition matrix if it
-        is of a sparse form.
-        """
-        if hasattr(self, "_state_transition_matrix"):
-            return self._state_transition_matrix
-        elif hasattr(self, "next_state_mean"):
-            self._state_transition_matrix = self.next_state_mean(
-                np.identity(self.dim_state), None
-            ).T
-            return self._state_transition_matrix
-        else:
-            raise NotImplementedError()
+class AbstractConditionallyGaussianModel(
+    AbstractLinearObservationModel,
+    AbstractGaussianStateModel,
+    AbstractGaussianObservationModel,
+):
+    """Abstract base class for conditionally Gaussian models.
 
-    @property
-    def observation_matrix(self) -> np.ndarray:
-        """Matrix representing linear observation operator.
+    Here linear observation model refers to models with linear state observation
+    operators, additive Gaussian observation noise and additive Gaussian state noise.
 
-        This will return a 2D array of shape `(dim_observation, dim_state)`
-        corresponding to the matrix representation of the linear observation operator.
-        Where possible the method `observation_mean` should be used preferentially to
-        this property as they will avoid explicitly constructing the observation matrix
-        if it is of a sparse form.
-        """
-        if hasattr(self, "_observation_matrix"):
-            return self._observation_matrix
-        elif hasattr(self, "observation_mean"):
-            self._observation_matrix = self.observation_mean(
-                np.identity(self.dim_state), None
-            ).T
-            return self._observation_matrix
-        else:
-            raise NotImplementedError()
+    The modelled system dynamics are of the form
+
+        for s in range(num_step + 1):
+            if s == 0:
+                state_sequence[0] = (
+                    model.initial_state_mean +
+                    chol(model.initial_state_covar) @
+                    rng.standard_normal(model.dim_state)
+                )
+                t = 0
+            else:
+                state_sequence[s] = (
+                    model.next_state_mean(state_sequence[s - 1], s - 1) +
+                    chol(model.state_noise_covar) @ rng.standard_normal(model.dim_state)
+                )
+            if s == observation_time_indices[t]:
+                observation_sequence[t] = (
+                    model.observation_matrix  @ state_sequence[s]) +
+                    chol(model.observation_noise_covar) @
+                    rng.standard_normal(model.dim_observation)
+                )
+                t += 1
+
+    where `observation_matrix` is a matrix representing the linear observation operator.
+    In practice this may be implemented in a functional form via the `observation_mean`
+    method.
+    """
 
 
 class AbstractLinearGaussianModel(
     AbstractLinearModel, AbstractGaussianStateModel, AbstractGaussianObservationModel
 ):
-    """Abstract base class for linear-Gaussian models defining expected interface."""
+    """Abstract base class for linear-Gaussian models defining expected interface.
 
-    @property
-    def state_transition_matrix(self) -> np.ndarray:
-        """Matrix representing linear state transition operator."""
-        if hasattr(self, "_state_transition_matrix"):
-            return self._state_transition_matrix
-        elif hasattr(self, "next_state_mean"):
-            self._state_transition_matrix = self.next_state_mean(
-                np.identity(self.dim_state), None
-            ).T
-            return self._state_transition_matrix
-        else:
-            raise NotImplementedError()
+    Here linear-Gaussian models refers to models with linear state transition and
+    observation operators and additive Gaussian state and observation noise.
 
-    @property
-    def observation_matrix(self) -> np.ndarray:
-        """Matrix representing linear observation operator."""
-        if hasattr(self, "_observation_matrix"):
-            return self._observation_matrix
-        elif hasattr(self, "observation_mean"):
-            self._observation_matrix = self.observation_mean(
-                np.identity(self.dim_state), None
-            ).T
-            return self._observation_matrix
-        else:
-            raise NotImplementedError()
+    The modelled system dynamics are of the form
+
+        for s in range(num_step + 1):
+            if s == 0:
+                state_sequence[0] = (
+                    model.initial_state_mean +
+                    chol(model.initial_state_covar) @
+                    rng.standard_normal(model.dim_state)
+                )
+                t = 0
+            else:
+                state_sequence[s] = (
+                    model.state_transition_matrix @ state_sequence[s - 1] +
+                    chol(model.state_noise_covar) @ rng.standard_normal(model.dim_state)
+                )
+            if s == observation_time_indices[t]:
+                observation_sequence[t] = (
+                    model.observation_matrix @ state_sequence[s]) +
+                    chol(model.observation_noise_covar) @
+                    rng.standard_normal(model.dim_observation)
+                )
+                t += 1
+
+    where `state_transition_matrix` and `observation_matrix` are matrices representing
+    respectively the linear state transition and observation operators. In practice
+    these may be implemented in a functional form via the `next_state_mean` and
+    `observation_mean` methods.
+    """
 
 
 class AbstractIntegratorModel(AbstractAdditiveStateNoiseModel):

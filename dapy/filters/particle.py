@@ -4,10 +4,11 @@ import abc
 from typing import Tuple, Dict, Callable, Any, Optional
 import numpy as np
 from numpy.random import Generator
+from scipy.linalg import cho_factor, cho_solve
 from scipy.special import logsumexp
 from scipy.sparse import csr_matrix
 from dapy.filters.base import AbstractEnsembleFilter
-from dapy.models.base import AbstractModel
+from dapy.models.base import AbstractModel, AbstractConditionallyGaussianModel
 import dapy.ot as optimal_transport
 
 
@@ -177,3 +178,106 @@ class EnsembleTransformParticleFilter(AbstractParticleFilter):
         if self.use_sparse_matrix_multiply:
             transform_matrix = csr_matrix(transform_matrix)
         return transform_matrix @ state_particles
+
+
+class OptimalProposalParticleFilter(AbstractEnsembleFilter):
+    """Particle filter using 'optimal' proposal for linear-Gaussian observation models.
+
+    Assumes the model dynamics are of the form
+
+        for s in range(num_step + 1):
+            if s == 0:
+                state_sequence[0] = (
+                    model.initial_state_mean +
+                    chol(model.initial_state_covar) @
+                    rng.standard_normal(model.dim_state)
+                )
+                t = 0
+            else:
+                state_sequence[s] = (
+                    model.next_state_mean(state_sequence[s - 1], s - 1) +
+                    chol(model.state_noise_covar) @ rng.standard_normal(model.dim_state)
+                )
+            if s == observation_time_indices[t]:
+                observation_sequence[t] = (
+                    model.observation_matrix  @ state_sequence[s]) +
+                    chol(model.observation_noise_covar) @
+                    rng.standard_normal(model.dim_observation)
+                )
+                t += 1
+
+    The proposal is optimal is the sense of minimising the variances of the particle
+    weights.
+
+    References:
+
+      1. Doucet, A., S. Godsill, and C. Andrieu (2000). On sequential Monte Carlo
+         sampling methods for Bayesian filtering. Statistics and Computing, 10, 197-208.
+    """
+
+    def _perform_model_specific_initialization(
+        self, model: AbstractConditionallyGaussianModel, num_particle: int,
+    ):
+        covar_observations_given_previous_states = (
+            model.observation_matrix
+            @ model.state_noise_covar
+            @ model.observation_matrix.T
+            + model.observation_noise_covar
+        )
+        self._cho_factor_covar_observations_given_previous_states = cho_factor(
+            covar_observations_given_previous_states
+        )
+        self._state_noise_covar_observation_matrix_T = (
+            model.state_noise_covar @ model.observation_matrix.T
+        )
+
+    def _assimilation_update(
+        self,
+        model: AbstractConditionallyGaussianModel,
+        rng: Generator,
+        state_particles: np.ndarray,
+        observation: np.ndarray,
+        time_index: int,
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        simulated_observations = model.sample_observation_given_state(
+            rng, state_particles, time_index
+        )
+        state_particles += (
+            self._state_noise_covar_observation_matrix_T
+            @ (
+                cho_solve(
+                    self._cho_factor_covar_observations_given_previous_states,
+                    (observation[None] - simulated_observations).T,
+                )
+            )
+        ).T
+        observation_diff = (
+            model.observation_mean(state_particles, time_index) - observation[None]
+        )
+        log_weights = (
+            -(
+                observation_diff.T
+                * cho_solve(
+                    self._cho_factor_covar_observations_given_previous_states,
+                    observation_diff.T,
+                )
+            ).sum(0)
+            / 2
+        )
+        weights = np.exp(log_weights - logsumexp(log_weights))
+        state_mean = (weights[:, None] * state_particles).sum(0)
+        state_std = (
+            np.sum(weights[:, None] * (state_particles - state_mean) ** 2, axis=0)
+            ** 0.5
+        )
+        num_particle = state_particles.shape[0]
+        resampled_indices = rng.choice(num_particle, num_particle, True, weights)
+        state_particles = state_particles[resampled_indices]
+        return (
+            state_particles,
+            {
+                "state_mean": state_mean,
+                "state_std": state_std,
+                "estimated_ess": 1 / (weights ** 2).sum(),
+            },
+        )
