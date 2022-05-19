@@ -215,21 +215,34 @@ class OptimalProposalParticleFilter(AbstractEnsembleFilter):
          sampling methods for Bayesian filtering. Statistics and Computing, 10, 197-208.
     """
 
+    def __init__(self, assume_time_homogeneous_model: bool = False):
+        """
+        Args:
+            assume_time_homogeneous_model: Whether to assume the state space model that
+                will be used to perform filtering is time-homogeneous and so has a
+                fixed in time observation matrix and state and observation noise
+                covariance matrices. If this is the case, linear algebra operations
+                required for computing the optimal proposal can be performed once at the
+                beginning of filtering rather than on each time step.
+        """
+        super().__init__()
+        self._assume_time_homogeneous_model = assume_time_homogeneous_model
+
     def _perform_model_specific_initialization(
         self, model: AbstractConditionallyGaussianModel, num_particle: int,
     ):
-        covar_observations_given_previous_states = (
-            model.observation_matrix
-            @ model.state_noise_covar
-            @ model.observation_matrix.T
-            + model.observation_noise_covar
-        )
-        self._cho_factor_covar_observations_given_previous_states = cho_factor(
-            covar_observations_given_previous_states
-        )
-        self._state_noise_covar_observation_matrix_T = (
-            model.state_noise_covar @ model.observation_matrix.T
-        )
+        if self._assume_time_homogeneous_model:
+            cov_observations_given_states = model.increment_by_observation_noise_covar(
+                model.observation_mean(
+                    model.observation_mean(model.state_noise_covar, None).T, None
+                )
+            )
+            self._cho_factor_cov_observations_given_states = cho_factor(
+                cov_observations_given_states
+            )
+            self._state_noise_covar_observation_matrix_T = model.observation_mean(
+                model.state_noise_covar, None
+            )
 
     def _assimilation_update(
         self,
@@ -239,14 +252,34 @@ class OptimalProposalParticleFilter(AbstractEnsembleFilter):
         observation: np.ndarray,
         time_index: int,
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        if self._assume_time_homogeneous_model:
+            cho_factor_cov_observations_given_states = (
+                self._cho_factor_cov_observations_given_states
+            )
+            state_noise_covar_observation_matrix_T = (
+                self._state_noise_covar_observation_matrix_T
+            )
+        else:
+            cov_observations_given_states = model.increment_by_observation_noise_covar(
+                model.observation_mean(
+                    model.observation_mean(model.state_noise_covar, time_index).T,
+                    time_index,
+                )
+            )
+            cho_factor_cov_observations_given_states = cho_factor(
+                cov_observations_given_states
+            )
+            state_noise_covar_observation_matrix_T = model.observation_mean(
+                model.state_noise_covar, time_index
+            )
         simulated_observations = model.sample_observation_given_state(
             rng, state_particles, time_index
         )
         state_particles += (
-            self._state_noise_covar_observation_matrix_T
+            state_noise_covar_observation_matrix_T
             @ (
                 cho_solve(
-                    self._cho_factor_covar_observations_given_previous_states,
+                    cho_factor_cov_observations_given_states,
                     (observation[None] - simulated_observations).T,
                 )
             )
@@ -258,8 +291,7 @@ class OptimalProposalParticleFilter(AbstractEnsembleFilter):
             -(
                 observation_diff.T
                 * cho_solve(
-                    self._cho_factor_covar_observations_given_previous_states,
-                    observation_diff.T,
+                    cho_factor_cov_observations_given_states, observation_diff.T,
                 )
             ).sum(0)
             / 2
