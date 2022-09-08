@@ -1,7 +1,6 @@
-import abc
-
 """Localised ensemble filters for inference in spatially extended state-space models."""
 
+import abc
 from typing import Tuple, Dict, Callable, Any, Optional, Sequence
 from functools import partial
 import numpy as np
