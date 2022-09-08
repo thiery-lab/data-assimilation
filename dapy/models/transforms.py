@@ -154,11 +154,11 @@ class AbstractLinearTransformedDiagonalGaussianModelMixin(
 
     @property
     def forward_transform_matrix(self) -> np.ndarray:
-        if not hasattr(self, "_transform_matrix"):
-            self._forward_transform_matrix = self.forward_map(
+        if not hasattr(self, "__forward_transform_matrix"):
+            self.__forward_transform_matrix = self.forward_map(
                 np.identity(self.dim_state)
             ).T
-        return self._forward_transform_matrix
+        return self.__forward_transform_matrix
 
     @property
     def initial_state_covar(self) -> np.ndarray:
