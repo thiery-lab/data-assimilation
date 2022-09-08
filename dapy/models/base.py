@@ -6,6 +6,7 @@ from numbers import Number
 import numpy as np
 import numpy.linalg as nla
 import scipy.linalg as sla
+from numpy.typing import ArrayLike
 from numpy.random import Generator
 from dapy.utils.progressbar import ProgressBar
 
@@ -63,7 +64,7 @@ class AbstractModel(abc.ABC):
 
     def sample_initial_state(
         self, rng: Generator, num_state: Optional[int] = None
-    ) -> np.ndarray:
+    ) -> ArrayLike:
         """Independently sample initial state(s) at time index 0.
 
         Args:
@@ -88,7 +89,7 @@ class AbstractModel(abc.ABC):
             return initial_states
 
     @abc.abstractmethod
-    def _sample_initial_state(self, rng: Generator, num_state: int) -> np.ndarray:
+    def _sample_initial_state(self, rng: Generator, num_state: int) -> ArrayLike:
         """Internal implementation of `sample_initial_state` method.
 
         Unlike `sample_initial_state` only accepts / returns 2D arrays.
@@ -103,8 +104,8 @@ class AbstractModel(abc.ABC):
         """
 
     def sample_state_transition(
-        self, rng: Generator, states: np.ndarray, time_index: int
-    ) -> np.ndarray:
+        self, rng: Generator, states: ArrayLike, time_index: Optional[int]
+    ) -> ArrayLike:
         """Independently sample next state(s) given current state(s).
 
         Args:
@@ -132,8 +133,8 @@ class AbstractModel(abc.ABC):
 
     @abc.abstractmethod
     def _sample_state_transition(
-        self, rng: Generator, states: np.ndarray, time_index: int
-    ) -> np.ndarray:
+        self, rng: Generator, states: ArrayLike, time_index: Optional[int]
+    ) -> ArrayLike:
         """Internal implementation of `sample_state_transition` method.
 
         Unlike `sample_state_transition` only accepts / returns 2D arrays.
@@ -150,8 +151,8 @@ class AbstractModel(abc.ABC):
         """
 
     def sample_observation_given_state(
-        self, rng: Generator, states: np.ndarray, time_index: int
-    ) -> np.ndarray:
+        self, rng: Generator, states: ArrayLike, time_index: Optional[int]
+    ) -> ArrayLike:
         """Independently sample observation(s) given current state(s).
 
         Args:
@@ -180,8 +181,8 @@ class AbstractModel(abc.ABC):
 
     @abc.abstractmethod
     def _sample_observation_given_state(
-        self, rng: Generator, states: np.ndarray, time_index: int
-    ) -> np.ndarray:
+        self, rng: Generator, states: ArrayLike, time_index: Optional[int]
+    ) -> ArrayLike:
         """Internal implementation of `sample_observation_given_state` method.
 
         Unlike `sample_observation_given_state` only accepts / returns 2D arrays.
@@ -203,7 +204,7 @@ class AbstractModel(abc.ABC):
         observation_time_indices: Sequence[int],
         num_sample: Optional[int] = None,
         return_states_at_all_times: bool = False,
-    ) -> np.ndarray:
+    ) -> ArrayLike:
         """Generate state and observation sequences from model.
 
         Args:
@@ -267,7 +268,7 @@ class AbstractModel(abc.ABC):
             return state_sequences, observation_sequences
 
     @abc.abstractmethod
-    def log_density_initial_state(self, states: np.ndarray) -> np.ndarray:
+    def log_density_initial_state(self, states: ArrayLike) -> ArrayLike:
         """Evaluate the log probability densities of initial states at time index 0.
 
         Args:
@@ -283,8 +284,8 @@ class AbstractModel(abc.ABC):
 
     @abc.abstractmethod
     def log_density_state_transition(
-        self, next_states: np.ndarray, states: np.ndarray, time_index: int
-    ) -> np.ndarray:
+        self, next_states: ArrayLike, states: ArrayLike, time_index: Optional[int]
+    ) -> ArrayLike:
         """Evaluate the log probability densities of transitions between states.
 
         Args:
@@ -306,8 +307,8 @@ class AbstractModel(abc.ABC):
 
     @abc.abstractmethod
     def log_density_observation_given_state(
-        self, observations: np.ndarray, states: np.ndarray, time_index: int
-    ) -> np.ndarray:
+        self, observations: ArrayLike, states: ArrayLike, time_index: Optional[int]
+    ) -> ArrayLike:
         """Evaluate log probability densities of observations given states.
 
         Args:
@@ -327,7 +328,7 @@ class AbstractModel(abc.ABC):
             array of shape `()` if a single state and observation pair is provided.
         """
 
-    def log_density_state_sequence(self, state_sequences: np.ndarray) -> np.ndarray:
+    def log_density_state_sequence(self, state_sequences: ArrayLike) -> ArrayLike:
         """Evaluate log probability densities of state sequences.
 
         Args:
@@ -350,10 +351,10 @@ class AbstractModel(abc.ABC):
 
     def log_density_state_and_observation_sequence(
         self,
-        state_sequence: np.ndarray,
-        observation_sequence: np.ndarray,
+        state_sequence: ArrayLike,
+        observation_sequence: ArrayLike,
         observation_time_indices: Sequence[int],
-    ) -> np.ndarray:
+    ) -> ArrayLike:
         """Evaluate log probability densities of state and observation sequences.
 
         Args:
@@ -422,7 +423,9 @@ class AbstractAdditiveObservationNoiseModel(AbstractModel):
     noise vector given the current state.
     """
 
-    def observation_mean(self, states: np.ndarray, time_index: int) -> np.ndarray:
+    def observation_mean(
+        self, states: ArrayLike, time_index: Optional[int]
+    ) -> ArrayLike:
         """Computes mean of observation(s) given state(s) at time index `time_index`.
 
         Args:
@@ -440,7 +443,9 @@ class AbstractAdditiveObservationNoiseModel(AbstractModel):
         return self._observation_mean(states, time_index)
 
     @abc.abstractmethod
-    def _observation_mean(self, states: np.ndarray, time_index: int) -> np.ndarray:
+    def _observation_mean(
+        self, states: ArrayLike, time_index: Optional[int]
+    ) -> ArrayLike:
         """Internal implementation of `observation_mean` method.
 
         Should be called in preference to `observation_mean` internally by other
@@ -461,8 +466,8 @@ class AbstractAdditiveObservationNoiseModel(AbstractModel):
         """
 
     def sample_observation_noise_given_state(
-        self, rng: Generator, states: np.ndarray, time_index: int
-    ) -> np.ndarray:
+        self, rng: Generator, states: ArrayLike, time_index: Optional[int]
+    ) -> ArrayLike:
         """Independently sample observation noise vector(s) given current state(s).
 
         Args:
@@ -494,8 +499,8 @@ class AbstractAdditiveObservationNoiseModel(AbstractModel):
 
     @abc.abstractmethod
     def _sample_observation_noise_given_state(
-        self, rng: Generator, states: np.ndarray, time_index: int
-    ) -> np.ndarray:
+        self, rng: Generator, states: ArrayLike, time_index: Optional[int]
+    ) -> ArrayLike:
         """Internal implementation of `sample_observation_noise_given_state` method.
 
         Unlike `sample_observation_noise_given_state` only accepts / returns 2D arrays.
@@ -512,16 +517,19 @@ class AbstractAdditiveObservationNoiseModel(AbstractModel):
         """
 
     def _sample_observation_given_state(
-        self, rng: Generator, states: np.ndarray, time_index: int
-    ) -> np.ndarray:
+        self, rng: Generator, states: ArrayLike, time_index: Optional[int]
+    ) -> ArrayLike:
         return self._observation_mean(
             states, time_index
         ) + self._sample_observation_noise_given_state(rng, states, time_index)
 
     @abc.abstractmethod
     def log_density_observation_noise_given_state(
-        self, observation_noise_vectors: np.ndarray, states: np.ndarray, time_index: int
-    ) -> np.ndarray:
+        self,
+        observation_noise_vectors: ArrayLike,
+        states: ArrayLike,
+        time_index: Optional[int],
+    ) -> ArrayLike:
         """Evaluate the log densities of observation noise vectors given states.
 
         Args:
@@ -544,8 +552,8 @@ class AbstractAdditiveObservationNoiseModel(AbstractModel):
         """
 
     def log_density_observation_given_state(
-        self, observations: np.ndarray, states: np.ndarray, time_index: int
-    ) -> np.ndarray:
+        self, observations: ArrayLike, states: ArrayLike, time_index: Optional[int]
+    ) -> ArrayLike:
         return self.log_density_observation_noise_given_state(
             observations - self._observation_mean(states, time_index),
             states,
@@ -597,7 +605,9 @@ class AbstractAdditiveStateNoiseModel(AbstractModel):
         self._deterministic_state_update = deterministic_state_update
         super().__init__(dim_state=dim_state, dim_observation=dim_observation)
 
-    def next_state_mean(self, states: np.ndarray, time_index: int) -> np.ndarray:
+    def next_state_mean(
+        self, states: ArrayLike, time_index: Optional[int]
+    ) -> ArrayLike:
         """Computes mean of next state(s) given current state(s).
 
         Implements determinstic component of state update dynamics with new state
@@ -620,7 +630,9 @@ class AbstractAdditiveStateNoiseModel(AbstractModel):
         return self._next_state_mean(states, time_index)
 
     @abc.abstractmethod
-    def _next_state_mean(self, states: np.ndarray, time_index: int) -> np.ndarray:
+    def _next_state_mean(
+        self, states: ArrayLike, time_index: Optional[int]
+    ) -> ArrayLike:
         """Internal implementation of `next_state_mean` method.
 
         Should be called in preference to `next_state_mean` internally by other
@@ -641,8 +653,8 @@ class AbstractAdditiveStateNoiseModel(AbstractModel):
         """
 
     def sample_state_noise_given_state(
-        self, rng: Generator, states: np.ndarray, time_index: int
-    ) -> np.ndarray:
+        self, rng: Generator, states: ArrayLike, time_index: Optional[int]
+    ) -> ArrayLike:
         """Independently sample state noise vector(s) given current state(s).
 
         Args:
@@ -674,8 +686,8 @@ class AbstractAdditiveStateNoiseModel(AbstractModel):
 
     @abc.abstractmethod
     def _sample_state_noise_given_state(
-        self, rng: Generator, states: np.ndarray, time_index: int
-    ) -> np.ndarray:
+        self, rng: Generator, states: ArrayLike, time_index: Optional[int]
+    ) -> ArrayLike:
         """Internal implementation of `sample_state_noise_given_state` method.
 
         Unlike `sample_state_noise_given_state` only accepts / returns 2D arrays.
@@ -692,8 +704,8 @@ class AbstractAdditiveStateNoiseModel(AbstractModel):
         """
 
     def _sample_state_transition(
-        self, rng: Generator, states: np.ndarray, time_index: int
-    ) -> np.ndarray:
+        self, rng: Generator, states: ArrayLike, time_index: Optional[int]
+    ) -> ArrayLike:
         if self._deterministic_state_update:
             return self._next_state_mean(states, time_index)
         else:
@@ -703,8 +715,11 @@ class AbstractAdditiveStateNoiseModel(AbstractModel):
 
     @abc.abstractmethod
     def log_density_state_noise_given_state(
-        self, state_noise_vectors: np.ndarray, states: np.ndarray, time_index: int
-    ) -> np.ndarray:
+        self,
+        state_noise_vectors: ArrayLike,
+        states: ArrayLike,
+        time_index: Optional[int],
+    ) -> ArrayLike:
         """Evaluate the log densities of state noise vectors given states.
 
         Args:
@@ -726,18 +741,20 @@ class AbstractAdditiveStateNoiseModel(AbstractModel):
         """
 
     def log_density_state_transition(
-        self, next_states: np.ndarray, states: np.ndarray, time_index: int
-    ) -> np.ndarray:
+        self, next_states: ArrayLike, states: ArrayLike, time_index: Optional[int]
+    ) -> ArrayLike:
         if self._deterministic_state_update:
             raise DensityNotDefinedError("Deterministic state transition.")
         return self.log_density_state_noise_given_state(
-            next_states - self._next_state_mean(states, time_index), states, time_index,
+            next_states - self._next_state_mean(states, time_index),
+            states,
+            time_index,
         )
 
 
 def _increment_matrix(
-    matrix: np.ndarray, scalar_or_vector_or_matrix: Union[Number, np.ndarray]
-) -> np.ndarray:
+    matrix: ArrayLike, scalar_or_vector_or_matrix: Union[Number, ArrayLike]
+) -> ArrayLike:
     """Increment matrix by another which may be represented as a scalar or vector.
 
     Args:
@@ -773,8 +790,8 @@ def _increment_matrix(
 
 
 def _postmultiply_matrix(
-    matrix_or_vector: np.ndarray, scalar_or_vector_or_matrix: Union[Number, np.ndarray]
-) -> np.ndarray:
+    matrix_or_vector: ArrayLike, scalar_or_vector_or_matrix: Union[Number, ArrayLike]
+) -> ArrayLike:
     """Postmultiply an array by a matrix which may be represented as a scalar or vector.
 
     Args:
@@ -832,7 +849,7 @@ class AbstractGaussianObservationModel(AbstractAdditiveObservationNoiseModel):
         self,
         dim_state: int,
         dim_observation: int,
-        observation_noise_covar: Union[Number, np.ndarray],
+        observation_noise_covar: Union[Number, ArrayLike],
         **kwargs,
     ):
         """
@@ -851,7 +868,7 @@ class AbstractGaussianObservationModel(AbstractAdditiveObservationNoiseModel):
         super().__init__(dim_state=dim_state, dim_observation=dim_observation, **kwargs)
 
     @property
-    def observation_noise_covar(self) -> np.ndarray:
+    def observation_noise_covar(self) -> ArrayLike:
         """Covariance of Gaussian observation noise.
 
         This will return a 2D array of shape `(dim_observation, dim_observation)`
@@ -877,7 +894,7 @@ class AbstractGaussianObservationModel(AbstractAdditiveObservationNoiseModel):
         else:
             raise NotImplementedError()
 
-    def increment_by_observation_noise_covar(self, matrix: np.ndarray) -> np.ndarray:
+    def increment_by_observation_noise_covar(self, matrix: ArrayLike) -> ArrayLike:
         """Adds observation noise covariance to another matrix.
 
         Args:
@@ -890,8 +907,8 @@ class AbstractGaussianObservationModel(AbstractAdditiveObservationNoiseModel):
         return _increment_matrix(matrix, self._observation_noise_covar)
 
     def postmultiply_by_observation_noise_covar(
-        self, matrix_or_vector: np.ndarray
-    ) -> np.ndarray:
+        self, matrix_or_vector: ArrayLike
+    ) -> ArrayLike:
         """Postmultiply another matrix by observation noise covariance matrix.
 
         Args:
@@ -903,8 +920,8 @@ class AbstractGaussianObservationModel(AbstractAdditiveObservationNoiseModel):
         return _postmultiply_matrix(matrix_or_vector, self._observation_noise_covar)
 
     def postmultiply_by_inv_observation_noise_covar(
-        self, matrix_or_vector: np.ndarray
-    ) -> np.ndarray:
+        self, matrix_or_vector: ArrayLike
+    ) -> ArrayLike:
         """Postmultiply a matrix / vector by obs. noise covariance matrix inverse.
 
         Args:
@@ -928,8 +945,8 @@ class AbstractGaussianObservationModel(AbstractAdditiveObservationNoiseModel):
             )
 
     def postmultiply_by_inv_chol_trans_observation_noise_covar(
-        self, matrix_or_vector: np.ndarray
-    ) -> np.ndarray:
+        self, matrix_or_vector: ArrayLike
+    ) -> ArrayLike:
         """Postmultiply matrix / vector by obs. noise covar. matrix inverse of factor.
 
         Args:
@@ -942,7 +959,7 @@ class AbstractGaussianObservationModel(AbstractAdditiveObservationNoiseModel):
             isinstance(self._observation_noise_covar, np.ndarray)
             and self._observation_noise_covar.ndim == 1
         ):
-            return matrix_or_vector / self._observation_noise_covar ** 0.5
+            return matrix_or_vector / self._observation_noise_covar**0.5
         else:
             if not hasattr(self, "_chol_observation_noise_covar"):
                 self._chol_observation_noise_covar = sla.cholesky(
@@ -982,9 +999,9 @@ class AbstractGaussianStateModel(AbstractAdditiveStateNoiseModel):
         self,
         dim_state: int,
         dim_observation: int,
-        initial_state_mean: Union[Number, np.ndarray],
-        initial_state_covar: Union[Number, np.ndarray],
-        state_noise_covar: Union[Number, np.ndarray],
+        initial_state_mean: Union[Number, ArrayLike],
+        initial_state_covar: Union[Number, ArrayLike],
+        state_noise_covar: Union[Number, ArrayLike],
         **kwargs,
     ):
         """
@@ -1020,7 +1037,7 @@ class AbstractGaussianStateModel(AbstractAdditiveStateNoiseModel):
         )
 
     @property
-    def state_noise_covar(self) -> np.ndarray:
+    def state_noise_covar(self) -> ArrayLike:
         """Covariance of Gaussian state noise.
 
         This will return a 2D array of shape `(dim_state, dim_state)` corresponding to
@@ -1044,7 +1061,7 @@ class AbstractGaussianStateModel(AbstractAdditiveStateNoiseModel):
         else:
             raise NotImplementedError()
 
-    def increment_by_state_noise_covar(self, matrix: np.ndarray) -> np.ndarray:
+    def increment_by_state_noise_covar(self, matrix: ArrayLike) -> ArrayLike:
         """Adds state noise covariance to another matrix.
 
         Args:
@@ -1057,7 +1074,7 @@ class AbstractGaussianStateModel(AbstractAdditiveStateNoiseModel):
         return _increment_matrix(matrix, self._state_noise_covar)
 
     @property
-    def initial_state_mean(self) -> np.ndarray:
+    def initial_state_mean(self) -> ArrayLike:
         """Mean of initial state distribution."""
         if isinstance(self._initial_state_mean, np.ndarray):
             return self._initial_state_mean
@@ -1067,7 +1084,7 @@ class AbstractGaussianStateModel(AbstractAdditiveStateNoiseModel):
             raise NotImplementedError()
 
     @property
-    def initial_state_covar(self) -> np.ndarray:
+    def initial_state_covar(self) -> ArrayLike:
         """Covariance of initial state distribution."""
         if (
             isinstance(self._initial_state_covar, np.ndarray)
@@ -1086,8 +1103,8 @@ class AbstractGaussianStateModel(AbstractAdditiveStateNoiseModel):
 
 
 def _centred_diagonal_covariance_gaussian_log_density(
-    vectors: np.array, variances: Union[Number, np.ndarray]
-) -> np.ndarray:
+    vectors: np.array, variances: Union[Number, ArrayLike]
+) -> ArrayLike:
     """Evaluate log densities of Gaussian distributed vectors.
 
     Gaussian distribution is assumed to be centred (zero-mean) and with a diagonal
@@ -1109,7 +1126,7 @@ def _centred_diagonal_covariance_gaussian_log_density(
         scalar / array of shape `()` if a single vector is provided.
     """
     return (
-        -(vectors ** 2 / variances + np.log(2 * np.pi) + np.log(variances)).sum(-1) / 2
+        -(vectors**2 / variances + np.log(2 * np.pi) + np.log(variances)).sum(-1) / 2
     )
 
 
@@ -1142,7 +1159,7 @@ class AbstractDiagonalGaussianObservationModel(AbstractGaussianObservationModel)
         self,
         dim_state: int,
         dim_observation: int,
-        observation_noise_std: Union[Number, np.ndarray],
+        observation_noise_std: Union[Number, ArrayLike],
         **kwargs,
     ):
         """
@@ -1157,12 +1174,12 @@ class AbstractDiagonalGaussianObservationModel(AbstractGaussianObservationModel)
         super().__init__(
             dim_state=dim_state,
             dim_observation=dim_observation,
-            observation_noise_covar=observation_noise_std ** 2,
+            observation_noise_covar=observation_noise_std**2,
             **kwargs,
         )
 
     @property
-    def observation_noise_std(self) -> np.ndarray:
+    def observation_noise_std(self) -> ArrayLike:
         """Standard deviation of additive Gaussian noise in observations."""
         if isinstance(self._observation_noise_std, Number):
             self._observation_noise_std = self._observation_noise_std * np.ones(
@@ -1171,15 +1188,18 @@ class AbstractDiagonalGaussianObservationModel(AbstractGaussianObservationModel)
         return self._observation_noise_std
 
     def _sample_observation_noise_given_state(
-        self, rng: Generator, states: np.ndarray, time_index: int
-    ) -> np.ndarray:
+        self, rng: Generator, states: ArrayLike, time_index: Optional[int]
+    ) -> ArrayLike:
         return self._observation_noise_std * rng.standard_normal(
             (states.shape[0], self.dim_observation)
         )
 
     def log_density_observation_noise_given_state(
-        self, observation_noise_vectors: np.ndarray, states: np.ndarray, time_index: int
-    ) -> np.ndarray:
+        self,
+        observation_noise_vectors: ArrayLike,
+        states: ArrayLike,
+        time_index: Optional[int],
+    ) -> ArrayLike:
         return _centred_diagonal_covariance_gaussian_log_density(
             observation_noise_vectors, self._observation_noise_covar
         )
@@ -1216,9 +1236,9 @@ class AbstractDiagonalGaussianStateModel(AbstractGaussianStateModel):
         self,
         dim_state: int,
         dim_observation: int,
-        initial_state_mean: Union[float, np.ndarray],
-        initial_state_std: Union[float, np.ndarray],
-        state_noise_std: Union[float, np.ndarray] = 0,
+        initial_state_mean: Union[float, ArrayLike],
+        initial_state_std: Union[float, ArrayLike],
+        state_noise_std: Union[float, ArrayLike] = 0,
         **kwargs,
     ):
         """
@@ -1242,18 +1262,18 @@ class AbstractDiagonalGaussianStateModel(AbstractGaussianStateModel):
             dim_state=dim_state,
             dim_observation=dim_observation,
             initial_state_mean=initial_state_mean,
-            initial_state_covar=initial_state_std ** 2,
-            state_noise_covar=state_noise_std ** 2,
+            initial_state_covar=initial_state_std**2,
+            state_noise_covar=state_noise_std**2,
             **kwargs,
         )
 
-    def _sample_initial_state(self, rng: Generator, num_state: int) -> np.ndarray:
+    def _sample_initial_state(self, rng: Generator, num_state: int) -> ArrayLike:
         return (
             self._initial_state_mean
             + rng.standard_normal((num_state, self.dim_state)) * self._initial_state_std
         )
 
-    def log_density_initial_state(self, states: np.ndarray) -> np.ndarray:
+    def log_density_initial_state(self, states: ArrayLike) -> ArrayLike:
         return -(
             0.5 * ((states - self._initial_state_mean) / self._initial_state_std) ** 2
             + 0.5 * np.log(2 * np.pi)
@@ -1261,13 +1281,16 @@ class AbstractDiagonalGaussianStateModel(AbstractGaussianStateModel):
         ).sum(-1)
 
     def _sample_state_noise_given_state(
-        self, rng: Generator, states: np.ndarray, time_index: int
-    ) -> np.ndarray:
+        self, rng: Generator, states: ArrayLike, time_index: Optional[int]
+    ) -> ArrayLike:
         return self._state_noise_std * rng.standard_normal(states.shape)
 
     def log_density_state_noise_given_state(
-        self, state_noise_vectors: np.ndarray, states: np.ndarray, time_index: int
-    ) -> np.ndarray:
+        self,
+        state_noise_vectors: ArrayLike,
+        states: ArrayLike,
+        time_index: Optional[int],
+    ) -> ArrayLike:
         return _centred_diagonal_covariance_gaussian_log_density(
             state_noise_vectors, self._state_noise_covar
         )
@@ -1314,10 +1337,10 @@ class AbstractDiagonalGaussianModel(
         self,
         dim_state: int,
         dim_observation: int,
-        observation_noise_std: Union[float, np.ndarray],
-        initial_state_mean: Union[float, np.ndarray],
-        initial_state_std: Union[float, np.ndarray],
-        state_noise_std: Optional[Union[float, np.ndarray]] = None,
+        observation_noise_std: Union[float, ArrayLike],
+        initial_state_mean: Union[float, ArrayLike],
+        initial_state_std: Union[float, ArrayLike],
+        state_noise_std: Optional[Union[float, ArrayLike]] = None,
         **kwargs,
     ):
         """
@@ -1377,7 +1400,7 @@ class AbstractLinearObservationModel(AbstractAdditiveObservationNoiseModel):
     """
 
     @property
-    def observation_matrix(self) -> np.ndarray:
+    def observation_matrix(self) -> ArrayLike:
         """Matrix representing linear observation operator.
 
         This will return a 2D array of shape `(dim_observation, dim_state)`
@@ -1425,7 +1448,7 @@ class AbstractLinearStateModel(AbstractAdditiveStateNoiseModel):
     """
 
     @property
-    def state_transition_matrix(self) -> np.ndarray:
+    def state_transition_matrix(self) -> ArrayLike:
         """Matrix representing linear state transition operator.
 
         This will return a 2D array of shape `(dim_state, dim_state)` corresponding to
@@ -1607,7 +1630,9 @@ class AbstractIntegratorModel(AbstractAdditiveStateNoiseModel):
         self.num_integrator_step_per_update = num_integrator_step_per_update
         super().__init__(dim_state=dim_state, dim_observation=dim_observation, **kwargs)
 
-    def _next_state_mean(self, states: np.ndarray, time_index: int) -> np.ndarray:
+    def _next_state_mean(
+        self, states: ArrayLike, time_index: Optional[int]
+    ) -> ArrayLike:
         """Computes mean of next state(s) given current state(s).
 
         Implements determinstic component of state update dynamics with new state
