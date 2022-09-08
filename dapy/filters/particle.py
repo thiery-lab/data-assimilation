@@ -1,5 +1,6 @@
 """Particle filters for inference in state space models."""
 
+import abc
 from typing import Tuple, Dict, Callable, Any, Optional
 import numpy as np
 from numpy.typing import ArrayLike
@@ -12,44 +13,90 @@ from dapy.models.base import AbstractModel, AbstractConditionallyGaussianModel
 import dapy.ot as optimal_transport
 
 
-class BootstrapParticleFilter(AbstractEnsembleFilter):
-    """Bootstrap particle filter (sequential importance resampling).
+class AbstractParticleFilter(AbstractEnsembleFilter):
+    """Abstract base class for particle filters.
 
-    The filtering distribution at each observation time index is approximated by
-    alternating propagating an ensemble of state particles forward through time under
-    the model dynamics and resampling according to weights calculated from the
-    conditional probability densities of the observations at the current time index
-    given the state particle values. Here the resampling step uses multinomial
-    resampling.
+    Particle filters approximate the filtering distribution at each observation time by
+    alternating updates which (i) propose new values for an ensemble of state particles
+    approximating the filtering distribution at the previous time step and compute
+    weights for these proposed particles according to the relative densities of
+    conditional distribution of the proposed state and observation given the previous
+    state under the state space model and conditional distribution of the proposed state
+    given the previous state and observation under the proposal and (ii) transform the
+    resulting weighted ensemble to give a uniformly weighted ensemble representing an
+    empirical approximation to the filtering distribution at the current observation
+    time.
 
     References:
 
-        1. Gordon, N.J.; Salmond, D.J.; Smith, A.F.M. (1993). Novel approach to
-           nonlinear / non-Gaussian Bayesian state estimation. Radar and Signal
-           Processing, IEE Proceedings F. 140 (2): 107--113.
-        2. Del Moral, Pierre (1996). Non Linear Filtering: Interacting Particle
-           Solution. Markov Processes and Related Fields. 2 (4): 555--580.
+    1. Gordon, N.J.; Salmond, D.J.; Smith, A.F.M. (1993). Novel approach to nonlinear /
+       non-Gaussian Bayesian state estimation. Radar and Signal Processing, IEE
+       Proceedings F. 140 (2): 107--113.
+    2. Del Moral, Pierre (1996). Non Linear Filtering: Interacting Particle Solution.
+       Markov Processes and Related Fields. 2 (4): 555--580.
     """
 
-    def _calculate_weights(
+    @abc.abstractmethod
+    def _update_states_and_compute_log_weights(
         self,
         model: AbstractModel,
-        states: ArrayLike,
+        rng: Generator,
+        previous_states: Optional[ArrayLike],
+        predicted_states: ArrayLike,
         observation: ArrayLike,
         time_index: int,
-    ) -> ArrayLike:
-        """Calculate importance weights for particles given observations."""
-        log_weights = model.log_density_observation_given_state(
-            observation, states, time_index
-        )
-        log_sum_weights = logsumexp(log_weights)
-        return np.exp(log_weights - log_sum_weights)
+    ) -> Tuple[ArrayLike, ArrayLike]:
+        """Compute state proposals and corresponding log weights.
 
-    def _assimilation_transform(self, rng, state_particles, weights):
-        """Perform multinomial particle resampling given computed weights."""
-        num_particle = state_particles.shape[0]
-        resampled_indices = rng.choice(num_particle, num_particle, True, weights)
-        return state_particles[resampled_indices]
+        Compute proposed values for states in ensemble to represent empirical estimate
+        of filtering distribution at time index `time_index` and corresponding (log)
+        weights associated with particles.
+
+        Args:
+            model: State-space model to compute proposals and weights for.
+            rng: NumPy random number generator to use for sampling any random variates.
+            previous_states: Two-dimensional array of shape `(num_particle, dim_state)`
+                with each row a state particle in ensemble representing empirical
+                estimate of filtering distribution at time index `time_index - 1`.
+            predicted_states: Two-dimensional array of shape
+                `(num_particle, dim_state)` with each row a state particle in ensemble
+                representing empirical estimate of predictive distribution at time index
+                `time_index`.
+            observation: Observations at time index `time_index`.
+            time_index: Time index to compute filtering distribution estimate for.
+
+        Returns:
+            updated_states: Two-dimensional array of shape `(num_particle, dim_state)`
+                with each row a state particle in ensemble representing empirical
+                estimate of filtering distribution at time index `time_index`.
+            log_weights: One-dimensional array of length `num_particle` with each
+                element the logarithm of the weight associated with the corresponding
+                state particle in `updated_states` in the empirical estimate of the
+                filtering distribution at time index `time_index`.
+        """
+
+    @abc.abstractmethod
+    def _transform_states_given_weights(
+        self,
+        rng: Generator,
+        states: ArrayLike,
+        weights: ArrayLike,
+    ) -> ArrayLike:
+        """Transform weighted to uniform empirical estimate of filtering distribution.
+
+        Args:
+            states: Two-dimensional array of shape `(num_particle, dim_state)` with each
+                row a state particle in ensemble representing empirical estimate of
+                filtering distribution.
+            weights: One-dimensional array of length `num_particle` with each element
+                the weight associated with the corresponding state particle in `states`
+                in the empirical estimate of the filtering distribution.
+
+        Returns:
+            Two-dimensional array of shape `(num_particle, dim_state)` with each row a
+                state particle in ensemble representing uniformly weighted empirical
+                estimate of filtering distribution.
+        """
 
     def _assimilation_update(
         self,
@@ -60,41 +107,48 @@ class BootstrapParticleFilter(AbstractEnsembleFilter):
         observation: ArrayLike,
         time_index: int,
     ) -> Tuple[ArrayLike, ArrayLike, ArrayLike]:
-        weights = self._calculate_weights(
-            model, predicted_states, observation, time_index
+        states, log_weights = self._update_states_and_compute_log_weights(
+            model, rng, previous_states, predicted_states, observation, time_index
         )
-        state_mean = (weights[:, None] * predicted_states).sum(0)
-        state_std = (
-            np.sum(weights[:, None] * (predicted_states - state_mean) ** 2, axis=0)
-            ** 0.5
-        )
-        states = self._assimilation_transform(rng, predicted_states, weights)
+        log_sum_weights = logsumexp(log_weights)
+        weights = np.exp(log_weights - log_sum_weights)
+        state_mean = (weights[:, None] * states).sum(0)
+        state_std = np.sum(weights[:, None] * (states - state_mean) ** 2, axis=0) ** 0.5
+        estimated_ess = 1 / (weights**2).sum()
+        if not np.allclose(weights, 1 / weights.shape[0]):
+            # Only apply weight transform / resampling update if particles are not
+            # already uniformly weighted - this avoids introducing unnecessary variance
+            # for cases where proposal produces exact samples from filtering
+            # distribution with equal weight, for example the optimal proposal in
+            # conditionally linear Gaussian models when assimilating observations on
+            # the initial time step
+            states = self._transform_states_given_weights(rng, states, weights)
         return (
             states,
             {
                 "state_mean": state_mean,
                 "state_std": state_std,
-                "estimated_ess": 1 / (weights**2).sum(),
+                "estimated_ess": estimated_ess,
             },
         )
 
 
-class EnsembleTransformParticleFilter(BootstrapParticleFilter):
-    """Ensemble transform particle filter.
+class MultinomialResamplingMixIn:
+    """Mix-in class implementing multinomial resampling ensemble transform update."""
 
-    The filtering distribution at each observation time index is approximated by
-    alternating propagating an ensemble of state particles forward through time under
-    the model dynamics and linearly transforming the ensemble with an optimal transport
-    map computed to transform a uniform empirical distribution at the particle locations
-    to an empirical distribution at the particle locations weighted according to the
-    conditional probability densities of the observations at the current time index
-    given the state particle values [1].
+    def _transform_states_given_weights(self, rng, states, weights):
+        num_particle = states.shape[0]
+        resampled_indices = rng.choice(num_particle, num_particle, True, weights)
+        return states[resampled_indices]
+
+
+class OptimalTransportTransformMixIn:
+    """Mix-in class implementing optimal transport ensemble transform update.
 
     References:
 
-        1. Reich, S. (2013). A nonparametric ensemble transform method for
-           Bayesian inference. SIAM Journal on Scientific Computing, 35(4),
-           A2013-A2024.
+    1. Reich, S. (2013). A nonparametric ensemble transform method for Bayesian
+       inference. SIAM Journal on Scientific Computing, 35(4), A2013-A2024.
     """
 
     def __init__(
@@ -108,6 +162,7 @@ class EnsembleTransformParticleFilter(BootstrapParticleFilter):
         ] = optimal_transport.pairwise_euclidean_distance,
         weight_threshold: float = 1e-8,
         use_sparse_matrix_multiply: bool = False,
+        **kwargs
     ):
         """
         Args:
@@ -141,6 +196,7 @@ class EnsembleTransformParticleFilter(BootstrapParticleFilter):
                 improve performance when the computed transport plan is sparse and the
                 number of particles is large.
         """
+        super().__init__(**kwargs)
         self.optimal_transport_solver = optimal_transport_solver
         self.optimal_transport_solver_kwargs = (
             {}
@@ -151,15 +207,15 @@ class EnsembleTransformParticleFilter(BootstrapParticleFilter):
         self.weight_threshold = weight_threshold
         self.use_sparse_matrix_multiply = use_sparse_matrix_multiply
 
-    def _assimilation_transform(self, rng, state_particles, weights):
+    def _transform_states_given_weights(self, rng, states, weights):
         """Solve optimal transport problem and transform ensemble."""
-        num_particle = state_particles.shape[0]
+        num_particle = states.shape[0]
         source_dist = np.ones(num_particle) / num_particle
         target_dist = weights
         if self.weight_threshold > 0:
             target_dist[target_dist < self.weight_threshold] = 0
             target_dist /= target_dist.sum()
-        cost_matrix = self.transport_cost(state_particles, state_particles)
+        cost_matrix = self.transport_cost(states, states)
         transform_matrix = num_particle * self.optimal_transport_solver(
             source_dist,
             target_dist,
@@ -168,45 +224,48 @@ class EnsembleTransformParticleFilter(BootstrapParticleFilter):
         )
         if self.use_sparse_matrix_multiply:
             transform_matrix = csr_matrix(transform_matrix)
-        return transform_matrix @ state_particles
+        return transform_matrix @ states
 
 
-class OptimalProposalParticleFilter(AbstractEnsembleFilter):
-    """Particle filter using 'optimal' proposal for linear-Gaussian observation models.
+class PriorProposalMixIn:
+    """Mix-in class implementing proposals from prior state-space model.
 
-    Assumes the model dynamics are of the form
+    Samples proposal from prior dynamics of state space model without conditioning on
+    observations, with log weight then corresponding to log density of conditional
+    distribution on observations given proposed state at current time index.
+    """
 
-        for s in range(num_step + 1):
-            if s == 0:
-                state_sequence[0] = (
-                    model.initial_state_mean +
-                    chol(model.initial_state_covar) @
-                    rng.standard_normal(model.dim_state)
-                )
-                t = 0
-            else:
-                state_sequence[s] = (
-                    model.next_state_mean(state_sequence[s - 1], s - 1) +
-                    chol(model.state_noise_covar) @ rng.standard_normal(model.dim_state)
-                )
-            if s == observation_time_indices[t]:
-                observation_sequence[t] = (
-                    model.observation_matrix  @ state_sequence[s]) +
-                    chol(model.observation_noise_covar) @
-                    rng.standard_normal(model.dim_observation)
-                )
-                t += 1
+    def _update_states_and_compute_log_weights(
+        self,
+        model: AbstractModel,
+        rng: Generator,
+        previous_states: Optional[ArrayLike],
+        predicted_states: ArrayLike,
+        observation: ArrayLike,
+        time_index: int,
+    ) -> Tuple[ArrayLike, ArrayLike]:
+        log_weights = model.log_density_observation_given_state(
+            observation, predicted_states, time_index
+        )
+        return predicted_states, log_weights
 
-    The proposal is optimal is the sense of minimising the variances of the particle
-    weights.
+
+class OptimalProposalMixIn:
+    """Mix-in class implementing 'optimal' proposals for conditionally Gaussian models.
+
+    Samples proposals from the conditional distribution on the state given the state
+    at the previous time step and observations at the current time step under the
+    generative state space model. This proposal is optimal is the sense of minimising
+    the variances of the particle weights, which depend only on the values of the state
+    particles at the previous time step, not the proposed states.
 
     References:
 
-      1. Doucet, A., S. Godsill, and C. Andrieu (2000). On sequential Monte Carlo
-         sampling methods for Bayesian filtering. Statistics and Computing, 10, 197-208.
+    1. Doucet, A., S. Godsill, and C. Andrieu (2000). On sequential Monte Carlo
+       sampling methods for Bayesian filtering. Statistics and Computing, 10, 197-208.
     """
 
-    def __init__(self, assume_time_homogeneous_model: bool = False):
+    def __init__(self, assume_time_homogeneous_model: bool = False, **kwargs):
         """
         Args:
             assume_time_homogeneous_model: Whether to assume the state space model that
@@ -216,8 +275,32 @@ class OptimalProposalParticleFilter(AbstractEnsembleFilter):
                 required for computing the optimal proposal can be performed once at the
                 beginning of filtering rather than on each time step.
         """
-        super().__init__()
+        super().__init__(**kwargs)
         self._assume_time_homogeneous_model = assume_time_homogeneous_model
+
+    def _get_covariance_matrices(
+        self,
+        model: AbstractConditionallyGaussianModel,
+        time_index: Optional[int] = None,
+    ):
+        state_covar = (
+            model.initial_state_covar if time_index == 0 else model.state_noise_covar
+        )
+        cov_observations_given_states = model.increment_by_observation_noise_covar(
+            model.observation_mean(
+                model.observation_mean(state_covar, time_index).T, time_index
+            )
+        )
+        cho_factor_cov_observations_given_states = cho_factor(
+            cov_observations_given_states
+        )
+        state_noise_covar_observation_matrix_T = model.observation_mean(
+            state_covar, time_index
+        )
+        return (
+            cho_factor_cov_observations_given_states,
+            state_noise_covar_observation_matrix_T,
+        )
 
     def _perform_model_specific_initialization(
         self,
@@ -225,19 +308,12 @@ class OptimalProposalParticleFilter(AbstractEnsembleFilter):
         num_particle: int,
     ):
         if self._assume_time_homogeneous_model:
-            cov_observations_given_states = model.increment_by_observation_noise_covar(
-                model.observation_mean(
-                    model.observation_mean(model.state_noise_covar, None).T, None
-                )
-            )
-            self._cho_factor_cov_observations_given_states = cho_factor(
-                cov_observations_given_states
-            )
-            self._state_noise_covar_observation_matrix_T = model.observation_mean(
-                model.state_noise_covar, None
-            )
+            (
+                self._cho_factor_cov_observations_given_states,
+                self._state_noise_covar_observation_matrix_T,
+            ) = self._get_covariance_matrices(model, None)
 
-    def _assimilation_update(
+    def _update_states_and_compute_log_weights(
         self,
         model: AbstractConditionallyGaussianModel,
         rng: Generator,
@@ -245,28 +321,20 @@ class OptimalProposalParticleFilter(AbstractEnsembleFilter):
         predicted_states: ArrayLike,
         observation: ArrayLike,
         time_index: int,
-    ) -> Tuple[ArrayLike, Dict[str, ArrayLike]]:
-        if self._assume_time_homogeneous_model:
+    ) -> Tuple[ArrayLike, ArrayLike]:
+        if time_index == 0 or not self._assume_time_homogeneous_model:
+            (
+                cho_factor_cov_observations_given_states,
+                state_noise_covar_observation_matrix_T,
+            ) = self._get_covariance_matrices(model, time_index)
+        elif self._assume_time_homogeneous_model:
             cho_factor_cov_observations_given_states = (
                 self._cho_factor_cov_observations_given_states
             )
             state_noise_covar_observation_matrix_T = (
                 self._state_noise_covar_observation_matrix_T
             )
-        else:
-            cov_observations_given_states = model.increment_by_observation_noise_covar(
-                model.observation_mean(
-                    model.observation_mean(model.state_noise_covar, time_index).T,
-                    time_index,
-                )
-            )
-            cho_factor_cov_observations_given_states = cho_factor(
-                cov_observations_given_states
-            )
-            state_noise_covar_observation_matrix_T = model.observation_mean(
-                model.state_noise_covar, time_index
-            )
-        if previous_states is not None:
+        if time_index != 0:
             # For optimal proposal weights depend only on particles from previous time
             # step not particles after assimilation update
             predicted_observation_means = model.observation_mean(
@@ -283,13 +351,11 @@ class OptimalProposalParticleFilter(AbstractEnsembleFilter):
                 ).sum(0)
                 / 2
             )
-            weights = np.exp(log_weights - logsumexp(log_weights))
         else:
-            # previous_states is None when time_index == 0, in which case as
-            # initial state distribution is assumed to be Gaussian, optimal proposal
+            # as initial state distribution is assumed to be Gaussian, optimal proposal
             # will produce exact samples from filtering distribution and particles
             # will all have equal weights
-            weights = np.ones(predicted_states.shape[0]) / predicted_states.shape[0]
+            log_weights = np.zeros(predicted_states.shape[0])
         simulated_observations = model.sample_observation_given_state(
             rng, predicted_states, time_index
         )
@@ -305,19 +371,87 @@ class OptimalProposalParticleFilter(AbstractEnsembleFilter):
                 )
             ).T
         )
-        state_mean = (weights[:, None] * states).sum(0)
-        state_std = np.sum(weights[:, None] * (states - state_mean) ** 2, axis=0) ** 0.5
-        if previous_states is not None:
-            # Skip resampling step if assimilating observations at time_index == 0 as
-            # in this case we have exact samples from filtering distribution
-            num_particle = states.shape[0]
-            resampled_indices = rng.choice(num_particle, num_particle, True, weights)
-            states = states[resampled_indices]
-        return (
-            states,
-            {
-                "state_mean": state_mean,
-                "state_std": state_std,
-                "estimated_ess": 1 / (weights**2).sum(),
-            },
-        )
+        return states, log_weights
+
+
+class BootstrapParticleFilter(
+    MultinomialResamplingMixIn, PriorProposalMixIn, AbstractParticleFilter
+):
+    """Bootstrap particle filter (sequential importance resampling).
+
+    The filtering distribution at each observation time index is approximated by
+    alternating propagating an ensemble of state particles forward through time under
+    the model dynamics and transforming according to weights calculated from the
+    conditional probability densities of the observations at the current time index
+    given the state particle values. Here the transform step uses multinomial
+    resampling.
+
+    References:
+
+    1. Gordon, N.J.; Salmond, D.J.; Smith, A.F.M. (1993). Novel approach to nonlinear /
+       non-Gaussian Bayesian state estimation. Radar and Signal Processing, IEE
+       Proceedings F. 140 (2): 107--113.
+    2. Del Moral, Pierre (1996). Non Linear Filtering: Interacting Particle Solution.
+       Markov Processes and Related Fields. 2 (4): 555--580.
+    """
+
+
+class EnsembleTransformParticleFilter(
+    OptimalTransportTransformMixIn, PriorProposalMixIn, AbstractParticleFilter
+):
+    """Ensemble transform particle filter.
+
+    The filtering distribution at each observation time index is approximated by
+    alternating propagating an ensemble of state particles forward through time under
+    the model dynamics and linearly transforming the ensemble to a uniformly weighted
+    empirical estimate of the filtering distribution with an optimal transport map.
+
+    References:
+
+    1. Reich, S. (2013). A nonparametric ensemble transform method for Bayesian
+       inference. SIAM Journal on Scientific Computing, 35(4), A2013-A2024.
+    """
+
+
+class OptimalProposalParticleFilter(
+    MultinomialResamplingMixIn, OptimalProposalMixIn, AbstractParticleFilter
+):
+    """Particle filter using 'optimal' proposal for conditionally Gaussian models.
+
+    Samples proposals from the conditional distribution on the state given the state
+    at the previous time step and observations at the current time step under the
+    generative state space model. This proposal is optimal is the sense of minimising
+    the variances of the particle weights, which depend only on the values of the state
+    particles at the previous time step, not the proposed states. The proposed ensemble
+    is resampled to a uniformly weighted empirical estimate of the filtering
+    distribution with a multinomial scheme.
+
+    References:
+
+    1. Doucet, A., S. Godsill, and C. Andrieu (2000). On sequential Monte Carlo
+       sampling methods for Bayesian filtering. Statistics and Computing, 10, 197-208.
+    """
+
+
+class OptimalProposalEnsembleTransformParticleFilter(
+    OptimalTransportTransformMixIn, OptimalProposalMixIn, AbstractParticleFilter
+):
+
+    """Ensemble transform particle filter using 'optimal' proposal for conditionally
+    Gaussian models.
+
+    Samples proposals from the conditional distribution on the state given the state
+    at the previous time step and observations at the current time step under the
+    generative state space model. This proposal is optimal is the sense of minimising
+    the variances of the particle weights, which depend only on the values of the state
+    particles at the previous time step, not the proposed states. The proposed ensemble
+    is linearly transformed to a uniformly weighted empirical estimate of the filtering
+    distribution with an optimal transport map.
+
+    References:
+
+    1. Doucet, A., S. Godsill, and C. Andrieu (2000). On sequential Monte Carlo
+       sampling methods for Bayesian filtering. Statistics and Computing, 10, 197-208.
+    2. Reich, S. (2013). A nonparametric ensemble transform method for Bayesian
+       inference. SIAM Journal on Scientific Computing, 35(4), A2013-A2024.
+    """
