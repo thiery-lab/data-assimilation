@@ -1,8 +1,8 @@
 """Particle filters for inference in state space models."""
 
-import abc
 from typing import Tuple, Dict, Callable, Any, Optional
 import numpy as np
+from numpy.typing import ArrayLike
 from numpy.random import Generator
 from scipy.linalg import cho_factor, cho_solve
 from scipy.special import logsumexp
@@ -12,57 +12,7 @@ from dapy.models.base import AbstractModel, AbstractConditionallyGaussianModel
 import dapy.ot as optimal_transport
 
 
-class AbstractParticleFilter(AbstractEnsembleFilter):
-    """Abstract base class for particle filters."""
-
-    def _calculate_weights(
-        self,
-        model: AbstractModel,
-        states: np.ndarray,
-        observation: np.ndarray,
-        time_index: int,
-    ) -> np.ndarray:
-        """Calculate importance weights for particles given observations."""
-        log_weights = model.log_density_observation_given_state(
-            observation, states, time_index
-        )
-        log_sum_weights = logsumexp(log_weights)
-        return np.exp(log_weights - log_sum_weights)
-
-    @abc.abstractmethod
-    def _assimilation_transform(
-        self, rng: Generator, state_particles: np.ndarray, weights: np.ndarray
-    ) -> np.ndarray:
-        pass
-
-    def _assimilation_update(
-        self,
-        model: AbstractModel,
-        rng: Generator,
-        state_particles: np.ndarray,
-        observation: np.ndarray,
-        time_index: int,
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        weights = self._calculate_weights(
-            model, state_particles, observation, time_index
-        )
-        state_mean = (weights[:, None] * state_particles).sum(0)
-        state_std = (
-            np.sum(weights[:, None] * (state_particles - state_mean) ** 2, axis=0)
-            ** 0.5
-        )
-        state_particles = self._assimilation_transform(rng, state_particles, weights)
-        return (
-            state_particles,
-            {
-                "state_mean": state_mean,
-                "state_std": state_std,
-                "estimated_ess": 1 / (weights ** 2).sum(),
-            },
-        )
-
-
-class BootstrapParticleFilter(AbstractParticleFilter):
+class BootstrapParticleFilter(AbstractEnsembleFilter):
     """Bootstrap particle filter (sequential importance resampling).
 
     The filtering distribution at each observation time index is approximated by
@@ -81,14 +31,55 @@ class BootstrapParticleFilter(AbstractParticleFilter):
            Solution. Markov Processes and Related Fields. 2 (4): 555--580.
     """
 
+    def _calculate_weights(
+        self,
+        model: AbstractModel,
+        states: ArrayLike,
+        observation: ArrayLike,
+        time_index: int,
+    ) -> ArrayLike:
+        """Calculate importance weights for particles given observations."""
+        log_weights = model.log_density_observation_given_state(
+            observation, states, time_index
+        )
+        log_sum_weights = logsumexp(log_weights)
+        return np.exp(log_weights - log_sum_weights)
+
     def _assimilation_transform(self, rng, state_particles, weights):
         """Perform multinomial particle resampling given computed weights."""
         num_particle = state_particles.shape[0]
         resampled_indices = rng.choice(num_particle, num_particle, True, weights)
         return state_particles[resampled_indices]
 
+    def _assimilation_update(
+        self,
+        model: AbstractModel,
+        rng: Generator,
+        previous_states: Optional[ArrayLike],
+        predicted_states: ArrayLike,
+        observation: ArrayLike,
+        time_index: int,
+    ) -> Tuple[ArrayLike, ArrayLike, ArrayLike]:
+        weights = self._calculate_weights(
+            model, predicted_states, observation, time_index
+        )
+        state_mean = (weights[:, None] * predicted_states).sum(0)
+        state_std = (
+            np.sum(weights[:, None] * (predicted_states - state_mean) ** 2, axis=0)
+            ** 0.5
+        )
+        states = self._assimilation_transform(rng, predicted_states, weights)
+        return (
+            states,
+            {
+                "state_mean": state_mean,
+                "state_std": state_std,
+                "estimated_ess": 1 / (weights**2).sum(),
+            },
+        )
 
-class EnsembleTransformParticleFilter(AbstractParticleFilter):
+
+class EnsembleTransformParticleFilter(BootstrapParticleFilter):
     """Ensemble transform particle filter.
 
     The filtering distribution at each observation time index is approximated by
@@ -109,11 +100,11 @@ class EnsembleTransformParticleFilter(AbstractParticleFilter):
     def __init__(
         self,
         optimal_transport_solver: Callable[
-            [np.ndarray, np.ndarray, np.ndarray], np.ndarray
+            [ArrayLike, ArrayLike, ArrayLike], ArrayLike
         ] = optimal_transport.solve_optimal_transport_exact,
         optimal_transport_solver_kwargs: Optional[Dict[str, Any]] = None,
         transport_cost: Callable[
-            [np.ndarray, np.ndarray], np.ndarray
+            [ArrayLike, ArrayLike], ArrayLike
         ] = optimal_transport.pairwise_euclidean_distance,
         weight_threshold: float = 1e-8,
         use_sparse_matrix_multiply: bool = False,
@@ -229,7 +220,9 @@ class OptimalProposalParticleFilter(AbstractEnsembleFilter):
         self._assume_time_homogeneous_model = assume_time_homogeneous_model
 
     def _perform_model_specific_initialization(
-        self, model: AbstractConditionallyGaussianModel, num_particle: int,
+        self,
+        model: AbstractConditionallyGaussianModel,
+        num_particle: int,
     ):
         if self._assume_time_homogeneous_model:
             cov_observations_given_states = model.increment_by_observation_noise_covar(
@@ -248,10 +241,11 @@ class OptimalProposalParticleFilter(AbstractEnsembleFilter):
         self,
         model: AbstractConditionallyGaussianModel,
         rng: Generator,
-        state_particles: np.ndarray,
-        observation: np.ndarray,
+        previous_states: Optional[ArrayLike],
+        predicted_states: ArrayLike,
+        observation: ArrayLike,
         time_index: int,
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    ) -> Tuple[ArrayLike, Dict[str, ArrayLike]]:
         if self._assume_time_homogeneous_model:
             cho_factor_cov_observations_given_states = (
                 self._cho_factor_cov_observations_given_states
@@ -272,44 +266,58 @@ class OptimalProposalParticleFilter(AbstractEnsembleFilter):
             state_noise_covar_observation_matrix_T = model.observation_mean(
                 model.state_noise_covar, time_index
             )
-        simulated_observations = model.sample_observation_given_state(
-            rng, state_particles, time_index
-        )
-        state_particles += (
-            state_noise_covar_observation_matrix_T
-            @ (
-                cho_solve(
-                    cho_factor_cov_observations_given_states,
-                    (observation[None] - simulated_observations).T,
-                )
+        if previous_states is not None:
+            # For optimal proposal weights depend only on particles from previous time
+            # step not particles after assimilation update
+            predicted_observation_means = model.observation_mean(
+                model.next_state_mean(previous_states, time_index - 1), time_index
             )
-        ).T
-        observation_diff = (
-            model.observation_mean(state_particles, time_index) - observation[None]
+            observation_diff = predicted_observation_means - observation[None]
+            log_weights = (
+                -(
+                    observation_diff.T
+                    * cho_solve(
+                        cho_factor_cov_observations_given_states,
+                        observation_diff.T,
+                    )
+                ).sum(0)
+                / 2
+            )
+            weights = np.exp(log_weights - logsumexp(log_weights))
+        else:
+            # previous_states is None when time_index == 0, in which case as
+            # initial state distribution is assumed to be Gaussian, optimal proposal
+            # will produce exact samples from filtering distribution and particles
+            # will all have equal weights
+            weights = np.ones(predicted_states.shape[0]) / predicted_states.shape[0]
+        simulated_observations = model.sample_observation_given_state(
+            rng, predicted_states, time_index
         )
-        log_weights = (
-            -(
-                observation_diff.T
-                * cho_solve(
-                    cho_factor_cov_observations_given_states, observation_diff.T,
+        states = (
+            predicted_states
+            + (
+                state_noise_covar_observation_matrix_T
+                @ (
+                    cho_solve(
+                        cho_factor_cov_observations_given_states,
+                        (observation[None] - simulated_observations).T,
+                    )
                 )
-            ).sum(0)
-            / 2
+            ).T
         )
-        weights = np.exp(log_weights - logsumexp(log_weights))
-        state_mean = (weights[:, None] * state_particles).sum(0)
-        state_std = (
-            np.sum(weights[:, None] * (state_particles - state_mean) ** 2, axis=0)
-            ** 0.5
-        )
-        num_particle = state_particles.shape[0]
-        resampled_indices = rng.choice(num_particle, num_particle, True, weights)
-        state_particles = state_particles[resampled_indices]
+        state_mean = (weights[:, None] * states).sum(0)
+        state_std = np.sum(weights[:, None] * (states - state_mean) ** 2, axis=0) ** 0.5
+        if previous_states is not None:
+            # Skip resampling step if assimilating observations at time_index == 0 as
+            # in this case we have exact samples from filtering distribution
+            num_particle = states.shape[0]
+            resampled_indices = rng.choice(num_particle, num_particle, True, weights)
+            states = states[resampled_indices]
         return (
-            state_particles,
+            states,
             {
                 "state_mean": state_mean,
                 "state_std": state_std,
-                "estimated_ess": 1 / (weights ** 2).sum(),
+                "estimated_ess": 1 / (weights**2).sum(),
             },
         )

@@ -1639,4 +1639,3 @@ class AbstractIntegratorModel(AbstractAdditiveStateNoiseModel):
                     states, time_index, self.num_integrator_step_per_update
                 )
             )
-

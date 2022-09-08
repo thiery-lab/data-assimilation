@@ -6,6 +6,7 @@ from typing import Tuple, Dict, Callable, Any, Optional, Sequence
 from functools import partial
 import numpy as np
 import numpy.linalg as nla
+from numpy.typing import ArrayLike
 from numpy.random import Generator
 from scipy.special import logsumexp
 from dapy.filters.base import AbstractEnsembleFilter
@@ -35,7 +36,7 @@ class AbstractLocalEnsembleFilter(AbstractEnsembleFilter):
         self,
         localisation_radius: float,
         localisation_weighting_func: Callable[
-            [np.ndarray, float], np.ndarray
+            [ArrayLike, float], ArrayLike
         ] = gaspari_and_cohn_weighting,
         inflation_factor: float = 1.0,
     ):
@@ -63,13 +64,15 @@ class AbstractLocalEnsembleFilter(AbstractEnsembleFilter):
         self.inflation_factor = inflation_factor
 
     def _perform_model_specific_initialization(
-        self, model: AbstractDiagonalGaussianObservationModel, num_particle: int,
+        self,
+        model: AbstractDiagonalGaussianObservationModel,
+        num_particle: int,
     ):
         self._observation_indices_and_weights_cache = [None] * model.mesh_size
 
     def _observation_indices_and_weights(
         self, node_index: int, model: AbstractDiagonalGaussianObservationModel
-    ) -> Tuple[Sequence[int], np.ndarray]:
+    ) -> Tuple[Sequence[int], ArrayLike]:
         if self._observation_indices_and_weights_cache[node_index] is not None:
             return self._observation_indices_and_weights_cache[node_index]
         observation_distances = model.distances_from_mesh_node_to_observation_points(
@@ -91,34 +94,29 @@ class AbstractLocalEnsembleFilter(AbstractEnsembleFilter):
         self,
         model: AbstractDiagonalGaussianObservationModel,
         rng: Generator,
-        state_particles: np.ndarray,
-        observation: np.ndarray,
+        previous_states: Optional[ArrayLike],
+        predicted_states: ArrayLike,
+        observation: ArrayLike,
         time_index: int,
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        num_particle = state_particles.shape[0]
-        state_particles_mesh = state_particles.reshape(
+    ) -> Tuple[ArrayLike, Dict[str, ArrayLike]]:
+        num_particle = predicted_states.shape[0]
+        predicted_states_mesh = predicted_states.reshape(
             (num_particle, -1, model.mesh_size)
         )
-        observation_means = model.observation_mean(state_particles, time_index)
-        post_state_particles_mesh = np.full(state_particles_mesh.shape, np.nan)
+        observation_means = model.observation_mean(predicted_states, time_index)
+        post_states_mesh = np.full(predicted_states_mesh.shape, np.nan)
         for node_index in range(model.mesh_size):
             local_indices, local_weights = self._observation_indices_and_weights(
                 node_index, model
             )
-            node_state_particles = state_particles_mesh[:, :, node_index]
-            local_observation_means = observation_means[:, local_indices]
-            local_observation = observation[local_indices]
-            local_observation_noise_std = model.observation_noise_std[local_indices]
-            post_state_particles_mesh[
-                :, :, node_index
-            ] = self._local_assimilation_update(
-                node_state_particles,
-                local_observation_means,
-                local_observation,
-                local_observation_noise_std,
+            post_states_mesh[:, :, node_index] = self._local_assimilation_update(
+                predicted_states_mesh[:, :, node_index],
+                observation_means[:, local_indices],
+                observation[local_indices],
+                model.observation_noise_std[local_indices],
                 local_weights,
             )
-        post_state_particles = post_state_particles_mesh.reshape((num_particle, -1))
+        post_state_particles = post_states_mesh.reshape((num_particle, -1))
         return (
             post_state_particles,
             {
@@ -130,12 +128,12 @@ class AbstractLocalEnsembleFilter(AbstractEnsembleFilter):
     @abc.abstractmethod
     def _local_assimilation_update(
         self,
-        node_state_particles: np.ndarray,
-        local_observation_particles: np.ndarray,
-        local_observation: np.ndarray,
-        local_observation_noise_std: np.ndarray,
-        local_observation_weights: np.ndarray,
-    ) -> np.ndarray:
+        node_state_particles: ArrayLike,
+        local_observation_particles: ArrayLike,
+        local_observation: ArrayLike,
+        local_observation_noise_std: ArrayLike,
+        local_observation_weights: ArrayLike,
+    ) -> ArrayLike:
         """Perform a local analysis update for the state at a grid point.
 
         Args:
@@ -191,15 +189,15 @@ class LocalEnsembleTransformParticleFilter(AbstractLocalEnsembleFilter):
         self,
         localisation_radius: float,
         localisation_weighting_func: Callable[
-            [np.ndarray, float], np.ndarray
+            [ArrayLike, float], ArrayLike
         ] = gaspari_and_cohn_weighting,
         inflation_factor: float = 1.0,
         optimal_transport_solver: Callable[
-            [np.ndarray, np.ndarray, np.ndarray], np.ndarray
+            [ArrayLike, ArrayLike, ArrayLike], ArrayLike
         ] = optimal_transport.solve_optimal_transport_exact,
         optimal_transport_solver_kwargs: Optional[Dict[str, Any]] = None,
         transport_cost: Callable[
-            [np.ndarray, np.ndarray], np.ndarray
+            [ArrayLike, ArrayLike], ArrayLike
         ] = optimal_transport.pairwise_euclidean_distance,
         weight_threshold: float = 1e-8,
     ):
@@ -262,17 +260,17 @@ class LocalEnsembleTransformParticleFilter(AbstractLocalEnsembleFilter):
 
     def _local_assimilation_update(
         self,
-        node_state_particles: np.ndarray,
-        local_observation_particles: np.ndarray,
-        local_observation: np.ndarray,
-        local_observation_noise_std: np.ndarray,
-        local_observation_weights: np.ndarray,
-    ) -> np.ndarray:
+        node_state_particles: ArrayLike,
+        local_observation_particles: ArrayLike,
+        local_observation: ArrayLike,
+        local_observation_noise_std: ArrayLike,
+        local_observation_weights: ArrayLike,
+    ) -> ArrayLike:
         num_particle = node_state_particles.shape[0]
         local_observation_errors = local_observation_particles - local_observation
         node_log_particle_weights = -0.5 * (
             local_observation_errors
-            * (local_observation_weights / local_observation_noise_std ** 2)
+            * (local_observation_weights / local_observation_noise_std**2)
             * local_observation_errors
         ).sum(-1)
         node_source_dist = np.ones(num_particle) / num_particle
@@ -312,12 +310,12 @@ class LocalEnsembleTransformKalmanFilter(AbstractLocalEnsembleFilter):
 
     def _local_assimilation_update(
         self,
-        node_state_particles: np.ndarray,
-        local_observation_particles: np.ndarray,
-        local_observation: np.ndarray,
-        local_observation_noise_std: np.ndarray,
-        local_observation_weights: np.ndarray,
-    ) -> np.ndarray:
+        node_state_particles: ArrayLike,
+        local_observation_particles: ArrayLike,
+        local_observation: ArrayLike,
+        local_observation_noise_std: ArrayLike,
+        local_observation_weights: ArrayLike,
+    ) -> ArrayLike:
         num_particle = node_state_particles.shape[0]
         dim_observation_local = local_observation.shape[0]
         # Compute local state ensemble mean vector and deviations matrix
@@ -332,14 +330,14 @@ class LocalEnsembleTransformKalmanFilter(AbstractLocalEnsembleFilter):
         # Compute reciprocal of effective per observation variances
         # by scaling by the inverse variances by the localisation weights
         effective_inv_observation_variance = (
-            local_observation_weights / local_observation_noise_std ** 2
+            local_observation_weights / local_observation_noise_std**2
         )
         transform_matrix_eigenvectors, non_zero_singular_values, _ = nla.svd(
             local_observation_deviations
-            * effective_inv_observation_variance ** 0.5
+            * effective_inv_observation_variance**0.5
             / (num_particle - 1) ** 0.5,
         )
-        squared_transform_matrix_eigenvalues = 1 / (1 + non_zero_singular_values ** 2)
+        squared_transform_matrix_eigenvalues = 1 / (1 + non_zero_singular_values**2)
         if dim_observation_local < num_particle:
             squared_transform_matrix_eigenvalues = np.concatenate(
                 [
@@ -348,7 +346,7 @@ class LocalEnsembleTransformKalmanFilter(AbstractLocalEnsembleFilter):
                 ]
             )
         transform_matrix = (
-            transform_matrix_eigenvectors * squared_transform_matrix_eigenvalues ** 0.5
+            transform_matrix_eigenvectors * squared_transform_matrix_eigenvalues**0.5
         ) @ transform_matrix_eigenvectors.T
         kalman_gain_mult_observation_error = node_state_deviations.T @ (
             transform_matrix_eigenvectors
@@ -383,14 +381,12 @@ class ScalableLocalEnsembleTransformParticleFilter(AbstractEnsembleFilter):
         self,
         localisation_radius: float,
         partition_of_unity: Optional[AbstractPartitionOfUnity] = None,
-        calculate_cost_matrices_func: Optional[
-            Callable[[np.ndarray], np.ndarray]
-        ] = None,
+        calculate_cost_matrices_func: Optional[Callable[[ArrayLike], ArrayLike]] = None,
         localisation_weighting_func: Callable[
-            [np.ndarray, float], np.ndarray
+            [ArrayLike, float], ArrayLike
         ] = gaspari_and_cohn_weighting,
         optimal_transport_solver: Callable[
-            [np.ndarray, np.ndarray, np.ndarray], np.ndarray
+            [ArrayLike, ArrayLike, ArrayLike], ArrayLike
         ] = optimal_transport.solve_optimal_transport_exact_batch,
         optimal_transport_solver_kwargs: Optional[Dict[str, Any]] = None,
         calculate_cost_matrices_func_kwargs: Optional[Dict[str, Any]] = None,
@@ -458,7 +454,9 @@ class ScalableLocalEnsembleTransformParticleFilter(AbstractEnsembleFilter):
         )
 
     def _perform_model_specific_initialization(
-        self, model: AbstractDiagonalGaussianObservationModel, num_particle: int,
+        self,
+        model: AbstractDiagonalGaussianObservationModel,
+        num_particle: int,
     ):
         if self.partition_of_unity is None:
             self.partition_of_unity = PerMeshNodePartitionOfUnityBasis(model)
@@ -496,15 +494,16 @@ class ScalableLocalEnsembleTransformParticleFilter(AbstractEnsembleFilter):
         self,
         model: AbstractDiagonalGaussianObservationModel,
         rng: Generator,
-        state_particles: np.ndarray,
-        observation: np.ndarray,
+        previous_states: Optional[ArrayLike],
+        predicted_states: ArrayLike,
+        observation: ArrayLike,
         time_index: int,
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        num_particle = state_particles.shape[0]
+    ) -> Tuple[ArrayLike, Dict[str, ArrayLike]]:
+        num_particle = predicted_states.shape[0]
         observation_log_densities = (
             -0.5
-            * (model.observation_mean(state_particles, time_index) - observation) ** 2
-            / (model.observation_noise_std ** 2)
+            * (model.observation_mean(predicted_states, time_index) - observation) ** 2
+            / (model.observation_noise_std**2)
         )
         per_patch_log_target_dists = (
             self._per_patch_localisation_weights @ observation_log_densities.T
@@ -514,11 +513,11 @@ class ScalableLocalEnsembleTransformParticleFilter(AbstractEnsembleFilter):
             - logsumexp(per_patch_log_target_dists, axis=-1)[:, None]
         )
         per_patch_source_dists = np.ones_like(per_patch_target_dists) / num_particle
-        state_particles_mesh = state_particles.reshape(
+        predicted_states_mesh = predicted_states.reshape(
             (num_particle, -1, model.mesh_size)
         )
         per_patch_cost_matrices = self.calculate_cost_matrices_func(
-            state_particles_mesh, **self.calculate_cost_matrices_func_kwargs
+            predicted_states_mesh, **self.calculate_cost_matrices_func_kwargs
         )
         if self.weight_threshold > 0:
             per_patch_target_dists[per_patch_target_dists < self.weight_threshold] = 0
@@ -532,19 +531,19 @@ class ScalableLocalEnsembleTransformParticleFilter(AbstractEnsembleFilter):
             )
             * num_particle
         )
-        post_state_particle_patches = np.einsum(
+        post_states_patches = np.einsum(
             "kij,jlkm->ilkm",
             per_patch_transform_matrices,
-            self.partition_of_unity.split_into_patches_and_scale(state_particles_mesh),
+            self.partition_of_unity.split_into_patches_and_scale(predicted_states_mesh),
         )
-        post_state_particles = self.partition_of_unity.combine_patches(
-            post_state_particle_patches
+        post_states = self.partition_of_unity.combine_patches(
+            post_states_patches
         ).reshape((num_particle, model.dim_state))
         return (
-            post_state_particles,
+            post_states,
             {
-                "state_mean": post_state_particles.mean(0),
-                "state_std": post_state_particles.std(0),
-                "per_patch_estimated_ess": 1 / (per_patch_target_dists ** 2).sum(-1),
+                "state_mean": post_states.mean(0),
+                "state_std": post_states.std(0),
+                "per_patch_estimated_ess": 1 / (per_patch_target_dists**2).sum(-1),
             },
         )

@@ -1,10 +1,10 @@
 """Ensemble Kalman filters for inference in state space models."""
 
-from typing import Tuple
+from typing import Tuple, Dict, Optional
 import numpy as np
+from numpy.typing import ArrayLike
 from numpy.random import Generator
 import numpy.linalg as nla
-import scipy.linalg as sla
 from dapy.models.base import AbstractGaussianObservationModel, AbstractModel
 from dapy.filters.base import AbstractEnsembleFilter
 
@@ -36,26 +36,27 @@ class EnsembleKalmanFilter(AbstractEnsembleFilter):
         self,
         model: AbstractModel,
         rng: Generator,
-        state_particles: np.ndarray,
-        observation: np.ndarray,
+        previous_states: Optional[ArrayLike],
+        predicted_states: ArrayLike,
+        observation: ArrayLike,
         time_index: int,
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        observation_particles = model.sample_observation_given_state(
-            rng, state_particles, time_index
+    ) -> Tuple[ArrayLike, Dict[str, ArrayLike]]:
+        simulated_observations = model.sample_observation_given_state(
+            rng, predicted_states, time_index
         )
-        state_deviations = state_particles - state_particles.mean(0)
-        observation_deviations = observation_particles - observation_particles.mean(0)
-        observation_errors = observation - observation_particles
-        state_particles = (
-            state_particles
+        state_deviations = predicted_states - predicted_states.mean(0)
+        observation_deviations = simulated_observations - simulated_observations.mean(0)
+        observation_errors = observation - simulated_observations
+        states = (
+            predicted_states
             + nla.lstsq(observation_deviations.T, observation_errors.T, rcond=None)[0].T
             @ state_deviations
         )
         return (
-            state_particles,
+            states,
             {
-                "state_mean": state_particles.mean(0),
-                "state_std": state_particles.std(0),
+                "state_mean": states.mean(0),
+                "state_std": states.std(0),
             },
         )
 
@@ -86,19 +87,20 @@ class EnsembleTransformKalmanFilter(AbstractEnsembleFilter):
         self,
         model: AbstractGaussianObservationModel,
         rng: Generator,
-        state_particles: np.ndarray,
-        observation: np.ndarray,
+        previous_states: Optional[ArrayLike],
+        predicted_states: ArrayLike,
+        observation: ArrayLike,
         time_index: int,
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        num_particle = state_particles.shape[0]
-        state_mean = state_particles.mean(0)
-        state_deviations = state_particles - state_mean
+    ) -> Tuple[ArrayLike, Dict[str, ArrayLike]]:
+        num_particle = predicted_states.shape[0]
+        state_mean = predicted_states.mean(0)
+        state_deviations = predicted_states - state_mean
         # Note: compared to the `observation_particles` variable defined in the
         # perturbed observations EnKF implementation here these observation 'particles'
         # are pre addition of observation noise
-        observation_particles = model.observation_mean(state_particles, time_index)
-        observation_mean = observation_particles.mean(0)
-        observation_deviations = observation_particles - observation_mean
+        simulated_observations = model.observation_mean(predicted_states, time_index)
+        observation_mean = simulated_observations.mean(0)
+        observation_deviations = simulated_observations - observation_mean
         observation_error = observation - observation_mean
         # Let X = state_deviations, Y = observation_deviations, N = num_particle,
         # R = observation_noise_covar, Z = post_state_deviations, I = identity(N)
@@ -117,7 +119,7 @@ class EnsembleTransformKalmanFilter(AbstractEnsembleFilter):
             )
             / (num_particle - 1) ** 0.5,
         )
-        squared_transform_matrix_eigenvalues = 1 / (1 + non_zero_singular_values ** 2)
+        squared_transform_matrix_eigenvalues = 1 / (1 + non_zero_singular_values**2)
         if model.dim_observation < num_particle:
             squared_transform_matrix_eigenvalues = np.concatenate(
                 [
@@ -126,7 +128,7 @@ class EnsembleTransformKalmanFilter(AbstractEnsembleFilter):
                 ]
             )
         transform_matrix = (
-            transform_matrix_eigenvectors * squared_transform_matrix_eigenvalues ** 0.5
+            transform_matrix_eigenvectors * squared_transform_matrix_eigenvalues**0.5
         ) @ transform_matrix_eigenvectors.T
         # Let e = observation_error, x = state_mean, z = post_state_mean and
         # X, Y, R, N, I as above
@@ -158,6 +160,6 @@ class EnsembleTransformKalmanFilter(AbstractEnsembleFilter):
             post_state_mean + post_state_deviations,
             {
                 "state_mean": post_state_mean,
-                "state_std": (post_state_deviations ** 2).mean(0) ** 0.5,
+                "state_std": (post_state_deviations**2).mean(0) ** 0.5,
             },
         )

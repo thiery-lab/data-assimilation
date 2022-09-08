@@ -3,6 +3,7 @@
 import abc
 from typing import Optional, Sequence, Tuple, Dict
 import numpy as np
+from numpy.typing import ArrayLike
 from numpy.random import Generator
 import numpy.linalg as nla
 import scipy.linalg as sla
@@ -34,12 +35,12 @@ class AbstractKalmanFilter(abc.ABC):
     def filter(
         self,
         model: AbstractLinearGaussianModel,
-        observation_sequence: np.ndarray,
+        observation_sequence: ArrayLike,
         observation_time_indices: Sequence[int],
         num_sample: int = 0,
         rng: Optional[Generator] = None,
         return_covar: bool = False,
-    ) -> Dict[str, np.ndarray]:
+    ) -> Dict[str, ArrayLike]:
         """Compute means and covariances of Gaussian filtering distributions.
 
         Args:
@@ -74,7 +75,6 @@ class AbstractKalmanFilter(abc.ABC):
                     at all observation time indices. Only returned if `num_sample > 0`.
                     Shape `(num_observation_time, num_sample, dim_state)`.
         """
-        num_obs_time, dim_observation = observation_sequence.shape
         observation_time_indices = np.sort(observation_time_indices)
         num_observation_time = len(observation_time_indices)
         assert observation_sequence.shape[0] == num_observation_time
@@ -136,10 +136,10 @@ class AbstractKalmanFilter(abc.ABC):
     def _prediction_update(
         self,
         model: AbstractLinearGaussianModel,
-        prev_state_mean: np.ndarray,
-        prev_state_covar: np.ndarray,
+        prev_state_mean: ArrayLike,
+        prev_state_covar: ArrayLike,
         time_index: int,
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    ) -> Tuple[ArrayLike, ArrayLike]:
         """Predict state mean and covariance from values at previous time index.
 
         The prediction update only account for the free model dynamics without any
@@ -159,11 +159,11 @@ class AbstractKalmanFilter(abc.ABC):
     def _assimilation_update(
         self,
         model: AbstractLinearGaussianModel,
-        state_mean: np.ndarray,
-        state_covar: np.ndarray,
-        observation: np.ndarray,
+        state_mean: ArrayLike,
+        state_covar: ArrayLike,
+        observation: ArrayLike,
         time_index: int,
-    ) -> Tuple[np.ndarray]:
+    ) -> Tuple[ArrayLike]:
         """Adjust state mean and covariance for observations at current time index.
 
         The assimilation update adjust the state mean and covariance from their prior
@@ -220,7 +220,8 @@ class MatrixKalmanFilter(AbstractKalmanFilter):
     """
 
     def __init__(
-        self, use_joseph_form: bool = True,
+        self,
+        use_joseph_form: bool = True,
     ):
         """
         Args:
@@ -232,10 +233,10 @@ class MatrixKalmanFilter(AbstractKalmanFilter):
     def _prediction_update(
         self,
         model: AbstractLinearGaussianModel,
-        state_mean: np.ndarray,
-        state_covar: np.ndarray,
+        state_mean: ArrayLike,
+        state_covar: ArrayLike,
         time_index: int,
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    ) -> Tuple[ArrayLike, ArrayLike]:
         state_mean = model.state_transition_matrix @ state_mean
         state_covar = model.increment_by_state_noise_covar(
             model.state_transition_matrix
@@ -247,11 +248,11 @@ class MatrixKalmanFilter(AbstractKalmanFilter):
     def _assimilation_update(
         self,
         model: AbstractLinearGaussianModel,
-        state_mean: np.ndarray,
-        state_covar: np.ndarray,
-        observation: np.ndarray,
+        state_mean: ArrayLike,
+        state_covar: ArrayLike,
+        observation: ArrayLike,
         time_index: int,
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    ) -> Tuple[ArrayLike, ArrayLike]:
         observation_mean = model.observation_matrix @ state_mean
         observation_covar = model.increment_by_observation_noise_covar(
             model.observation_matrix @ state_covar @ model.observation_matrix.T
@@ -287,14 +288,15 @@ class FunctionKalmanFilter(AbstractKalmanFilter):
     def _prediction_update(
         self,
         model: AbstractLinearGaussianModel,
-        state_mean: np.ndarray,
-        state_covar: np.ndarray,
+        state_mean: ArrayLike,
+        state_covar: ArrayLike,
         time_index: int,
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    ) -> Tuple[ArrayLike, ArrayLike]:
         state_mean = model.next_state_mean(state_mean, time_index)
         state_covar = model.increment_by_state_noise_covar(
             model.next_state_mean(
-                model.next_state_mean(state_covar, time_index).T, time_index,
+                model.next_state_mean(state_covar, time_index).T,
+                time_index,
             ),
         )
         return state_mean, state_covar
@@ -302,11 +304,11 @@ class FunctionKalmanFilter(AbstractKalmanFilter):
     def _assimilation_update(
         self,
         model: AbstractLinearGaussianModel,
-        state_mean: np.ndarray,
-        state_covar: np.ndarray,
-        observation: np.ndarray,
+        state_mean: ArrayLike,
+        state_covar: ArrayLike,
+        observation: ArrayLike,
         time_index: int,
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    ) -> Tuple[ArrayLike, ArrayLike]:
         observation_mean = model.observation_mean(state_mean, time_index)
         observation_covar = model.increment_by_observation_noise_covar(
             model.observation_mean(
