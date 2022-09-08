@@ -163,7 +163,7 @@ class AbstractKalmanFilter(abc.ABC):
         state_covar: ArrayLike,
         observation: ArrayLike,
         time_index: int,
-    ) -> Tuple[ArrayLike]:
+    ) -> Tuple[ArrayLike, ArrayLike]:
         """Adjust state mean and covariance for observations at current time index.
 
         The assimilation update adjust the state mean and covariance from their prior
