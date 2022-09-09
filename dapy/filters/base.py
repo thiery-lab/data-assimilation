@@ -143,4 +143,6 @@ class AbstractEnsembleFilter(abc.ABC):
                     if return_particles:
                         results["state_particles_sequence"][observation_index] = states
                     observation_index += 1
+                else:
+                    states = predicted_states
         return results
