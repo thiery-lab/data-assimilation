@@ -62,9 +62,6 @@ if help_flag:
     parser.print_help()
     sys.argv.append(help_flag)
 
-c_ext = ".pyx" if args.use_cython else ".c"
-cpp_ext = ".pyx" if args.use_cython else ".cpp"
-
 extra_compile_args = ["-fopenmp"]
 extra_link_args = ["-fopenmp"]
 
