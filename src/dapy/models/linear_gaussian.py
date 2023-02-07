@@ -4,7 +4,7 @@ from typing import Dict
 import numpy as np
 from numpy.random import Generator
 import scipy.linalg as la
-from dapy.models.base import AbstractLinearGaussianModel
+from .base import AbstractLinearGaussianModel
 
 
 def generate_random_dense_parameters(

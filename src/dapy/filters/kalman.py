@@ -7,8 +7,8 @@ from numpy.typing import ArrayLike
 from numpy.random import Generator
 import numpy.linalg as nla
 import scipy.linalg as sla
-from dapy.models.base import AbstractLinearGaussianModel
-from dapy.utils.progressbar import ProgressBar
+from ..models.base import AbstractLinearGaussianModel
+from ..utils.progressbar import ProgressBar
 
 
 class AbstractKalmanFilter(abc.ABC):

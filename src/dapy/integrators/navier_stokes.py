@@ -22,7 +22,7 @@ except ImportError:
     import numpy.fft as fft
 
     PYFFTW_AVAILABLE = False
-from dapy.integrators.interpolate import batch_bilinear_interpolate
+from ..integrators.interpolate import batch_bilinear_interpolate
 
 
 class FourierNavierStokesIntegrator:

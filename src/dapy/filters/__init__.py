@@ -1,16 +1,16 @@
 """Filters for sequential inference in state-space models."""
 
-from dapy.filters.ensemble_kalman import (
+from .ensemble_kalman import (
     EnsembleKalmanFilter,
     EnsembleTransformKalmanFilter,
 )
-from dapy.filters.kalman import MatrixKalmanFilter, FunctionKalmanFilter
-from dapy.filters.particle import (
+from .kalman import MatrixKalmanFilter, FunctionKalmanFilter
+from .particle import (
     BootstrapParticleFilter,
     OptimalProposalParticleFilter,
     EnsembleTransformParticleFilter,
 )
-from dapy.filters.local import (
+from .local import (
     LocalEnsembleTransformKalmanFilter,
     LocalEnsembleTransformParticleFilter,
     ScalableLocalEnsembleTransformParticleFilter,

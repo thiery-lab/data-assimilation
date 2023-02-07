@@ -5,8 +5,8 @@ import numpy as np
 from numpy.typing import ArrayLike
 from numpy.random import Generator
 import numpy.linalg as nla
-from dapy.models.base import AbstractGaussianObservationModel, AbstractModel
-from dapy.filters.base import AbstractEnsembleFilter
+from ..models.base import AbstractGaussianObservationModel, AbstractModel
+from .base import AbstractEnsembleFilter
 
 
 class EnsembleKalmanFilter(AbstractEnsembleFilter):

@@ -1,5 +1,5 @@
-cimport dapy.integrators.implicit_midpoint as impl
-import dapy.integrators.implicit_midpoint as impl
+from . cimport implicit_midpoint as impl
+from . import implicit_midpoint as impl
 
 
 cdef class Lorenz1963Integrator(impl.ImplicitMidpointIntegrator):
@@ -7,7 +7,7 @@ cdef class Lorenz1963Integrator(impl.ImplicitMidpointIntegrator):
     cdef double sigma, rho, beta
 
     def __init__(self, double sigma=10., double rho=28., double beta=8./3.,
-                 double time_step=0.01, double fixed_point_tol=1e-8, 
+                 double time_step=0.01, double fixed_point_tol=1e-8,
                  int max_fixed_point_iter=100, int num_thread=4):
         self.sigma = sigma
         self.rho = rho

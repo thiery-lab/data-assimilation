@@ -9,9 +9,9 @@ Model originally proposed in:
 
 from typing import Optional, Union, Callable, Sequence
 import numpy as np
-from dapy.models.base import AbstractDiagonalGaussianModel, AbstractIntegratorModel
-from dapy.models.spatial import SpatiallyExtendedModelMixIn
-from dapy.integrators.lorenz_1996 import Lorenz1996Integrator
+from .base import AbstractDiagonalGaussianModel, AbstractIntegratorModel
+from .spatial import SpatiallyExtendedModelMixIn
+from ..integrators.lorenz_1996 import Lorenz1996Integrator
 
 
 class Lorenz1996Model(

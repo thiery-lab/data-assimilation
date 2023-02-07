@@ -5,8 +5,8 @@ from typing import Tuple, Callable
 import numpy as np
 import numpy.fft as fft
 import numba as nb
-from dapy.models.base import AbstractModel
-import dapy.utils.localisation as localisation
+from ..models.base import AbstractModel
+from . import localisation as localisation
 
 
 @nb.njit(

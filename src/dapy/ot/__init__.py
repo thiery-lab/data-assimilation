@@ -3,7 +3,7 @@
 import warnings
 import numpy as np
 from scipy.special import logsumexp
-from dapy.ot.solvers import (
+from .solvers import (
     get_result_code_strings,
     solve_optimal_transport_network_simplex as _solve_ot_network_simplex,
     solve_optimal_transport_network_simplex_batch as _solve_ot_network_simplex_batch,

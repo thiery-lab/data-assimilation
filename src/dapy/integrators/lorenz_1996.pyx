@@ -1,5 +1,5 @@
-cimport dapy.integrators.implicit_midpoint as impl
-import dapy.integrators.implicit_midpoint as impl
+from . cimport implicit_midpoint as impl
+from . import implicit_midpoint as impl
 
 
 cdef class Lorenz1996Integrator(impl.ImplicitMidpointIntegrator):
@@ -7,7 +7,7 @@ cdef class Lorenz1996Integrator(impl.ImplicitMidpointIntegrator):
     cdef double delta, force
 
     def __init__(self, dim_state=40, double delta=1./3., double force=8.,
-                 double time_step=0.005, double fixed_point_tol=1e-8, 
+                 double time_step=0.005, double fixed_point_tol=1e-8,
                  int max_fixed_point_iter=100, int num_thread=4):
         self.delta = delta
         self.force = force

@@ -15,10 +15,10 @@ References:
 
 from typing import Union, Optional, Sequence, Callable
 import numpy as np
-from dapy.models.base import AbstractDiagonalGaussianModel
-from dapy.models.spatial import SpatiallyExtendedModelMixIn
-from dapy.integrators.etdrk4 import FourierETDRK4Integrator
-from dapy.models.transforms import (
+from .base import AbstractDiagonalGaussianModel
+from .spatial import SpatiallyExtendedModelMixIn
+from ..integrators.etdrk4 import FourierETDRK4Integrator
+from .transforms import (
     OneDimensionalFourierTransformedDiagonalGaussianModelMixIn,
     fft,
     real_array_to_rfft_coeff,

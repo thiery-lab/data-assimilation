@@ -8,9 +8,9 @@ from numpy.random import Generator
 from scipy.linalg import cho_factor, cho_solve
 from scipy.special import logsumexp
 from scipy.sparse import csr_matrix
-from dapy.filters.base import AbstractEnsembleFilter
-from dapy.models.base import AbstractModel, AbstractConditionallyGaussianModel
-import dapy.ot as optimal_transport
+from .base import AbstractEnsembleFilter
+from ..models.base import AbstractModel, AbstractConditionallyGaussianModel
+from .. import ot as optimal_transport
 
 
 class AbstractParticleFilter(AbstractEnsembleFilter):

@@ -8,12 +8,12 @@ import numpy.linalg as nla
 from numpy.typing import ArrayLike
 from numpy.random import Generator
 from scipy.special import logsumexp
-from dapy.filters.base import AbstractEnsembleFilter
-from dapy.models.base import AbstractDiagonalGaussianObservationModel
-import dapy.ot as optimal_transport
-from dapy.utils.localisation import gaspari_and_cohn_weighting
-from dapy.utils.pou import AbstractPartitionOfUnity, PerMeshNodePartitionOfUnityBasis
-from dapy.ot.costs import calculate_cost_matrices_1d, calculate_cost_matrices_2d
+from .base import AbstractEnsembleFilter
+from ..models.base import AbstractDiagonalGaussianObservationModel
+from .. import ot as optimal_transport
+from ..utils.localisation import gaspari_and_cohn_weighting
+from ..utils.pou import AbstractPartitionOfUnity, PerMeshNodePartitionOfUnityBasis
+from ..ot.costs import calculate_cost_matrices_1d, calculate_cost_matrices_2d
 
 
 class AbstractLocalEnsembleFilter(AbstractEnsembleFilter):

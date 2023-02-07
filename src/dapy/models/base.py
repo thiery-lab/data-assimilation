@@ -8,7 +8,7 @@ import numpy.linalg as nla
 import scipy.linalg as sla
 from numpy.typing import ArrayLike
 from numpy.random import Generator
-from dapy.utils.progressbar import ProgressBar
+from ..utils.progressbar import ProgressBar
 
 
 class DensityNotDefinedError(Exception):

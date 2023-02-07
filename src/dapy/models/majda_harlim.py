@@ -11,9 +11,9 @@ References:
 from typing import Union, Sequence
 import numpy as np
 
-from dapy.models.base import AbstractDiagonalGaussianModel, AbstractLinearModel
-from dapy.models.spatial import SpatiallyExtendedModelMixIn
-from dapy.models.transforms import (
+from .base import AbstractDiagonalGaussianModel, AbstractLinearModel
+from .spatial import SpatiallyExtendedModelMixIn
+from .transforms import (
     OneDimensionalFourierTransformedDiagonalGaussianModelMixIn,
     fft,
     real_array_to_rfft_coeff,

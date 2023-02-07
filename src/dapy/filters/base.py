@@ -5,8 +5,8 @@ from typing import Sequence, Dict, Tuple
 import numpy as np
 from numpy.typing import ArrayLike
 from numpy.random import Generator
-from dapy.models.base import AbstractModel
-from dapy.utils.progressbar import ProgressBar
+from ..models.base import AbstractModel
+from ..utils.progressbar import ProgressBar
 
 
 class AbstractEnsembleFilter(abc.ABC):

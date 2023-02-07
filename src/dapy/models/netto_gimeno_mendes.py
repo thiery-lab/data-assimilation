@@ -8,7 +8,7 @@ Model originally proposed in:
 """
 
 import numpy as np
-from dapy.models.base import AbstractDiagonalGaussianModel
+from .base import AbstractDiagonalGaussianModel
 
 
 class NettoGimenoMendesModel(AbstractDiagonalGaussianModel):

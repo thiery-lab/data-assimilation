@@ -2,9 +2,9 @@
 
 from typing import Optional, Tuple, Callable
 import numpy as np
-from dapy.models.base import AbstractDiagonalGaussianModel
-from dapy.models.spatial import SpatiallyExtendedModelMixIn
-from dapy.models.transforms import (
+from .base import AbstractDiagonalGaussianModel
+from .spatial import SpatiallyExtendedModelMixIn
+from .transforms import (
     TwoDimensionalFourierTransformedDiagonalGaussianModelMixIn,
     fft,
     real_array_to_rfft2_coeff,

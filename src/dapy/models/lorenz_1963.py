@@ -9,8 +9,8 @@ Model originally proposed in:
 
 from typing import Union, Optional, Callable
 import numpy as np
-from dapy.models.base import AbstractDiagonalGaussianModel, AbstractIntegratorModel
-from dapy.integrators.lorenz_1963 import Lorenz1963Integrator
+from .base import AbstractDiagonalGaussianModel, AbstractIntegratorModel
+from ..integrators.lorenz_1963 import Lorenz1963Integrator
 
 
 class Lorenz1963Model(AbstractIntegratorModel, AbstractDiagonalGaussianModel):
