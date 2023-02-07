@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools", "wheel", "Cython>=0.29", "numpy>=1.21"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dapy"
+version = "0.1.0"
+description = "Data assimilation in Python"
+readme = "README.md"
+requires-python = ">=3.8"
+keywords = ["data assimilation", "ensemble filter", "particle filter", "Kalman filter"]
+license = {file = "LICENSE"}
+authors = [{name = "Matt Graham"}]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python",
+    "Programming Language :: Cython",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = ["numpy>=1.21", "scipy>=1.8", "numba>=0.48"]
+
+[project.urls]
+repository = "https://github.com/thiery-lab/data-assimilation.git"
